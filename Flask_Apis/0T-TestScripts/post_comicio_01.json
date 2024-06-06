@@ -1,0 +1,11 @@
+{
+  "listas": 10,
+  "escanios" : 7,
+  "votos" : [
+        {"name":"Partido A","votos":340000}
+      , {"name":"Partido B","votos":280000}
+      , {"name":"Partido C","votos":160000}
+      , {"name":"Partido D","votos":60000}
+      , {"name":"Partido E","votos":15000}     
+    ]
+}

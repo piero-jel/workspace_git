@@ -1,0 +1,17 @@
+# forced add this files
+!.gitignore
+
+
+# discard folder/
+instance/
+__pycache__/
+
+
+# discard old foldes 
+*_old*/
+
+# discard old files 
+*_old*
+
+# discard log files, para evitar el seguimiento accidental en el root
+*.log

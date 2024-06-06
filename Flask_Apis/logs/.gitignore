@@ -1,0 +1,5 @@
+# forced add this files, sin este la carpeta no estara en el esquema de seguimineto 
+!.gitignore
+
+# discard log files
+*.log

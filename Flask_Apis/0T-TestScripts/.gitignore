@@ -1,0 +1,7 @@
+# forced add this files
+!.gitignore
+## discard old files
+*_old*
+
+# discard log files
+*.log

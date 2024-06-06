@@ -1,0 +1,6 @@
+# forced add this files
+!.gitignore
+
+# discard folder/
+__pycache__/
+

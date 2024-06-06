@@ -1,0 +1,8 @@
+{  
+  "escanios" : 6,
+  "votos" : [
+        {"name":"Partido A","votos":43000}
+      , {"name":"Partido B","votos":30000}
+      , {"name":"Partido C","votos":27000}           
+    ]
+}

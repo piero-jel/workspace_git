@@ -1,0 +1,9 @@
+## file list for pip install
+flask 
+flask-login
+flask-sqlalchemy
+Werkzeug
+SQLAlchemy
+Flask-HTTPAuth
+PyJWT
+Gunicorn
