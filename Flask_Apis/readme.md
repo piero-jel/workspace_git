@@ -939,6 +939,8 @@ Listado de los Hash Id de los comicios publicados por el usuario actual.
 ## Publicar un Comicio
 ```POST ${url}/api/comicio```
 
+Esta API realiza el calculo y registro de comicios en funcion de la cantidad de votos por listas y escaños, segun el metodo de [D'Hondt](https://es.wikipedia.org/wiki/Sistema_D%27Hondt).
+
 ***Debe estar logueado el usuario actual que usa la APIs (el token del mismo debe estar vigente).***
 
 ### request

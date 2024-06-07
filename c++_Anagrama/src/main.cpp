@@ -1,34 +1,59 @@
-/** ***********************************************************************************//**
-* \addtogroup PryTemplateName 
-* @{ 
-* \copyright  
-* 2023, Luccioni Jesús Emanuel \n
-* All rights reserved.\n 
-* This file is part of PryTemplateName .\n
-* Redistribution is not allowed on binary and source forms, with or without \n
-* modification. Use is permitted with prior authorization by the copyright 
-* holder. &copy;
-* \file example.hpp
-* \author <b> JEL </b> - <i> Jesus Emanuel Luccioni </i>.    
-* \brief Descripcion breve.
-* \details Descripcion detallada.
+/** ******************************************************************************************************//**
+* \addtogroup main
+* @{
+* \copyright
+* Copyright 2024, Jesus Emanuel Luccioni
+* All rights reserved.
+* 
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+* 
+*  1. Redistributions of source code must retain the above copyright notice,
+*     this list of conditions and the following disclaimer.
+* 
+*  2. Redistributions in binary form must reproduce the above copyright notice,
+*     this list of conditions and the following disclaimer in the documentation
+*     and/or other materials provided with the distribution.
+* 
+*  3. Neither the name of the copyright holder nor the names of its
+*     contributors may be used to endorse or promote products derived from this
+*     software without specific prior written permission.
+* 
+* THIS SCRIPT IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SCRIPT, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
 *
-* \version version number.
-* \date day ${NroDayOfMonth} de month, ${year}.
-* \pre pre, condiciones que deben cuplirse antes del llamado, example: First
-* initialize the system.
-* \bug bug, depuracion example: Not all memory is freed when deleting an object 
+* \file main.cpp
+* \author Jesus Emanuel Luccioni - piero.jel@gmail.com.
+* \brief Verificacion de palabras, \b Anagrama.
+* \details Una palabra es \b Anagrama de otra si las dos tienen las mismas letras, con el mismo número de apariciones,
+* pero en un orden diferente.
+
+* \version 0.0.1.
+* \date Jueves 6 de Junio de 2024.
+* \pre pre, condiciones que deben cuplirse antes del llamado,
+* \bug bug, depuracion example: Not all memory is freed when deleting an object
 * of this class.
-* \warning mensaje de precaucion, warning.
-* \note nota.
-* \par meil
-* <PRE> + <b><i> piero.jel@gmail.com </i></b></PRE>
-* @} doxygen end group definition 
-* ********************************************************************************** */
+* \warning
+* \note
+* \par Change History:
+* Author         Date                 Version     Brief
+* JEL            2024.05.06           0.0.1       Version Inicial no release
+*
+* @} doxygen end group definition
+* ********************************************************************************************************* */
 /** 
  * \b VERSION  0 : checkAnagrama() con metodo sort in string
- * \b VERSION  1 : checkAnagrama() comparacion 
- * \b VERSION  2 : checkAnagrama() comparacion mult-version
+ * \b VERSION  1 : 
+ * \b VERSION  2 : 
  * \b VERSION  3 :
  * \b VERSION  4 :
  * \b VERSION  5 :
