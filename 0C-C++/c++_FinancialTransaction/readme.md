@@ -51,12 +51,12 @@ La verificación del numero de tarjeta se basa en el uso de dos archivos uno de 
 # RANGE_LOW(8)~RANGE_HIGHT(8)~LEN(2BYTES)~ID(4BYTES)
 45176501 45176600 16 0010
 ~~~
-  - RANGE_LOW : low value del rango, 8 dígitos.
-  - RANGE_HIGHT : hight value del rango, 8 dígitos.
-  - LEN : longitud del numero de tarjeta, 2 dígitos.
-  - ID : identificador único de Tarjeta, 4 dígitos
+  - **RANGE_LOW** : low value del rango, 8 dígitos.
+  - **RANGE_HIGHT** : hight value del rango, 8 dígitos.
+  - **LEN** : longitud del numero de tarjeta, 2 dígitos.
+  - **ID** : identificador único de Tarjeta, 4 dígitos
   
-Tenemos un carácter de separación entre cada item, este puede ser cualquier incluso un espacio en blanco, por lo general se usa el símbolo '~'
+Tenemos un carácter de separación entre cada item, este puede ser cualquier incluso un espacio en blanco, por lo general se usa el símbolo **'~'**.
   
   
 ## Archivo de Etiquetas de Tarjetas
@@ -108,10 +108,12 @@ Request:
 
 
 Ejemplo:
-  - Nro Tarjeta : 4517650654628311
-  - Monto ($124,54): 124.54 
-  - Code : 123
+  - **Nro Tarjeta** : 4517650654628311
+  - **Monto** ($124,54): 124.54 
+  - **Code** : 123
+
   
+<!--
 ~~~ 
 Request:
  -------------------------------------------------
@@ -120,9 +122,18 @@ Request:
 | 0200 | 164517650654628311 | 000000012454 | 123  |
  -------------------------------------------------
 ~~~
+-->
+ 
+
+
+| **MTID** | **Nro Tarjeta**    | **Monto**    | **Code** | 
+|:--------:|:------------------:|:------------:|:--------:|
+|   0200   | 164517650654628311 | 000000012454 | 123      |
+|          |                    |              |          | 
+
   
 ## Response Message
-Formato del mensaje Response devuelto por el servidor, todos los campos para este caso deben ser ASCII.
+Formato del mensaje Response devuelto por el servidor, todos los campos para este caso deben ser **ASCII**.
 
 ~~~ 
 Request:
@@ -140,6 +151,15 @@ Ejemplos:
   - Code : 00, succes
   - Code : 47, no succes
   
+| **MTID** | **RespCode** | **Status**  |
+|:--------:|:------------:|:------------|
+|   0210   |    00        | **SUCCESS** |
+|          |              |             | 
+|   0210   |  !=00        | **FAILURE** |
+ 
+
+
+<!-- 
 ~~~ 
 Request:
  -----------------
@@ -149,7 +169,8 @@ Request:
  -----------------  
 | 0210 |    47    | FAILURE
  -----------------
-~~~
+~~
+-->
  
 # Compilacion
 Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
@@ -162,7 +183,7 @@ Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
   
 Para que los target anteriores pueda ejecutarse se recomienda tener instalado **gcc/g++**, y **make**, de caso contrario debemos instalarlos.
 
-Los target **run** y **debug** tiene habilitado la variable ARGS con la cual le pasamos al ejecutable (o session de GDB) los argumentos.
+Los target **run** y **debug** tiene habilitado la variable ARGS con la cual le pasamos al ejecutable (o session de **GDB**) los argumentos.
 
 
 ## Instalaccion Red Hat
@@ -185,7 +206,9 @@ sudo apt-get install -y build-essential gdb
 ## Configuracion Makefile
 La configuración Básica contempla:
   1. Selección de la versión del proyecto ```VERSION```, por defecto '0' tenemos una sola versión para este caso.
-  2. Selección de la versión del estándar de compilación ```STD_VER``` por defecto esta en '2020', que representa el estándar de c++20.
+  
+  2. Selección de la versión del estándar de compilación ```STD_VER``` por defecto esta en '2020', que representa el estándar de ```-std=c++20``` (en su defecto para **GNU** ```-std=gnu++20```).
+  
   3. Setting de depuración de memoria ```DEBUG_ON```, por defecto '0'.
     - 0 : Deshabilita las opciones de debug.
     - 1 : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecución.
@@ -279,9 +302,9 @@ Tamaño del archivo ejecutable formato:
 
   3. Ingreso de Clave de seguridad (solo 3-Digito), *ex: 123*
   
-Esto debe enviar al server el msg con el MTID 0200 y demás datos.
+Esto debe enviar al server el msg con el **MTID 0200** y demás datos.
     
-  4. Del lado del servidor se recibirá la respuesta con el MTID 0210 seguida del código
+  4. Del lado del servidor se recibirá la respuesta con el **MTID 0210** seguida del código:
     - '00' , aprobada ok
     - Distinto de '00' error, trx rechazada.
 
