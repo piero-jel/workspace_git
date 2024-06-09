@@ -1,0 +1,7 @@
+## estructura para mantner los directorios sin contenido CLEAN
+# Ignoramos todos los archivos
+*
+# Ignoramos todas los subdirectorios
+*/
+#Agragamos al seguimiento o marcamos que no debe ignorar este archivo
+!.gitignore

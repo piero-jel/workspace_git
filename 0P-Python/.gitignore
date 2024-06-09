@@ -1,0 +1,13 @@
+# forced add this files
+!.gitignore
+
+# discard all files old
+*_old*
+
+
+# discard old folder /
+*_odl*/
+
+# discard log files
+*.log
+
