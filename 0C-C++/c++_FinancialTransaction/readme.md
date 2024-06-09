@@ -40,7 +40,7 @@
   6. Mostrar la respuesta en pantalla, en función del [response message](#response-message). Si el código de respuesta es **"00"** , indica que la transacción fue aprobada y deberá mostrar ***"APROBADA"*** en pantalla. Si el codigo de respuesta es cualquier otro valor, deberá mostrar ***"RECHAZADA"*** .
  
 # Verificacion Numero Tarjeta
-La verificación del numero de tarjeta se basa en el uso de dos archivos uno de rangos y el otro con las etiquetas de cada tarjeta (```Ranges.dat```, ```Cards.dat```). Cada uno de estos posee un formado de registros por cada linea que lo compone.
+La verificación del numero de tarjeta se basa en el uso de dos archivos uno de rangos y el otro con las etiquetas de cada tarjeta (```Ranges.dat```, ```Cards.dat```). Cada uno de estos posee un formato de registros por cada linea que lo compone.
 
   - [Archivo de Rangos](#archivo-de-rangos)
   - [Archivo de Etiquetas de Tarjetas](#archivo-de-etiquetas-de-tarjetas)
