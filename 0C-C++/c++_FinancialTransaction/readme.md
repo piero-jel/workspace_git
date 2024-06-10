@@ -1,6 +1,8 @@
 # Contenido
   + [Financial Transaction, Descripción del Proyecto](#financial-transaction)
   
+  + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicacion)
+  
   + [Verificación Numero Tarjeta](#verificacion-numero-tarjeta)
     - [Archivo de Rangos](#archivo-de-rangos)
     - [Archivo de Etiquetas de Tarjetas](#archivo-de-etiquetas-de-tarjetas)
@@ -39,6 +41,45 @@
   
   6. Mostrar la respuesta en pantalla, en función del [response message](#response-message). Si el código de respuesta es **"00"** , indica que la transacción fue aprobada y deberá mostrar ***"APROBADA"*** en pantalla. Si el codigo de respuesta es cualquier otro valor, deberá mostrar ***"RECHAZADA"*** .
  
+# Esquema de directorios de la Aplicacion
+~~~
+.
+├── app
+│   ├── FinancialTransaction_v0
+│   └── Host2HostServer_v1
+│
+├── files
+│   └── local
+│       ├── cards.dat
+│       └── ranges.dat
+│
+│
+├── inc
+│   ├── CardsRegister.hpp
+│   ├── Exception.hpp
+│   ├── main.hpp
+│   ├── PSocket.hpp
+│   └── RangesRegister.hpp
+│
+├── Makefile
+├── out
+│
+├── readme.md
+└── src
+    ├── main.cpp
+    └── PSocket.cpp
+
+~~~
+
+  + **app** : Directorio donde se colocara el ejecutable.
+  + **files** : Directorio que contiene archivos, dentro de este tenenos el subdirectorio local con los archivos de rango y tarjetas asociados a la ejecución del proyecto.
+  
+  + **inc** : Directorio donde se localizan los header files.
+  + **src** : Directorio donde colocamos los source files.
+  + **Makefile** : Archivo con los target de compilación para ```make```.
+  + **out** : Directorio donde se colocaran los object files, resultado de la compilación.
+  + **readme.md** : este documento .
+  
 # Verificacion Numero Tarjeta
 La verificación del numero de tarjeta se basa en el uso de dos archivos uno de rangos y el otro con las etiquetas de cada tarjeta (```Ranges.dat```, ```Cards.dat```). Cada uno de estos posee un formato de registros por cada linea que lo compone.
 

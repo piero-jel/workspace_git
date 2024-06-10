@@ -2,6 +2,8 @@
 
   + [Registro Numerico, Descripción del Proyecto](#registro-numerico)
   
+  + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicacion)
+  
   + [Compilación](#compilacion)
     - [Instalación Red Hat](#instalaccion-red-hat)
     - [Instalación Debian](#instalaccion-debian)
@@ -26,7 +28,27 @@ El registro de Numeros se basa en un programa que solicite al usuario el ingreso
   
   + Seinformara si el archivo fue guardado con exito o si fallo y luego terminara la ejecucion del programa.
  
+# Esquema de directorios de la Aplicacion
+~~~
+.
+├── app
+│
+├── inc
+│   └── main.hpp
+├── Makefile
+├── out
+│   
+├── readme.md
+└── src
+    └── main.cpp
+~~~
 
+  + **app** : Directorio donde se colocara el ejecutable.
+  + **inc** : Directorio donde se localizan los header files.
+  + **src** : Directorio donde colocamos los source files.
+  + **Makefile** : Archivo con los target de compilación para ```make```.
+  + **out** : Directorio donde se colocaran los object files, resultado de la compilación.
+  + **readme.md** : este documento.
 
 # Compilacion
 Dentro del directorio root tenemos un **Makefile** con los siguientes targets:

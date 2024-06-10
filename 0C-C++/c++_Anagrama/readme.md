@@ -2,6 +2,8 @@
 
   + [Anagrama, Descripción del Proyecto](#anagrama)
   
+  + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicacion)
+  
   + [Compilación](#compilacion)
     - [Instalación Red Hat](#instalaccion-red-hat)
     - [Instalación Debian](#instalaccion-debian)
@@ -16,7 +18,29 @@
 # Anagrama
 Programa que permite verificar si dos palabras son un Anagrama, *una palabra es anagrama de otra si las dos tienen las mismas letras, con el mismo número de apariciones, pero en un orden diferente*.
 
+# Esquema de directorios de la Aplicacion
+~~~
+.
+├── app
+│
+├── inc
+│   └── main.hpp
+├── Makefile
+├── out
+│   
+├── readme.md
+└── src
+    └── main.cpp
+~~~
 
+  + **app** : Directorio donde se colocara el ejecutable.
+  + **inc** : Directorio donde se localizan los header files.
+  + **src** : Directorio donde colocamos los source files.
+  + **Makefile** : Archivo con los target de compilación para ```make```.
+  + **out** : Directorio donde se colocaran los object files, resultado de la compilación.
+  + **readme.md** : este documento 
+    
+  
 # Compilacion
 Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
 
