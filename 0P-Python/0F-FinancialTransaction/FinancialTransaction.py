@@ -100,6 +100,7 @@ def main():
       st.Send("")
     #end with
     print(f'response: {response}')
+    
     if(response == ''):
       print(f'ERROR DE COMUNICACION, SERVER CLOSE COMUNICATION')
       return 
