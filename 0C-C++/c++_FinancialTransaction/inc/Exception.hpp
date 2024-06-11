@@ -178,13 +178,24 @@ class Exception : public std::exception
 };
 
 
-#ifdef NDEBUG
-  #define EXCEPTION(Fmt, arg...)\
-    Exception ( "[%s:%s():%ld] " Fmt\
-              , __FILE__,__func__,(long int)__LINE__\
-              , ##arg)
+#if ( IS_SAME >= 2017 )
+  #ifdef NDEBUG
+    #define EXCEPTION(Fmt, arg...)\
+      Exception ( "[%s:%s():%ld] " Fmt\
+                , __FILE__,__func__,(long int)__LINE__\
+                , ##arg)
+  #else
+    #define EXCEPTION(Fmt, arg...) Exception(Fmt, ##arg)
+  #endif
 #else
-  #define EXCEPTION(Fmt, arg...) Exception(Fmt, ##arg)
+  #ifdef NDEBUG
+    #define EXCEPTION(Fmt, arg...)\
+      Exception<> ( "[%s:%s():%ld] " Fmt\
+                , __FILE__,__func__,(long int)__LINE__\
+                , ##arg)
+  #else
+    #define EXCEPTION(Fmt, arg...) Exception<>(Fmt, ##arg)
+  #endif
 #endif
 
 /*

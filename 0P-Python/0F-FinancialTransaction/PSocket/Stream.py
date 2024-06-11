@@ -49,6 +49,7 @@ class Status(int,Enum):
 # end class for status
 
 class Stream(ABC):
+  ''' Clase Base Abstracta Para modelar un Stream Socket '''
   def __init__(self,**kwarg):
     self._ip    = kwarg.get('ip','0.0.0.0')
     self._port  = kwarg.get('port',8080)
@@ -117,7 +118,7 @@ class Stream(ABC):
     '''
     msg_len = len(msg)
     if(msg_len == 0):
-      ''' el server lo puede interpretar como un cierre '''
+      ''' Enviamos el cierre de conexion '''
       self._fd.send(self.byteint.number2binary(0) + b"")
       return 0
     # end 
@@ -165,10 +166,8 @@ class Stream(ABC):
       self._fd.settimeout(timeout)
     # end fi
     header = self._fd.recv(self._fmt_len)
-    #print(f'header: <{header}>')
     len_msg:int = self.byteint.binary2number(header)
 
-    #print(f'len_msg: {len_msg}')
     if(len_msg == 0):
       return ''
     # end if
@@ -214,7 +213,7 @@ class Client(Stream):
         - fmt_len : formato para el set/get la longitud en el header del 
         mensaje, por defecto 4 bytes.
   '''
-  MSGLEN = 4096
+  
   ''' Clase para modelar la conexion al host '''
   def __init__(self,**kwarg):
     ''' Inicializacion de una instancia del tipo Client
@@ -254,7 +253,7 @@ class Client(Stream):
     '''
     if(self._st == Status.CONNECT):
       self._fd.close()
-      self._st == Status.DISCONNECT
+      self._st = Status.DISCONNECT
     #end if
     return True
   # end def
@@ -284,7 +283,7 @@ class Server(Stream):
         - fmt_len : formato para el set/get la longitud en el header del 
         mensaje, por defecto 4 bytes.
   '''
-  MSGLEN = 4096
+  
   ''' Clase para modelar la conexion al host '''
   def __init__(self,**kwarg):
     ''' Inicializacion de una instancia del tipo Server Stream Socket
@@ -323,10 +322,12 @@ class Server(Stream):
       return False
     if(self._fd):
       self._fd.close()
+    #end if
     if(self._fdsrv):
       self._fdsrv.close()
-    self._st == Status.DISCONNECT
     #end if
+    
+    self._st = Status.DISCONNECT    
     return True
   # end def
 
@@ -339,13 +340,11 @@ class Server(Stream):
 
 
   def __enter__(self):
-    ''' for with context '''
-    #print(f'{type(self)}.__enter__()')    
+    ''' for with context '''    
     return self
   
   def __exit__(self, *args):
-    ''' for exit with context '''
-    #print(f'{type(self)}.__exit__()')
+    ''' for exit with context '''    
     self.Disconnect()
 
   def __repr__(self) -> str:

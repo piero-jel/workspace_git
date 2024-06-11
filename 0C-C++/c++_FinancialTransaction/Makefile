@@ -39,7 +39,7 @@
 VERSION ?= 0
 
 ## Set Standar de Compilacion {2011,2014,2017,2020}, default value 2011
-STD_VER  := 2020
+STD_VER  := 2017
 
 ## '1' enable, '0' disable, (!= 1 && != 0) user setting for debug
 DEBUG_ON := 0

@@ -228,7 +228,7 @@ Stream::~Stream()
 */
 uint32_t Stream::Send(const char* msg, uint32_t l)
 {
-  if(!msg)
+  if(!msg || this->_fd == 0)
     return 0;
   
   uint32_t len;
@@ -274,6 +274,9 @@ uint32_t Stream::Send(const char* msg, uint32_t l)
 */
 uint32_t Stream::Send(const std::string& msg, uint32_t l)
 {
+  if(this->_fd == 0)
+    return 0;
+
   uint32_t len;
   if(l == 0)
     len = msg.size();
@@ -319,6 +322,9 @@ uint32_t Stream::Send(const std::string& msg, uint32_t l)
 */
 uint32_t Stream::Recv(char* buf, uint32_t len, bool reentry)
 {
+  if(this->_fd == 0)
+    return 0;
+
   if(!buf)
     throw EXCEPTION ( "EINVAL buf null");
 
@@ -377,6 +383,9 @@ uint32_t Stream::Recv(char* buf, uint32_t len, bool reentry)
  */
 uint32_t Stream::Recv(std::string& rcv, uint32_t len, bool reentry)
 {
+  if(this->_fd == 0)
+    return 0;
+
   uint64_t bytes;
   int flags = 0;
   int errn;
@@ -490,6 +499,9 @@ uint32_t Stream::Recv ( char* buf, uint32_t len
 */
 void Stream::RecvTimeout(double timeout)
 {
+  if(this->_fd == 0)
+    return;
+    
   using timeval_t = struct timeval;   
   int errn; 
   timeval_t time {};

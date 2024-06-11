@@ -66,7 +66,7 @@
  * 
  */
 #if (!defined(VERSION))
-  #define VERSION 1
+  #define VERSION 0
 #endif
 
 
@@ -76,6 +76,13 @@
 /* Financial Transaction0.0.1 */
 #include <main.hpp>
 #include <PSocket.hpp>
+
+#if ( IS_SAME >= 2017 )
+  /* c++17 >    */
+  #define IS_SAME(OBJ1,OBJ2) std::is_same_v<OBJ1, OBJ2>
+#else
+  #define IS_SAME(OBJ1,OBJ2) std::is_same<OBJ1, OBJ2>::value
+#endif
 
 /*
 * ******************************************************************************** 
@@ -101,10 +108,11 @@ int main(int argc, char* argv[])
       , PSocket::FmtLen::FMT4B 
     };
     // 1° conect to Server
+    /*
     socket.Connect(buf,sizeof(buf));
 
     fprintf(stdout, "Client Connect to <%s>\n", buf);
-    
+    */
     // 2° Get Amount
     int64_t amount = GetAmount("Ingrese el monto (hasta 2 decimales Implicitos): ");
     
@@ -112,9 +120,19 @@ int main(int argc, char* argv[])
     std::string card_number = GetCardNumber("Ingrese el Numero de Tarjeta ( 13 ~ 99 decimales): ");
 
     // 4° Verify the card number
+    #if ( IS_SAME >= 2017 )
     auto [st,reg_rng,reg_card] = VerifyCardNumber (card_number
                                                   ,cli.frange
                                                   ,cli.fcards);
+    #else
+    auto ret = VerifyCardNumber (card_number
+                                                  ,cli.frange
+                                                  ,cli.fcards);
+    auto st = std::get<0>(ret);
+    //auto reg_rng = std::get<1>(ret);
+    auto reg_card = std::get<2>(ret);
+    #endif  
+    
     if(!st)
     {
       fprintf(stdout,"TARJETA <%s> NO SOPORTADA\n",card_number.c_str());
@@ -142,6 +160,12 @@ int main(int argc, char* argv[])
     socket.Recv(response,double(cli.timeout/1000));
 
     // 8° Verify the Response
+    if(response.length() < 6)
+    {
+      fprintf ( stdout,"Response <%s> error, empty or length too short\n"
+              , response.c_str() );
+      exit(EXIT_SUCCESS);
+    }
     std::cout<<"Response: "<<response<<'\n';
     std::string mtid = response.substr(0,4);
     std::string respcode = response.substr(4,2);
@@ -181,8 +205,10 @@ std::tuple<bool,RangesRegister,CardsRegister>
                   ,std::string frange
                   ,std::string fcards)
 {
-  using CRange = std::list<RangesRegister>;
-  using CCards = std::list<CardsRegister>;
+  /*using CRange = std::list<RangesRegister>;
+  using CCards = std::list<CardsRegister>;*/
+  using CRange = std::forward_list<RangesRegister>;
+  using CCards = std::forward_list<CardsRegister>;
 
   
   /* 1° parsin de archivos */
@@ -571,21 +597,21 @@ void ReadAndFillContainer(const std::string& pathname, C& container, char commen
       *  + std::set<T>::emplace(T Obj);
       *  + std::multiset<T>::emplace(T Obj);
       *
-    */      
-    if constexpr (  std::is_same_v<C, std::vector<typename C::value_type>>
-                || std::is_same_v<C, std::list<typename C::value_type>>
+    */
+    if constexpr ( IS_SAME(C, std::vector<typename C::value_type>)
+                || IS_SAME(C, std::list<typename C::value_type>)
                 )
     {
       container.emplace_back(typename C::value_type(buf));
     }
     
-    else if constexpr (  std::is_same_v<C, std::set<typename C::value_type>>
-                      || std::is_same_v<C, std::multiset<typename C::value_type>>
+    else if constexpr (  IS_SAME(C, std::set<typename C::value_type>)
+                      || IS_SAME(C, std::multiset<typename C::value_type>)
                       )
     {
       container.emplace(typename C::value_type(buf));
     }
-    else if constexpr (  std::is_same_v<C, std::forward_list<typename C::value_type>> )
+    else if constexpr ( IS_SAME(C, std::forward_list<typename C::value_type>) )
     {
       container.emplace_front(typename C::value_type(buf));
     }   
@@ -614,7 +640,7 @@ void ReadAndFillContainer(const std::string& pathname, C& container, char commen
   }  
   f2read.close();
 
-  if constexpr (  std::is_same_v<C, std::forward_list<typename C::value_type>> )
+  if constexpr ( IS_SAME(C, std::forward_list<typename C::value_type>))
   {    
     if( std::distance(std::begin(container),std::end(container)) == 0)
       throw EXCEPTION ("Archivo <%s> Vacio (o solo contiene comentarios)"

@@ -105,6 +105,11 @@ def main():
       return 
     #end if
 
+    if(len(response) < 6):
+      print(f'ERROR RESPONSE <{response}> Too short')
+      return 
+    #end if
+    
     if(response[0:4] != '0210'):
       print(f'MTID <{response[0:4]}> Incorrecto')
       return 
@@ -113,7 +118,7 @@ def main():
     if(response[4:6] == '00'):
       print('APROBADA')
     else:
-      print(f'RECHAZADA, code <{response}>')
+      print(f'RECHAZADA, code <{response[4:6]}>')
     #end if
   except TimeoutError as e:
     print(f'ERROR DE COMUNICACION TIME-OUT <{e}>')
