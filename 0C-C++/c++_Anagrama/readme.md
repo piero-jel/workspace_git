@@ -79,7 +79,8 @@ sudo apt-get install -y build-essential gdb
 La configuración Básica contempla:
   1. Selección de la versión del proyecto ```VERSION```, por defecto '0' tenemos una sola version para este caso.
   2. Selección de la versión del estándar de compilaccion ```STD_VER``` por defecto esta en '2020', que representa el estándar de c++20.
-  3. Setting de depuración de memoria ```DEBUG_ON```, por defecto '0'.
+  3. Setting de depuración de memoria ```DEBUG_ON```, por defecto '0':
+  
     - 0 : Deshabilita las opciones de debug.
     - 1 : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecucion.
     - 2 : Habilita solo los Flags de GDB (para ```make debug``` este se establece de forma automatica).
