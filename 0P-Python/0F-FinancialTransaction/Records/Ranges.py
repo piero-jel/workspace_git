@@ -31,22 +31,6 @@ class RangesRegister(Records.Record):
     return f"{self.low:8} {self.high:8} {self.len:02} {self.id:04}"
   #end if
 
-  def __eq__(self,obj) -> bool:
-    ''' Operator == for object '''
-    if(self.low != obj.low):
-      return False
-    if(self.high != obj.high):
-      return False
-    
-    if(self.len != obj.len):
-      return False
-    
-    if(self.id != obj.id):
-      return False
-    
-    return True    
-  #end def
-
   @classmethod
   def Predicate(cls,v:str):
     return RangePredicate(v)

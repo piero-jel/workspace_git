@@ -13,11 +13,9 @@ def GetAmount(msg:str,maxlen:int=12)->int:
   #end if
   am_str = am_str.lstrip('+')
   if(len(am_str) > maxlen):
-    raise ValueError(f'Negative Amount <{am_str}> not allowed"')
-  return int(float(am_str)*100)    
-  if(not am_str.isdecimal()):
-    raise ValueError(f'Amount <{am_str}> It is not composed only of digits')
-  #end if    
+    raise ValueError(f'Amount length <{len(am_str)}> too long"')
+  #end if
+  return int(float(am_str)*100)  
 #end def
 
 def GetCardNumber(msg:str,minlen:int=13,maxlen:int=99)->str:
@@ -118,7 +116,10 @@ def main():
       print(f'RECHAZADA, code <{response}>')
     #end if
   except TimeoutError as e:
-    print(f'ERROR DE COMUNICACION TIME-OUT')
+    print(f'ERROR DE COMUNICACION TIME-OUT <{e}>')
+
+  except ValueError as e:
+    print(f'ERROR EN EL INGRESO DE DATOS <{e}>')
 
   except Exception as e:    
     print(f'Exception Type {type(e)}\nTRACEBACK:{traceback.format_exc()}')

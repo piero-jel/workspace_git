@@ -20,13 +20,14 @@ class Record(ABC):
     pass
   # end def
 
-  """ esta es util para degug, cumplimos con el
+  """ esta es util solo para degug, debemos cumplir
     SOLID 
       - SRP: Simple
       - OCP: Open And Close
       - LSP: Principio de Sustitucion
       - IS: Segregacion de Interfaces
       - DI: Inversion de Dependencias
+      
   @abstractmethod
   def __repr__(self):
     '''Para un metodo abstracto forzamos a crear __repr__'''

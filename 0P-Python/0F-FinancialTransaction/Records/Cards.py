@@ -26,16 +26,6 @@ class CardsRegister(Records.Record):
     return f"{self.label:8} {self.id:04}"
   #end if
 
-  def __eq__(self,obj) -> bool:
-    ''' Operator == for object '''    
-    if(self.label != obj.label):
-      return False
-    
-    if(self.id != obj.id):
-      return False    
-    return True    
-  #end def
-
   @classmethod
   def Predicate(cls,v):
     def wrapper(item):
