@@ -246,12 +246,11 @@ sudo apt-get install -y build-essential gdb
   
 ## Configuracion Makefile
 La configuración Básica contempla:
-  1. Selección de la versión del proyecto ```VERSION```, por defecto '0' tenemos una sola versión para este caso.
+  + Selección de la versión del proyecto ```VERSION```, por defecto '0' tenemos una sola versión para este caso.
   
-  2. Selección de la versión del estándar de compilación ```STD_VER``` por defecto esta en '2020', que representa el estándar de ```-std=c++20``` (en su defecto para **GNU** ```-std=gnu++20```).
+  + Selección de la versión del estándar de compilación ```STD_VER``` por defecto esta en '2020', que representa el estándar de ```-std=c++20``` (en su defecto para **GNU** ```-std=gnu++20```).
   
-  3. Setting de depuración de memoria ```DEBUG_ON```, por defecto '0':
-  
+  + Setting de depuración de memoria ```DEBUG_ON```, por defecto '0':  
     - 0 : Deshabilita las opciones de debug.
     - 1 : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecución.
     - 2 : Habilita solo los Flags de GDB (para ```make debug``` este se establece de forma automática).
