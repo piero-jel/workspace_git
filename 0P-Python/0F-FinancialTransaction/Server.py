@@ -46,11 +46,14 @@ def main():
           st.Send("")
           continue
         # end if
-        response = f'0210{code:02}'
+        response = f'0210{int(code):02}'
         print(f'response :{response }')
         st.Send(response)        
       # end while      
     # end with
+    
+  except ValueError as e :
+    print(f'ValueError {e}')
     
   except KeyboardInterrupt:
     print('End request for current user')

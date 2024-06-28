@@ -3,8 +3,8 @@ __utilities__=1
 
 ### BEGIN Global Vars
 IP='127.0.0.1'
-# PORT='8080'
-PORT='3000'
+PORT='8000'
+# PORT='3000'
 URL="http://${IP}:${PORT}"
 ### END   Global Vars
 

@@ -77,7 +77,7 @@
 #include <main.hpp>
 #include <PSocket.hpp>
 
-#if ( IS_SAME >= 2017 )
+#if ( STD_VER >= 2017 )
   /* c++17 >    */
   #define IS_SAME(OBJ1,OBJ2) std::is_same_v<OBJ1, OBJ2>
 #else
@@ -107,12 +107,11 @@ int main(int argc, char* argv[])
       , cli.port
       , PSocket::FmtLen::FMT4B 
     };
-    // 1° conect to Server
-    /*
+    // 1° conect to Server    
     socket.Connect(buf,sizeof(buf));
 
     fprintf(stdout, "Client Connect to <%s>\n", buf);
-    */
+    
     // 2° Get Amount
     int64_t amount = GetAmount("Ingrese el monto (hasta 2 decimales Implicitos): ");
     

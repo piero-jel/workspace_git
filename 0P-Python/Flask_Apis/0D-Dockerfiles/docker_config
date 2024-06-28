@@ -43,7 +43,7 @@ IMGAGE_NAME='flask-apis'
 ## set ip numbers
 IP=127.0.0.1
 ## set host port, on the users side
-HOST_PORT=3000
+HOST_PORT=8000
 ## set container port, on the application side
 CONT_PORT=8080
 

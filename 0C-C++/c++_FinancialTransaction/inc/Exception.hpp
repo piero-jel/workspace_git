@@ -178,7 +178,7 @@ class Exception : public std::exception
 };
 
 
-#if ( IS_SAME >= 2017 )
+#if ( STD_VER >= 2017 )
   #ifdef NDEBUG
     #define EXCEPTION(Fmt, arg...)\
       Exception ( "[%s:%s():%ld] " Fmt\
