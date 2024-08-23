@@ -1,0 +1,33 @@
+services:
+  flask-apis: # Aplication name for run    
+    container_name: FlaskApis    # set container name
+    build: 0D-Dockerfiles/.      # path to Dockerfiles for build
+    ports: # port to enable
+      - "8080:8080" # -p ${HOST_PORT}:${CONT_PORT}
+    
+    volumes:
+      - "${PATH_PROJECT}:/home/user:rw" 
+      - "${PATH_CONFIG}/bashrc:/root/:rw" 
+      
+    environment:
+      - TZ=America/Argentina/Buenos_Aires
+      #- LANG=es_AR.UTF-8
+      - LANG=es_AR
+      - LANGUAGE=es_AR.UTF-8
+            
+    security_opt:
+      - seccomp:unconfined    
+    ulimits:
+      # core: 52428800 
+      core: -1
+    ## for run, no cambia luego del primer ejecuccion
+    ##  docker compose run --rm node-js 
+    ## otra opcion para no crearlo en cada uso es 
+    ### lo creamos una sola ves y luego nos atachamos a la session
+    ##  docker compose up -d
+    ##  docker compose exec node-js bash
+    ## 
+    ### para los futuros usos
+    ##  docker compose start
+    ##  docker compose exec node-js bash
+    ##  docker compose stop

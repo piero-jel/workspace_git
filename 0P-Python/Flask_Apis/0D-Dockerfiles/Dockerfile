@@ -40,37 +40,34 @@ LABEL author="JELuccioni"
 LABEL email="jeluccioni@gmail.com"
 
 ENV REFRESHED_AT 2024-05-16
-LABEL version="1.0" location="Argentina" type="Dev Ops" role="Python3"
+# LABEL version="1.0" location="Argentina" type="Dev Ops" role="Python3"
 
 ## BEGIN for python install locale module
-RUN apt-get update && \
-    apt-get install -y locales && \
-    sed -i -e 's/# es_AR UTF-8/es_AR UTF-8/' /etc/locale.gen && \
-    dpkg-reconfigure --frontend=noninteractive locales
-
-ENV LANG es_AR.UTF-8
-ENV LC_NUMERIC es_AR.UTF-8
+# RUN apt-get update && \
+#     apt-get install -y locales && \
+#     sed -i -e 's/# es_AR UTF-8/es_AR UTF-8/' /etc/locale.gen && \
+#     dpkg-reconfigure --frontend=noninteractive locales
+# 
+# ENV LANG es_AR.UTF-8
+# ENV LC_NUMERIC es_AR.UTF-8
 ## END   for python install locale module
 
 
 ## -- creamos el directorio principal
 WORKDIR /home/user
-COPY bashrc.sh ./
 COPY requerimientos.txt ./
-#RUN mkdir -p /home/user
+RUN mkdir -p /home/user
 
 ## set enviroment vars:
-ENV LANG=es_AR LANGUAGE=es_AR.UTF-8
+#ENV LANG=es_AR LANGUAGE=es_AR.UTF-8
 ## FIXME
 ## for locale.Error: unsupported locale setting" on pip install
 ## equivalent export LC_ALL=C
-ENV LC_ALL=C
+#ENV LC_ALL=C
 
 ## set alias, no funciona de esta forma
 ### BEGIN set alias in root files
-RUN echo "alias cds='cd /home/user/'" >> /root/.bashrc
-RUN cat bashrc.sh >> /root/.bashrc
-RUN export PATH=$PATH:/home/user
+#RUN export PATH=$PATH:/home/user
 
 
 ### END
@@ -78,8 +75,6 @@ RUN export PATH=$PATH:/home/user
 ### BEGIN install packages python 
 RUN apt-get update
 RUN apt-get install -y python3-pip
-RUN echo "alias python='python3'" >> /root/.bashrc
-
 ### END
 
 
@@ -88,9 +83,6 @@ RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r re
 ## END   Package for Python
 
 
-### BEGIN expose port and server 
-# EXPOSE 8080
-### END   expose port and server 
 
 ### BEGIN config daemon
 #CMD ["python3", "main.py"]

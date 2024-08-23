@@ -37,34 +37,37 @@
 #=====================================================================================================
 #
 #=====================================================================================================
-DOCK_FOLDER="$PWD/0D-Dockerfiles"
-
-[ -z "$__docker_config__" ] && . ${DOCK_FOLDER}/docker_config  2>/dev/null
+CONTAINER_NAME='FlaskApis'
+IMGAGE_NAME='flask-apis'
 
 ## BEGIN setting default, if config not load
-### DOCKERFLAGS
-if [[ ! -v DOCKERFLAGS ]]; then
-  DOCKERFLAGS="-it -v $PWD/:/home/user:rw"
-fi
-
-### DOCKERDAEMON_FLG
-if [[ ! -v DOCKERDAEMON_FLG ]]; then DOCKERDAEMON_FLG=0; fi
-
-### DOCKERFOLDER
-if [[ ! -v DOCKERFOLDER ]]; then DOCKERFOLDER='0D-Dockerfiles'; fi
-
-### DOCKERFILE
-if [[ ! -v DOCKERFILE ]]; then DOCKERFILE="Dockerfile"; fi
-
-### DOCKERIMAGE
-if [[ ! -v DOCKERIMAGE ]]; then DOCKERIMAGE="jeluccioni/test-img-name"; fi
-
 ### DOCKERCONTAINER
-if [[ ! -v DOCKERCONTAINER ]]; then DOCKERCONTAINER="TestImgName"; fi
+if [[ ! -v DOCKERCONTAINER ]]; then DOCKERCONTAINER=${CONTAINER_NAME}; fi
 
+if [[ ! -v DOCKERCONTAINER ]]; then DOCKERIMAGE="jeluccioni/${IMGAGE_NAME}"; fi
 ## END   setting default, if config not load
 
+## para distro debian y deribados
+ENTRYPOINT='bash'
 
+
+CLEAN_ARR_FILES=( )
+
+CLEAN_ARR_COMODIN_FILES=( 
+  "logs/*.log" 
+)
+
+CLEAN_ARR_FOLDERS=(
+  
+)
+
+CLEAN_ARR_DIR=( 
+  "instance/"
+  "__pycache__/"
+  "ApiErrorHandler/__pycache__"
+  "Config/__pycache__"
+  "Models/__pycache__/"
+)
 
 ##
 ## $1 single target valor por defecto -h/--help
@@ -85,38 +88,61 @@ function msg_help()
             '--status'
             '--build'
             '--terminal'
-            '--rm'
-            '--rm-image'
-            '--rm-all'
-            '--attach'            
-            '--check'
-            '--del-build-cache'
+            '--rm'            
+            '--attach'
+            '--rm-build-cache'
             '--inspect'
-            '--logs'
-            '--test'
+            '--logs'                        
+            '--restart'
+            '--rebuild'
             '--clean'
+            '--top'
           )
 
   case "$arg1" in
-  --test)
+  --top)
     cat << EOH >&2
---test [CONTAINER-NAME]
-  test [CONTAINER-NAME]
+--top
+  top     
+  
+  View List process running actualemtne para la configuraciones restablecidas.
 
-  [CONTAINER-NAME] opcional Nombre del Container, por defecto usa el configurad ${DOCKERCONTAINER}
-  Inicia el contenedor en modo iterativo atachando el prompt al log del mismo ( stdout , stderr ).
+EOH
+  return 0
+  ;;  
+  --rebuild)
+    cat << EOH >&2
+--rebuild 
+  rebuild 
+  
+  Reconstruye la imagen y el contenedor, util cuando se realizan cambios sobre los archivos de configuracion.
 
 EOH
   return 0
   ;;
+  
+  --restart)
+    cat << EOH >&2
+--restart [CONTAINER-NAME]
+  restart [CONTAINER-NAME]
+
+  Detiene y luego inicia el contenedor nuevamente.
+  [CONTAINER-NAME] opcional Nombre del Container, por defecto usa el configurado <${DOCKERCONTAINER}>,
+  Si no pasamos este reinia todos los configurados en el docker-compose.yml.
+
+EOH
+  return 0
+  ;;
+  
   --logs)
     cat << EOH >&2
 --logs [CONTAINER-NAME]
+ -l [CONTAINER-NAME]
   logs [CONTAINER-NAME]
 
-  [CONTAINER-NAME] opcional Nombre del Container, por defecto usa el configurad ${DOCKERCONTAINER}
+  [CONTAINER-NAME] opcional Nombre del Container, por defecto usa el configurado <${DOCKERCONTAINER}>
   Nos muestra los log del contenedor, util para el caso de que el contenedor se detubo de forma inesperada.
-
+  Si no pasamos este visualiza el log general.
 EOH
   return 0
   ;;
@@ -126,8 +152,9 @@ EOH
 --status [CONTAINER-NAME]
   status [CONTAINER-NAME]
 
-  [CONTAINER-NAME] opcional Nombre del Container, por defecto usa el configurad ${DOCKERCONTAINER}
+  [CONTAINER-NAME] opcional Nombre del Container, por defecto usa el configurado <${DOCKERCONTAINER}>
   Realiza la busqueda del Contenedor en el servico corriendo en el host y retorna el Status.
+  Si no pasamos este visualiza el status general.
   
 EOH
   return 0
@@ -140,6 +167,7 @@ EOH
 
   [CONTAINER-NAME] : it is optional, defautl container is <$DOCKERCONTAINER>
   Return JSON with low-level information from Container objects
+  Si no pasamos este visualiza el inspect general.
   
 EOH
   return 0
@@ -152,7 +180,7 @@ EOH
         -t [CONTAINER-NAME]
 
   [CONTAINER-NAME] : it is optional, defautl container is <$DOCKERCONTAINER>
-  Open new terminal session with bash tty, conect to container run.
+  Open new terminal session with ${ENTRYPOINT} tty, conect to container run.
   Podemos tener varias terminales conectadas de forma simultanea a un contenedor
   en ejecucion.  
   
@@ -160,9 +188,9 @@ EOH
   return 0
   ;;
   
-  --del-build-cache)
+  --rm-build-cache)
     cat << EOH >&2
---del-build-cache
+--rm-build-cache
   del-build-cache
 
   Remove build cache
@@ -171,25 +199,13 @@ EOH
   return 0
   ;;
  
-  --check)
-    cat << EOH >&2
---check [IMAGE-NAME:TAG]
-  check [IMAGE-NAME:TAG]
-
-  [IMAGE-NAME:TAG] opcional Imagen Tag, por defecto usa el configurad ${DOCKERIMAGE}
-  Realiza la busqueda de la imagen en el registro local.
-
-EOH
-  return 0
-  ;;  
-
   --attach)
     cat << EOH >&2
---attach
-  attach
+--attach [CONTAINER-NAME]
+  attach [CONTAINER-NAME]
 
-  Docker container ${DOCKERCONTAINER} attach
-  Attach local standard input, output, and error streams to a running container <${DOCKERCONTAINER}>.
+  Docker container <${DOCKERCONTAINER}> attach
+  Attach local standard input, output, and error streams to a running container, default  <${DOCKERCONTAINER}>.
 
 
 EOH
@@ -198,11 +214,12 @@ EOH
 
   --start)
     cat << EOH >&2
+ -s [CONTAINER-NAME]    
 --start [CONTAINER-NAME]
   start [CONTAINER-NAME]
 
   [CONTAINER-NAME] : it is optional, defautl container is <$DOCKERCONTAINER>
-  Inicia el Contenedor, previamente creado (de lo contrario notificara error)  
+  Inicia el Contenedor, previamente creado (de lo contrario notificara error).
 
 EOH
     return 0
@@ -222,6 +239,7 @@ EOH
   
   --kill)
     cat << EOH >&2
+ -k [CONTAINER-NAME]
 --kill [CONTAINER-NAME]
   kill [CONTAINER-NAME]
 
@@ -233,62 +251,38 @@ EOH
     return 0
   ;;  
   
+  --build)
+    cat << EOH >&2
+--build 
+     -b 
+  build 
+     
+  Default values:    
+    + Container ${DOCKERCONTAINER}
+
+  Construye el proyecto con las imagenes y conetenedors establecidos en 'docker-compose.yml'.
+
+EOH
+    return 0
+  ;;
+
   --rm)
     cat << EOH >&2
 --rm
 
-  Docker remove container ${DOCKERCONTAINER}
-  Elimina el contenedor <${DOCKERCONTAINER}>, si este existe.
+  Remove todos los contenedores establecidos en 'docker-compose.yml'.  
 
 EOH
     return 0
   ;;
-
-  --build|-b)
-    cat << EOH >&2
---build [IMAGE-NAME [CONTAINER-NAME]]
-     -b [IMAGE-NAME [CONTAINER-NAME]]
-  build [IMAGE-NAME [CONTAINER-NAME]]
-     
-  Default values:
-    + Image ${DOCKERIMAGE}
-    + Container ${DOCKERCONTAINER}
-
-  Construye la imagen <${DOCKERIMAGE}> para el contenedor <${DOCKERCONTAINER}> a partir de las configuraciones del dockerfile <${DOCKERFILE}>. Inicia el container en funcion de los flags <${DOCKERFLAGS}>.
-
-EOH
-    return 0
-  ;;
-
-  --rm-image)
-    cat << EOH >&2
---rm-image
-
-  Docker Image ${DOCKERIMAGE} Remove
-  Remueve la imagen <${DOCKERIMAGE}>, si esta existe.
-
-EOH
-    return 0
-  ;;
-
-  --rm-all)
-    cat << EOH >&2
---rm-all
-
-  Docker, remove the container ${DOCKERCONTAINER} and then the image ${DOCKERIMAGE}
-  Elimina el contenedor <${DOCKERCONTAINER}> y luego la imagen ${DOCKERIMAGE}, si existen.
-
-EOH
-    return 0
-  ;;
-
+  
   --clean)
     cat << EOH >&2
---clean  
-
-  clean current folder <$PWD>, take file .gitignore for targets to cleans
-
+--clean
+  Clean folder de trabajos, files and folder autogenerated for build aplications, para las configuraciones actuales elimina los siguentes archivos y directorios
+  
 EOH
+  CleanFilesAndFolders "0"
   return 0
   ;;  
 
@@ -382,144 +376,151 @@ function CheckContainer()
 }
 
 
+## $1: type {0: print only | 1: clean }
+function CleanFilesAndFolders()
+{
+  locale type
+  if [ "$#" -ne "1" ]; then type=0; else type=$1;fi
+  
+  #echo "type $type"
+  if [ $type == "1" ];then echo "clean comodin files" ;else echo "Clean list Files";fi
+  for it in "${CLEAN_ARR_COMODIN_FILES[@]}"
+  do
+    for it2 in $(ls $it 2>/dev/null )
+    do
+      if [ -f "$it2" ]
+      then
+        if [ $type == "1" ];then sudo rm -f $it2;else echo "  $it2";fi
+        #sudo rm -f $it2
+      else
+        echo "File <$it2> not found."
+      fi        
+    done        
+  done
+    
+  if [ $type == "1" ];then echo "clean array files" ;fi
+  for it in "${CLEAN_ARR_FILES[@]}"
+  do
+    if [ -f "$it" ]
+    then
+      if [ $type == "1" ];then sudo rm -f $it; else echo "  $it";fi
+      #echo "rm -f $it"
+      #sudo rm -f $it
+    else
+      echo "File <$it> not found."
+    fi
+  done
+  
+  echo 
+  if [ $type == "1" ];then echo "clean array folders with prefix" ;else echo "Clean list Folders";fi  
+  for it in "${CLEAN_ARR_FOLDERS[@]}"
+  do
+    for it2 in $(ls $it 2>/dev/null)
+    do      
+      if [ -d "$it$it2" ]
+      then
+        if [ $type == "1" ];then sudo rm -fR "$it$it2"; else echo "  $it$it2";fi
+        #sudo rm -fR "$it$it2"
+      else
+        echo "Folder <$it$it2> not found."
+      fi        
+    done        
+  done
+  
+  
+  if [ $type == "1" ];then echo "clean array folders" ;fi
+  for it in "${CLEAN_ARR_DIR[@]}"
+  do
+    if [ -d "$it" ]
+    then
+      if [ $type == "1" ];then sudo rm -fR "$it"; else echo "  $it";fi
+      #sudo rm -fR "$it"
+    else
+      echo "Folder <$it> not found."
+    fi
+  done
+  return 0
+    
+
+}
+
 function main()
 {  
   local app target
-  app=${0##*/}
-  
-  if [ ! -d ${DOCK_FOLDER} ];then
-    echo "Folder <${DOCK_FOLDER}> not found, abort operations \"$app $@\""
-    return 0
-  fi
-  
+  app=${0##*/}  
   if [ "$#" -eq '0' ]; then
     # por defecto tomamos el target terminal
-    target="-t"
+    target="-s"
   else
     target=$1
   fi 
   
-  case "$target" in
-    inspect|--inspect)
-      # Return low-level information on Container objects
-      local container_name
-      if [ "$#" -gt "1" ]; then
-        container_name=$2
-      else
-        container_name=$DOCKERCONTAINER
+  case "$target" in    
+    --top|top)
+      docker compose top
+      return 0
+    ;;
+    --rebuild|rebuild)
+      docker compose down
+      docker compose up -d      
+      return 0      
+    ;;
+    
+    restart|--restart)      
+      if [ "$#" -gt "1" ]
+      then
+        doceker restart "$2"
+        docker compose exec "$2" ${ENTRYPOINT}
+        return 0
       fi
-      docker inspect ${container_name}
+      doceker compose restart      
       return 0
     ;;
     
-    del-build-cache|--del-build-cache)
+    inspect|--inspect)
+      # Return low-level information on Container objects
+      for it in $(docker compose images -q)
+      do 
+        echo "inspect ${it}" 
+        docker inspect "${it}"
+      done      
+      return 0
+    ;;
+    
+    del-build-cache|--rm-build-cache)
       docker builder prune -af
       return 0
     ;;   
-    
-    check|--check)
-      local img_name
-      if [ "$#" -gt "1" ]; then
-        img_name=$2
-      else
-        img_name=$DOCKERIMAGE
-      fi
-      CheckImageInLocalRegistry "${img_name}"
-      if [ "$?" -eq "0" ]; then
-        echo "Localized Image <${img_name}> in Local Registry"        
-        docker image ls ${img_name}        
-      else
-        echo "Image <${img_name}> not found in Local Registry"
-      fi
-      
-      declare -F dck_cfg_dk_test &>/dev/null && dck_cfg_dk_test       
-      return 0
-    ;;
-    
+            
     build|--build|-b)
-      local currfolder flags
-      local container_name img_name      
-
-      currfolder=$(pwd)      
-      case $# in
-        1)
-          img_name=$DOCKERIMAGE
-          container_name=$DOCKERCONTAINER          
-        ;;
-        2) 
-          img_name=$2
-          container_name=$DOCKERCONTAINER          
-        ;;
-        3)
-          img_name=$2
-          container_name=$3          
-        ;;        
-        *)
-          echo "Error in call to \"$app $@\""
-          msg_help "-h"          
-          return 0
-        ;;
-      esac      
-      #echo "container_name=$container_name"
-      #echo "img_name=$img_name"
-      #return 0
-
-      if [[ $DOCKERDAEMON_FLG == 1 ]]; then
-        flags="$DOCKERFLAGS -d"
-      else
-        flags="$DOCKERFLAGS -i"
-      fi
-      ## El container ya existe, descartamos la operacion
-      CheckContainer "${container_name}"        
-      if [ "$?" -eq "0" ]; then
-        echo "The Container ${container_name} already exists try \"$app --start\""
-        return 0
-      fi
-    
-      ## Si la imagen ya existe no la creo
-      CheckImageInLocalRegistry "$img_name"
-      if [ "$?" -eq "1" ]; then
-        cd ${DOCKERFOLDER}
-        docker build -t=${img_name} -f ${DOCKERFILE} .
-        #echo "docker build -t=${img_name} -f ${DOCKERFILE} ."
-        cd ${currfolder}
-      fi
-              
-      ## Si el Container no exite lo creo y lo ejecuto por primera ves
-      CheckContainer "${container_name}"
-      if [ "$?" -eq "1" ]; then
-        ## Si existe la funcion la ejecuta (redirect for no print function in screen), si no sigue de largo
-        declare -F dck_cfg_dk_build_ini &>/dev/null && dck_cfg_dk_build_ini 
-        #echo "docker run --name ${container_name} ${flags} ${img_name} ${DOCKERCMD}"
-        docker run --name ${container_name} ${flags} ${img_name} ${DOCKERCMD}
-      fi
+      # build and start in daemon
+      docker compose up -d      
       return 0
     ;;
     
-    start|--start)
-      local flags container_name
-      if [[ $DOCKERDAEMON_FLG == 0 ]]; then        
-        flags='-i'
-      fi      
-
+    -s|start|--start)
       if [ "$#" -gt "1" ]; then
-        container_name=$2
-      else
-        container_name=$DOCKERCONTAINER
-      fi
-      
-      #echo "docker start ${container_name} $flags"
-      docker start ${container_name} $flags
-      status_print "$app" "--start" "$?"      
+        echo "docker start $2"
+        docker compose start        
+        return 0      
+      fi      
+      echo "docker compose start"
+      docker compose start      
       return 0
     ;;
     
     status|--status)
+      # listamso las imagenes
+      docker compose images
+      # los proceso corriendo
+      docker compose top
+      
+      # si pasamos una contenedor name, print status de este
       local container_name
       if [ "$#" -gt "1" ]; then
         container_name=$2
       else
-        container_name=$DOCKERCONTAINER
+        return 0        
       fi
       
       CheckContainer "${container_name}"
@@ -532,91 +533,54 @@ function main()
       return 0      
     ;;
     
-    logs|--logs)
+    -l|logs|--logs)
       local container_name
       if [ "$#" -gt "1" ]; then
-        container_name=$2
-      else
-        container_name=$DOCKERCONTAINER
+        docker logs -t "$2"
+        return 0
       fi
-
-      CheckContainer "${container_name}"
-      if [ "$?" -eq "0" ]; then
-        echo "Localized Container <${container_name}> in Local host"
-        docker logs -t ${container_name}
-      else
-        echo "Container <${container_name}> not found"
-      fi
-      return 0
-    ;;
-
-    test|--test)
-      local container_name
-      if [ "$#" -gt "1" ]; then
-        container_name=$2
-      else
-        container_name=$DOCKERCONTAINER
-      fi
-
-      CheckContainer "${container_name}"
-      if [ "$?" -eq "0" ]; then
-        echo "Localized Container <${container_name}> in Local host"
-        docker start -i ${container_name}
-      else
-        echo "Container <${container_name}> not found"
-      fi
+      docker compose logs      
       return 0
     ;;
 
     stop|--stop)
-      local container_name
       if [ "$#" -gt "1" ]; then
-        container_name=$2
-      else
-        container_name=$DOCKERCONTAINER
-      fi
-      docker stop ${container_name}
+        docker stop $2
+        return 0      
+      fi      
+      docker compose stop
       return 0
     ;;
 
-    kill|--kill)
-      local container_name
+    -k|kill|--kill)      
       if [ "$#" -gt "1" ]; then
-        container_name=$2
-      else
-        container_name=$DOCKERCONTAINER
+        docker kill $2
+        return 0      
       fi
-      docker kill ${container_name}
+      docker compose kill
       return 0
     ;;    
     
     attach|--attach)
-      docker attach ${DOCKERCONTAINER}
-      status_print "$app" "--attach" "$?"
+      local container_name
+      if [ "$#" -gt "1" ]; then
+        container_name=$2
+      else
+        container_name=${DOCKERCONTAINER}        
+      fi
+      docker attach ${container_name}      
       return 0
     ;;
 
     --rm)
-      docker rm ${DOCKERCONTAINER}
-      status_print "$app" "--rm" "$?"
-      return 0
-    ;;
-    
-    --rm-image)
-      docker rmi $(docker images -q ${DOCKERIMAGE})
-      status_print "$app" "--rm-image" "$?"
-      return 0
-    ;;
-    
-    --rm-all)
-      local flg
-      docker rm ${DOCKERCONTAINER}
-      flg=$?
-      status_print "$app" "--rm-all delete container" "$flg"
-      if [ "$flg" -ne "0" ]; then return 0 ;fi
-
-      docker rmi $(docker images -q ${DOCKERIMAGE})
-      status_print "$app" "--rm-all delete image" "$?"
+      # capturamos las imagenes usadas
+      images=$(docker compose images -q)
+      # detenemos servicios
+      docker compose stop
+      # removemos las images del enviroment
+      docker compose down
+      # removemos las imagenes desde host
+      docker rmi ${DOCKERIMAGE}
       return 0
     ;;
     
@@ -635,7 +599,7 @@ function main()
         echo "Container <${container_name}> not found"
       fi
 
-      docker exec -it ${container_name} bash
+      docker exec -it ${container_name} ${ENTRYPOINT}
       if [ "$?" -ne "0" ]; then        
         echo "Error open the terminal for <${container_name}>"
       fi
@@ -643,43 +607,10 @@ function main()
     ;;
 
     --clean)
-      local gfile
-      gfile=.gitignore
-      if [ ! -f "${gfile}" ]; then
-        echo "file <${gfile}> not found"
-        return 0      
-      fi
-      while IFS= read -r line
-      do 
-        # discard linea vacia
-        if [[ ${#line} == '0' ]] ; then continue; fi
-        
-        # discard old files or directories
-        if echo "$line" | grep -q "_old"
-        then
-          #echo "OLD target: <$line>"
-          continue
-        fi
-        
-        # discard files con prefix '!' (archivos ocultos que deben agregarse al seguimiento)
-        if [[ ${line:0:1} == '!' ]] ; then continue; fi
-        
-        # discard comment
-        if [[ ${line:0:1} == '#' ]] ; then continue; fi
-        
-        # rm folder
-        if [[ ${line:0-1} == '/' ]]; then
-          #echo "rm -fR ${line:0:-1}"
-          rm -fR "${line:0:-1}"
-          continue
-        fi
-        # remove, extension and file is same
-        #echo "rm -f ${line}"
-        rm -f "${line}"
-        #echo "${line}"
-      done < ${gfile}      
+      docker compose stop
+      CleanFilesAndFolders "1"
       return 0
-    ;;
+    ;;    
 
     -h|--help)
       msg_help $@

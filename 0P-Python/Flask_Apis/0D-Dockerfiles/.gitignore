@@ -1,2 +1,2 @@
 ## descartamos seguimiento de los archivos de log
-*.log
+*_old.txt

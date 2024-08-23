@@ -11,3 +11,8 @@
 # discard log files
 *.log
 
+# 
+*.zip
+*.tar.gz
+*.gz
+

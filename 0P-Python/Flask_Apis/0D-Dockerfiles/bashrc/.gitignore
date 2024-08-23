@@ -1,0 +1,8 @@
+# forced add this files
+!.gitignore
+
+#discard files S.O
+.ash_history
+*.epub
+
+
