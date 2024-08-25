@@ -379,7 +379,7 @@ function CheckContainer()
 ## $1: type {0: print only | 1: clean }
 function CleanFilesAndFolders()
 {
-  locale type
+  local type
   if [ "$#" -ne "1" ]; then type=0; else type=$1;fi
   
   #echo "type $type"
@@ -580,7 +580,7 @@ function main()
       # removemos las images del enviroment
       docker compose down
       # removemos las imagenes desde host
-      docker rmi ${DOCKERIMAGE}
+      docker rmi ${images}
       return 0
     ;;
     
