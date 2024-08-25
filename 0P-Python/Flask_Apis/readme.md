@@ -154,14 +154,14 @@ Para la ejecucion sin el uso de contenedor debemos tener instalada en el host lo
 # Esquema de directorios de la Aplicacion
 
   + [0D-Dockerfiles](0D-Dockerfiles/) Directorio con las configuraciones para docker.
-  + **0T-TestScripts** : Directorio con los Script bash y archivos json para los test de la aplicacion
-  + **ApiErrorHandler** : Modulo con las Funciones para manejo en el armado de los response en caso de error.
-  + **Config** : Modulo para la configuracion del proyecto
-  + **Models** : Modulo para el modelo de los registros (de BBDD) de la aplicacion
-  + **logs** : directorio donde se localiza el log de la aplicacion
-  + **main.py** : script principal de la aplicacion
-  + **cfg_wsgi.py** : script con la configuracion wsgi para servicio **Gunicorn**
-  + **readme.md** : este documento 
+  + [0T-TestScripts](0T-TestScripts/) : Directorio con los Script bash y archivos json para los test de la aplicacion
+  + [ApiErrorHandler](ApiErrorHandler/) : Modulo con las Funciones para manejo en el armado de los response en caso de error.
+  + [Config](Config/) : Modulo para la configuracion del proyecto
+  + [Models](Models/) : Modulo para el modelo de los registros (de BBDD) de la aplicacion
+  + [logs](logs/) : directorio donde se localiza el log de la aplicacion
+  + [main.py](main.py) : script principal de la aplicacion
+  + [cfg_wsgi.py](cfg_wsgi.py) : script con la configuracion wsgi para servicio **Gunicorn**
+  + [readme.md](readme.md) : este documento
 
 ~~~
 .
@@ -267,19 +267,19 @@ Para iniciar la aplicacion solo debemos ejecutar con **Python** el script princi
 # Script de testing
 El listado de script para testing, dentro del directorio ```0T-TestScripts```:
 
-  - **Creacion de Usuario** [curl_register.sh](#creacion-de-usuario)
-  - **Login** [curl_login.sh](#login)
-  - **Editar Usuario** [curl_edit_register.sh](#editar-usuario)
-  - **Obtener todos los usuario** [curl_get_users.sh](#obtener-todos-los-usuario)
-  - **Healt Check** [curl_health_check.sh](#healt-check)
-  - **Obtener comicio por id**[curl_get_comicio_id.sh](#obtener-comicio-por-id)
-  - **Obtener Todos los comicios para el usuario actual** [curl_get_comicios.sh](#obtener-todos-los-comicios-para-el-usuario-actual)
+  - **Creacion de Usuario** [curl_register](#creacion-de-usuario)
+  - **Login** [curl_login](#login)
+  - **Editar Usuario** [curl_edit_register](#editar-usuario)
+  - **Obtener todos los usuario** [curl_get_users](#obtener-todos-los-usuario)
+  - **Healt Check** [curl_health_check](#healt-check)
+  - **Obtener comicio por id**[curl_get_comicio_id](#obtener-comicio-por-id)
+  - **Obtener Todos los comicios para el usuario actual** [curl_get_comicios](#obtener-todos-los-comicios-para-el-usuario-actual)
   
-  - **Publicar comicio** [curl_comicio.sh](#publicar-comicio)
+  - **Publicar comicio** [curl_comicio](#publicar-comicio)
   
-  - **Obtener detalles de todos los comicios registrados** [curl_get_comicios_details.sh](get-comicios-details)
+  - **Obtener detalles de todos los comicios registrados** [curl_get_comicios_details](get-comicios-details)
   
-  - **Funciones utilitarias** [utilities.sh](#funciones-utilitarias)
+  - **Funciones utilitarias** [utilities](#funciones-utilitarias)
 
 ## Creacion de Usuario
 ~~~ bash

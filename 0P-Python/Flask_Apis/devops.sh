@@ -324,40 +324,6 @@ EOH
   esac
 }
 
-## $1 appname
-## $2 target
-function status_print()
-{
-  local app command flg
-  if [ "$#" -ne "3" ];then return 1;fi
-
-  flg=$3
-  app=$1
-  command=$2
-
-  if [ "$flg" -eq "0" ];then
-    echo "\"$app $command\" success"
-  else
-    echo "\"$app $command\" failure"
-  fi
-}
-
-## $1: <image-name>:<tag>”
-function CheckImageInLocalRegistry()
-{
-  if [ "$#" -lt "1" ]; then return 1 ; fi
-  local img_name resp
-  img_name=$1
-  
-  resp=$(docker images -f reference="${img_name}")
-  for it in ${resp[@]}
-  do    
-    if [ "$it" == "${img_name}" ]; then
-      return 0
-    fi
-  done  
-  return 1
-}
 
 ## $1: <image-name>:<tag>”
 function CheckContainer()
