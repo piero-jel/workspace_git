@@ -427,6 +427,9 @@ function main()
       return 0
     ;;
     --rebuild|rebuild)
+      main "--rm"
+      main "-b"
+      return 0
       docker compose down
       docker compose up -d      
       return 0      
