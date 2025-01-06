@@ -62,13 +62,7 @@ bind      = f'{bind_ip}:{bind_port}'
 forwarded_allow_ips = '*'
 secure_scheme_headers = { 'X-Forwarded-Proto': 'https' }
 
-''' cfg_wsgi.py
-  gunicorn --config cfg_wsgi.py main:app
-                                       ~~~~ ~~~
-                                         |   |
-                                         |   +-> 
-                                         |
-                                         +-> Python Script containing the Root Flask Application
+''' cfg_wsgi.py, enviromen vars
                                          
 ENV GUNICORN_PROCESSES=2
 ENV GUNICORN_THREADS=4

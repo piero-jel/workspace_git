@@ -2,7 +2,7 @@
   + [Observaciones](#observaciones)
   + [Armado del Contenedor](#armado-del-contenedor)
   + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicacion)
-  + [Ejecuccion sin docker](#ejecuccion-sin-docker)
+  + [Instalaccion utilidades para el manejo sin docker](#instalaccion-utilidades-para-el-manejo-sin-docker)
     - [Instacion python3 linux](#instacion-python-linux)
     - [Instacion pip linux](#instacion-pip-linux)
     - [Instalaccion dependencias del proyecto](#instalaccion-dependencias-del-proyecto)
@@ -32,10 +32,14 @@
     - [Publicar un Comicios](#publicar-un-comicio)
     - [Healt Check](#healt-check)
 
+  + [Eliminicacion y clean de directorios](#eliminicacion-y-clean-de-directorios)
+
+  + [Docker Example](#docker-example)
+
   + [Autor](#autor)
 
 # Observaciones
-El armado del proyecto esta contemplado que ya posee instalado docker y que el sistema anfitrión es linux (distribuciones debian, ubuntu, en las cuales se desplegaron).
+El armado del proyecto contempla que ya posee instalado docker (Sistemas anfitriones donde se realizaron los despliegues Linux debian, ubuntu). O en su defecto que se instalen python3 con su gestro de paquetes (**pip**), con el cual instalaremos los paquetes necesario para el armado y ejecucion del proyecto.
 
 ## Install Docker Compose V2
 Search del instalador:
@@ -167,7 +171,7 @@ Setting data base autocontenida sqlite
 
 ~~~
 
-# Ejecuccion sin docker
+# Instalaccion utilidades para el manejo sin docker
 Para la ejecucion sin el uso de contenedor debemos tener instalada en el host los siguentes comandos:
 
   + **python3**
@@ -201,14 +205,15 @@ Para la ejecucion sin el uso de contenedor debemos tener instalada en el host lo
 
 # Esquema de directorios de la Aplicacion
 
-  + **0T-TestScripts** : Script bash y archivos json para los test de la aplicacion
-  + **ApiErrorHandler** : Modulo con las Funciones para manejo en el armado de los response en caso de error.
-  + **Config** : Modulo para la configuracion del proyecto
-  + **Models** : Modulo para el modelo de los registros (de BBDD) de la aplicacion
-  + **logs** : directorio donde se localiza el log de la aplicacion
-  + **main.py** : script principal de la aplicacion
-  + **cfg_wsgi.py** : script con la configuracion wsgi para servicio **Gunicorn**
-  + **readme.md** : este documento 
+  + [0D-Dockerfiles](0D-Dockerfiles/) Directorio con las configuraciones para docker.
+  + [0T-TestScripts](0T-TestScripts/) : Directorio con los Script bash y archivos json para los test de la aplicacion
+  + [ApiErrorHandler](ApiErrorHandler/) : Modulo con las Funciones para manejo en el armado de los response en caso de error.
+  + [Config](Config/) : Modulo para la configuracion del proyecto
+  + [Models](Models/) : Modulo para el modelo de los registros (de BBDD) de la aplicacion
+  + [logs](logs/) : directorio donde se localiza el log de la aplicacion
+  + [main.py](main.py) : script principal de la aplicacion
+  + [cfg_wsgi.py](cfg_wsgi.py) : script con la configuracion wsgi para servicio **Gunicorn**
+  + [readme.md](readme.md) : este documento
 
 ~~~
 .
@@ -289,19 +294,19 @@ devops.sh --start
 # Script de testing
 El listado de script para testing, dentro del directorio ```0T-TestScripts```:
 
-  - **Creacion de Usuario** [curl_register.sh](#creacion-de-usuario)
-  - **Login** [curl_login.sh](#login)
-  - **Editar Usuario** [curl_edit_register.sh](#editar-usuario)
-  - **Obtener todos los usuario** [curl_get_users.sh](#obtener-todos-los-usuario)
-  - **Healt Check** [curl_health_check.sh](#healt-check)
-  - **Obtener comicio por id**[curl_get_comicio_id.sh](#obtener-comicio-por-id)
-  - **Obtener Todos los comicios para el usuario actual** [curl_get_comicios.sh](#obtener-todos-los-comicios-para-el-usuario-actual)
+  - **Creacion de Usuario** [curl_register](#creacion-de-usuario)
+  - **Login** [curl_login](#login)
+  - **Editar Usuario** [curl_edit_register](#editar-usuario)
+  - **Obtener todos los usuario** [curl_get_users](#obtener-todos-los-usuario)
+  - **Healt Check** [curl_health_check](#healt-check)
+  - **Obtener comicio por id**[curl_get_comicio_id](#obtener-comicio-por-id)
+  - **Obtener Todos los comicios para el usuario actual** [curl_get_comicios](#obtener-todos-los-comicios-para-el-usuario-actual)
   
-  - **Publicar comicio** [curl_comicio.sh](#publicar-comicio)
+  - **Publicar comicio** [curl_comicio](#publicar-comicio)
   
-  - **Obtener detalles de todos los comicios registrados** [curl_get_comicios_details.sh](get-comicios-details)
+  - **Obtener detalles de todos los comicios registrados** [curl_get_comicios_details](get-comicios-details)
   
-  - **Funciones utilitarias** [utilities.sh](#funciones-utilitarias)
+  - **Funciones utilitarias** [utilities](#funciones-utilitarias)
 
 ## Creacion de Usuario
 ~~~ bash
@@ -1083,6 +1088,93 @@ Esta peticion nos permite verificar el estado de la APIs como asi tambien el log
 ~~~
 Versión actual de las APIs. 
 
+
+
+# Eliminicacion y clean de directorios
+Para la eliminacion del proyecto, en caso de despliegues con docker, contamos con las opciones de ejecucion del script:
+
+~~~ bash
+devops.sh --rm
+~~~
+Este detiene en contenedor/s, elimina estos y luego elimina la imagen creada.
+
+En caso de necesitar eliminar los archivos auto generados por python y sqlite contamos con la opcion clean, la cual debe ejecutarse luego del anterior. Ya que de otra forma no podra recuperar el nombre autogenerado para la imagen.
+
+~~~ bash
+devops.sh --clean
+~~~
+***Esta opcion Nos pedira clave del usuario super/root.***
+
+
+# Docker Example
+## Creacion
+~~~ bash
+devops.sh -b
+[+] Building 1.6s (13/13) FINISHED                                                                                                                        docker:default
+ => [flask-apis internal] load build definition from Dockerfile                                                                                                     0.0s
+ => => transferring dockerfile: 3.46kB                                                                                                                              0.0s
+ => [flask-apis internal] load metadata for docker.io/library/python:3.12                                                                                           1.5s
+ => [flask-apis internal] load .dockerignore                                                                                                                        0.0s
+ => => transferring context: 2B                                                                                                                                     0.0s
+ => [flask-apis 1/7] FROM docker.io/library/python:3.12@sha256:e3d5b6f95ce66923b5e48a06ee5755abb097de96a8617c3f2f7d431d48e63d35                                     0.0s
+ => [flask-apis internal] load build context                                                                                                                        0.0s
+ => => transferring context: 39B                                                                                                                                    0.0s
+ => CACHED [flask-apis 2/7] WORKDIR /home/user                                                                                                                      0.0s
+ => CACHED [flask-apis 3/7] COPY requerimientos.txt ./                                                                                                              0.0s
+ => CACHED [flask-apis 4/7] RUN mkdir -p /home/user                                                                                                                 0.0s
+ => CACHED [flask-apis 5/7] RUN apt-get update                                                                                                                      0.0s
+ => CACHED [flask-apis 6/7] RUN apt-get install -y python3-pip                                                                                                      0.0s
+ => CACHED [flask-apis 7/7] RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requerimientos.txt                                        0.0s
+ => [flask-apis] exporting to image                                                                                                                                 0.0s
+ => => exporting layers                                                                                                                                             0.0s
+ => => writing image sha256:30305f7c1fbf96fa655cfa96f44e9d28ab891b69df2ce831a1fac0e44e4620f4                                                                        0.0s
+ => => naming to docker.io/library/flask_apis-flask-apis                                                                                                            0.0s
+ => [flask-apis] resolving provenance for metadata file                                                                                                             0.0s
+[+] Running 2/2
+ ✔ Network flask_apis_default  Created                                                                                                                              0.1s
+ ✔ Container FlaskApis         Started
+~~~
+
+## Verificacion
+~~~ bash
+ devops.sh logs
+FlaskApis  | [2024-08-25 13:06:28 -0300] [1] [INFO] Starting gunicorn 23.0.0
+FlaskApis  | [2024-08-25 13:06:28 -0300] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+FlaskApis  | [2024-08-25 13:06:28 -0300] [1] [INFO] Using worker: gthread
+FlaskApis  | [2024-08-25 13:06:28 -0300] [7] [INFO] Booting worker with pid: 7
+FlaskApis  | [2024-08-25 13:06:28 -0300] [8] [INFO] Booting worker with pid: 8
+FlaskApis  | [2024-08-25 13:06:28 -0300] [9] [INFO] Booting worker with pid: 9
+FlaskApis  | [2024-08-25 13:06:28 -0300] [10] [INFO] Booting worker with pid: 10
+
+devops.sh top
+FlaskApis
+UID    PID    PPID   C    STIME   TTY   TIME       CMD
+root   8031   8011   3    12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
+root   8063   8031   13   12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
+root   8064   8031   13   12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
+root   8065   8031   13   12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
+root   8066   8031   13   12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
+~~~
+
+## remove and clean
+~~~ bash
+devops.sh --rm
+[+] Stopping 1/1
+ ✔ Container FlaskApis  Stopped                                                                                                                                     1.3s
+[+] Running 2/2
+ ✔ Container FlaskApis         Removed                                                                                                                              0.1s
+ ✔ Network flask_apis_default  Removed                                                                                                                              0.3s
+Untagged: flask_apis-flask-apis:latest
+Deleted: sha256:30305f7c1fbf96fa655cfa96f44e9d28ab891b69df2ce831a1fac0e44e4620f4
+
+
+devops.sh --clean
+clean comodin files
+clean array files
+
+clean array folders with prefix
+clean array folders
+~~~
 
 
 # Autor
