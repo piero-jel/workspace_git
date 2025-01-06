@@ -1,0 +1,82 @@
+### BEGIN readme
+### Lo creamos una sola ves y luego nos atachamos a la session
+##  docker compose up -d
+### attach con una terminal
+##  docker exec -it PythonBackEnd bash
+##  docker exec -it DataBase psql -U postgres
+## 
+##  docker compose start
+##  docker compose stop
+##  docker compose top
+##  docker compose stats
+##  docker compose down
+### END   readme
+services:
+  db:
+    container_name: DataBase # set container name
+    image: postgres:14.5
+    restart: always
+    environment:      
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+
+
+    ports: # port to enable
+      - "${DATABASE_PORT}:${DATABASE_PORT}" # -p ${HOST_PORT}:${CONT_PORT}
+        
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 15s
+      retries: 5
+
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+    #   interval: 30s
+    #   timeout: 60s
+    #   retries: 5
+    #   start_period: 80s
+  
+  flask-apis: # Aplication name for run    
+    container_name: FlaskApis # set container name
+    build: 0D-Dockerfiles/pgsql/.       # path to Dockerfiles for build
+    ports: # port to enable
+      - "8080:8080" # -p ${HOST_PORT}:${CONT_PORT}
+    
+    links:
+      - "db:database"      
+    
+    # entrypoint: /bin/bash # for linux debian
+    # stdin_open: true # docker run -i
+    # tty: true        # docker run -t
+    depends_on:
+      db:
+        condition: service_healthy
+        #condition: service_completed_successfully
+
+    volumes:
+      - "${PATH_PROJECT}:/home/user:rw" 
+      - "${PATH_CONFIG}/bashrc:/root/:rw" 
+      
+    environment:
+      - TZ=America/Argentina/Buenos_Aires
+      - LANG=es_AR
+      - LANGUAGE=es_AR.UTF-8
+      # establecemos las variables para conectarse a la BBDD
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_IP=${DATABASE_IP}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_TYPE=pgsql
+
+            
+    security_opt: 
+      - seccomp:unconfined    
+    ulimits:
+      # core: 52428800 
+      core: -1
+      
+# volumes:
+#   pgdata:

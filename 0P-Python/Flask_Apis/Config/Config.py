@@ -43,6 +43,7 @@ JEL            2024.04.26           0.4.5       change logging for native compat
 from flask import Flask
 from flask_login import LoginManager
 from logging.config import dictConfig
+import os
 
 
 ''' Definims dos hanlder consolo para debug y file 
@@ -111,9 +112,29 @@ logging.basicConfig ( **LOGIN_CFG )
 
 # Create a flask application
 app = Flask(__name__)
- 
-# Establecemos que tipo de BBDD usara  flask-sqlalchemy, como se conectara
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
+
+## por defecto si no esta la variable considera la configuracion de sqlite
+DATABASE_TYPE     = os.environ.get('DATABASE_TYPE', 'sqlite')
+
+POSTGRES_USER     = os.environ.get('POSTGRES_USER', 'postgres')
+POSTGRES_DB       = os.environ.get('POSTGRES_DB', 'python-backend') 
+POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', '12345')
+DATABASE_IP       = os.environ.get('DATABASE_IP',   'db')
+DATABASE_PORT     = int(os.environ.get('DATABASE_PORT', '5432'))
+
+match DATABASE_TYPE:
+  case 'sqlite':
+    # Establecemos que tipo de BBDD usara  flask-sqlalchemy, como se conectara
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"    
+  case 'pgsql':
+    # app.config['SQLALCHEMY_DATABASE_URI']= 'postgresql+psycopg2://postgres:123456@localhost:5432/test'
+    # app.config['SQLALCHEMY_DATABASE_URI']= f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@192.168.0.84:5432/{POSTGRES_DB}'
+    app.config['SQLALCHEMY_DATABASE_URI']= f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DATABASE_IP}:{DATABASE_PORT}/{POSTGRES_DB}'
+  case _ :
+    # siempre como default dejamos sqlite
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"    
+  #end case
+#endmatch
 
 # Enter a secret key, clave para los ciphers
 app.config["SECRET_KEY"] = "12345"
@@ -123,7 +144,7 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 # seting format compact in json response
 app.config['RESTPLUS_JSON'] = {'indent':None, 'separators':(',',':')}
 ## FIXME setting version number
-app.config['VERSION'] = '0.4.5'
+app.config['VERSION'] = '0.5.0'
 app.config['TOKEN_USE'] = True
 app.config['TOKEN_TIME'] = 1800
 

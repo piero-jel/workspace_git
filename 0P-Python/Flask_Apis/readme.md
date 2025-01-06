@@ -37,16 +37,62 @@
 # Observaciones
 El armado del proyecto esta contemplado que ya posee instalado docker y que el sistema anfitrión es linux (distribuciones debian, ubuntu, en las cuales se desplegaron).
 
-# Armado del Contenedor
-Para esto dentro del directorio **0D-Dockerfiles** contamos con los siguientes script:
+## Install Docker Compose V2
+Search del instalador:
 
-  - **docker_config** : script bash con la configuraciones especifica para el armado del contenedor (Nombre de imagen, contenedor, flags de creación y demás).
+~~~ bash
+apt search docker-compose-v2
+Ordenando... Hecho
+Buscar en todo el texto... Hecho
+docker-compose-v2/jammy-updates 2.24.6+ds1-0ubuntu1~22.04.1 amd64
+  tool for running multi-container applications on Docker
+~~~
+
+Obtenemso informacion para el packages:
+
+~~~ bash
+apt-cache search docker-compose-v2
+docker-compose-v2 - tool for running multi-container applications on Docker
+~~~
+
+Instalaccion del packages:
+
+~~~ bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install docker-compose-v2
+~~~
+
+# Armado del Contenedor
+Para esto dentro del directorio **0D-Dockerfiles** contamos con la siguientes estructura:
+
+~~~ bash
+0D-Dockerfiles/
+├── bashrc
+│
+├── pgsql
+│   ├── Dockerfile
+│   └── requerimientos.txt
+│
+└── sqlite
+    ├── Dockerfile
+    └── requerimientos.txt
+~~~
+
+  + **bashrc** : directorio con los archivos de configuracion para el usuario del sistema (setting de alias y path enviroment)
   
-  - **Dockerfile** : Docker file script con la configuración base del contenedor (Sistema base para construir la imagen, los aplicativos base a instalar, etc).
+  + **pgsql** : Los archivos necesarios para la configuracion de la base de datos postgresql
+    - Dockerfile : archivo con la configuracion para armar la imagen principal de la aplicaicon
+    - requerimientos.txt : archivo con las dependencias de librerias para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
+    
+  + **sqlite** : Los archivos necesarios para la configuracion de la base de datos (auto contenida) sqlite
+    - Dockerfile : archivo con la configuracion para armar la imagen principal de la aplicaicon
+    - requerimientos.txt : archivo con las dependencias de librerias para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
+    
+Los archivos de construccion de la imagen estan separados en funcion del tipo de base de datos a utilizar. Para configurar esto contamos dentro del archivo [devops.sh](devops.sh) con la variable **CFG_COMPOSE_FILE** . La cual puede tener uno de los siguentes valores:
+
+  + ```CFG_DBMS='sqlite'``` : para la seleccion de base de datos sqlite
+  + ```CFG_DBMS='pgsql'``` : para la seleccion de PostgreSQL
   
-  - **bashrc.sh** : Para el caso de necesitar cargar alias o exportar variables de entorno.
-  
-  - **requerimientos.txt** : listados de package ```para python```, los cuales se instalaran mediante ```pip```
   
 Con los archivos correspondiente configurados (*los mismos están configurado para el proyecto*) podemos armar el contenedor mediante el uso del script **devops.sh** :
 
@@ -69,12 +115,19 @@ devops.sh --logs
 devops.sh logs
 ~~~
 
+Para ver la evolucion en tiempo real de cada contenedor (uso de memoria y cpu por cada proceso dentro de cada uno), contamos con :
+
+~~~ bash
+devops.sh --top
+devops.sh top
+~~~
 
 
 Como la mayoria de los script, este posee un help para acceder al mismo podemos realizarlo de la siguiente forma:
 
 ~~~ bash
-  $ devops.sh -h
+devops.sh -h
+Setting data base autocontenida sqlite
   devops.sh {--help | -h }        Visualiza Help General
   devops.sh {--help | -h } --all  Visualiza Help Especifico para todos los Targets
 
@@ -86,31 +139,32 @@ Como la mayoria de los script, este posee un help para acceder al mismo podemos 
     devops.sh {--help | -h} --build
     devops.sh {--help | -h} --terminal
     devops.sh {--help | -h} --rm
-    devops.sh {--help | -h} --rm-image
-    devops.sh {--help | -h} --rm-all
     devops.sh {--help | -h} --attach
-    devops.sh {--help | -h} --check
-    devops.sh {--help | -h} --del-build-cache
+    devops.sh {--help | -h} --rm-build-cache
     devops.sh {--help | -h} --inspect
     devops.sh {--help | -h} --logs
-    devops.sh {--help | -h} --test    
+    devops.sh {--help | -h} --restart
+    devops.sh {--help | -h} --rebuild
+    devops.sh {--help | -h} --clean
+    devops.sh {--help | -h} --top
 
 ~~~
-Lo mismo vemos para la opcion '--h' (```devops.sh --help```).
+Lo mismo vemos para la opcion '--help' (```devops.sh --help```).
 
-Para obtener información detallada de lo que hace uno en particular, debemos usar la sintaxis (```devops.sh -h <Option>```):
+Para obtener información detallada de lo que hace uno en particular, debemos usar la sintaxis (```devops.sh -h <LongOption>```):
 
 ~~~ bash
-$ devops.sh -h -b
---build [IMAGE-NAME [CONTAINER-NAME]]
-     -b [IMAGE-NAME [CONTAINER-NAME]]
-  build [IMAGE-NAME [CONTAINER-NAME]]
+devops.sh -h --build
+Setting data base autocontenida sqlite
+--build 
+     -b 
+  build 
      
-  Default values:
-    + Image jeluccioni/flask-apis
+  Default values:    
     + Container FlaskApis
 
-  Construye la imagen <jeluccioni/flask-apis> para el contenedor <FlaskApis> a partir de las configuraciones del dockerfile <Dockerfile>. Inicia el container en funcion de los flags <-it -v ~/Flask_Apis/:/home/user:rw -p 3000:8080>.          
+  Construye el proyecto con las imagenes y conetenedors establecidos en 'docker-compose-sqlite.yml'.
+
 ~~~
 
 # Ejecuccion sin docker
@@ -159,59 +213,77 @@ Para la ejecucion sin el uso de contenedor debemos tener instalada en el host lo
 ~~~
 .
 ├── 0D-Dockerfiles
-│     ├── bashrc.sh
-│     ├── docker_config
-│     ├── Dockerfile
-│     └── requerimientos.txt
+│   │
+│   ├── bashrc
+│   │
+│   ├── pgsql
+│   │   ├── Dockerfile
+│   │   └── requerimientos.txt
+│   │
+│   └── sqlite
+│       ├── Dockerfile
+│       └── requerimientos.txt
 │
 ├── 0T-TestScripts
-│     ├── curl_comicio.sh
-│     ├── curl_edit_register.sh
-│     ├── curl_get_comicio_id.sh
-│     ├── curl_get_comicios.sh
-│     ├── curl_get_users.sh
-│     ├── curl_health_check.sh
-│     ├── curl_login.sh
-│     ├── curl_register.sh
-│     ├── post_comicio_01.json
-│     ├── post_comicio_02.json
-│     ├── post_comicio_03.json
-│     ├── post_comicio_04.json
-│     ├── register_user.json
-│     ├── token_dump.log
-│     └── utilities.sh
+│   ├── curl_comicio.sh
+│   ├── curl_edit_register.sh
+│   ├── curl_get_comicio_id.sh
+│   ├── curl_get_comicios_details.sh
+│   ├── curl_get_comicios.sh
+│   ├── curl_get_users.sh
+│   ├── curl_health_check.sh
+│   ├── curl_login.sh
+│   ├── curl_register.sh
+│   ├── post_comicio_01.json
+│   ├── post_comicio_02.json
+│   ├── post_comicio_03.json
+│   ├── post_comicio_04.json
+│   ├── register_user.json
+│   └── utilities.sh
 │
 ├── ApiErrorHandler
-│     ├── ApiErrorHandler.py
-│     └── __init__.py
+│   ├── ApiErrorHandler.py
+│   └── __init__.py
 │
-├── cfg_wsgi.py
 │
 ├── Config
-│     ├── Config.py
-│     └── __init__.py
-│
-├── devops.sh
-│
-├── logs
-│     └── app.log
-│
-├── main.py
+│   ├── Config.py
+│   └── __init__.py
 │
 ├── Models
-│     ├── __init__.py
-│     ├── 
-│     └── Models.py
+│   ├── __init__.py
+│   └── Models.py
 │
+├── cfg_wsgi.py
+├── main.py
+│
+├── devops.sh
+├── docker-compose-pgsql.yml
+├── docker-compose-sqlite.yml
+├── logs
 └── readme.md
+
 
 ~~~ 
 
 # Ejecucion del proyecto
-Para iniciar la aplicaicon solo debemos ejecutar con **Python** el script principal:
+Para iniciar la aplicacion, dentro del entorno si docker, solo debemos ejecutar con **Python3** el script principal de la aplicacion
 
 ~~~ bash
   python3 main.py
+~~~
+
+En el caso de docker, luego del build podemos verificar si los contenedores estan correindo ejecutando:
+
+~~~ bash
+devops.sh --top
+## Ctrl + C para finalizar
+~~~
+
+De lo contrario, solo debemos iniciar los contendores:
+
+~~~ bash
+devops.sh --start
 ~~~
 
 # Script de testing

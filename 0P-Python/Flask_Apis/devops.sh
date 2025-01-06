@@ -37,8 +37,28 @@
 #=====================================================================================================
 #
 #=====================================================================================================
+### BEGIN USER SETTING
 CONTAINER_NAME='FlaskApis'
 IMGAGE_NAME='flask-apis'
+#CFG_DBMS='sqlite'
+CFG_DBMS='pgsql'
+### END   USER SETTING
+
+## BEGIN SETTING APLICATIONS, not edit
+### Seleccion de script para determinar el tipo de BBDD a usas
+CFG_COMPOSE_FILE="docker-compose-${CFG_DBMS}.yml"
+#CFG_COMPOSE_FILE='docker-compose-${sqlite}.yml'
+#CFG_COMPOSE_FILE='docker-compose-pgsql.yml'
+
+## setting la opcion por defecto cuando llamamos al script
+# attacharnos con una consola a la app principal
+#DEFAULT_TARGET='--terminal'
+# estilo daemon
+DEFAULT_TARGET='--start'
+
+## nos traemos el enviroment file con las variables del proyecto
+. $PWD/.env
+## END   SETTING APLICATIONS, not edit
 
 ## BEGIN setting default, if config not load
 ### DOCKERCONTAINER
@@ -47,8 +67,50 @@ if [[ ! -v DOCKERCONTAINER ]]; then DOCKERCONTAINER=${CONTAINER_NAME}; fi
 if [[ ! -v DOCKERCONTAINER ]]; then DOCKERIMAGE="jeluccioni/${IMGAGE_NAME}"; fi
 ## END   setting default, if config not load
 
-## para distro debian y deribados
+## BEGIN check CFG_DBMS values
+## para distro debian y deribados, este cambia si usamos 
+## otras distros como alpine `ENTRYPOINT='sh --login'`
 ENTRYPOINT='bash'
+
+
+case "${CFG_DBMS}" in 
+  'pgsql')
+    echo "Setting data RDBMS PostgreSQL"
+  ;;
+  'sqlite')
+    echo "Setting data base autocontenida sqlite"
+  ;;
+  *)
+    echo "ERROR in setting CFG_DBMS <${CFG_DBMS}>, not suported"
+    exit 0
+  ;;
+esac
+## END   check CFG_DBMS values
+
+
+### BEGIN Functions definitions
+## @brief funcion para obtener el entry point en funcion del nombre del contenedor 
+## @param [in] $1 : Nombre del contenedor
+function GetEntryPoint(){
+
+  case "$1" in
+    'FlaskApis')
+      ENTRYPOINT='bash'
+      return 0
+    ;;
+    'DataBase')
+      ENTRYPOINT="psql -U ${POSTGRES_USER}"
+      #ENTRYPOINT='psql -U postgres'
+      return 0
+    ;;
+    *)
+      echo "GetEntryPoint(): Container Name <$1> no tabulado"
+      echo "try with 'PythonBackEnd' or 'DataBase'"
+      return 1
+    ;;
+  esac
+
+}
 
 
 CLEAN_ARR_FILES=( )
@@ -128,7 +190,7 @@ EOH
 
   Detiene y luego inicia el contenedor nuevamente.
   [CONTAINER-NAME] opcional Nombre del Container, por defecto usa el configurado <${DOCKERCONTAINER}>,
-  Si no pasamos este reinia todos los configurados en el docker-compose.yml.
+  Si no pasamos este reinia todos los configurados en el ${CFG_COMPOSE_FILE}.
 
 EOH
   return 0
@@ -260,7 +322,7 @@ EOH
   Default values:    
     + Container ${DOCKERCONTAINER}
 
-  Construye el proyecto con las imagenes y conetenedors establecidos en 'docker-compose.yml'.
+  Construye el proyecto con las imagenes y conetenedors establecidos en '${CFG_COMPOSE_FILE}'.
 
 EOH
     return 0
@@ -270,7 +332,7 @@ EOH
     cat << EOH >&2
 --rm
 
-  Remove todos los contenedores establecidos en 'docker-compose.yml'.  
+  Remove todos los contenedores establecidos en '${CFG_COMPOSE_FILE}'.  
 
 EOH
     return 0
@@ -329,13 +391,14 @@ EOH
 function status_print()
 {
   local app command flg
-  if [ "$#" -ne "3" ];then return 1;fi
+  if [[ $# -ne 3 ]]; then return 1 ; fi
 
   flg=$3
   app=$1
   command=$2
 
-  if [ "$flg" -eq "0" ];then
+  if [[ ${flg} -eq 0 ]]
+  then
     echo "\"$app $command\" success"
   else
     echo "\"$app $command\" failure"
@@ -345,14 +408,14 @@ function status_print()
 ## $1: <image-name>:<tag>”
 function CheckImageInLocalRegistry()
 {
-  if [ "$#" -lt "1" ]; then return 1 ; fi
+  if [[ $# -lt 1 ]] ; then return 1 ; fi
   local img_name resp
   img_name=$1
   
   resp=$(docker images -f reference="${img_name}")
   for it in ${resp[@]}
   do    
-    if [ "$it" == "${img_name}" ]; then
+    if [[ ${it} == ${img_name} ]]; then
       return 0
     fi
   done  
@@ -362,13 +425,13 @@ function CheckImageInLocalRegistry()
 ## $1: <image-name>:<tag>”
 function CheckContainer()
 {
-  if [ "$#" -lt "1" ]; then return 1 ; fi
+  if [[ $# -lt 1 ]]; then return 1 ; fi
   local container_name resp
   container_name=$1     
   resp=$(docker ps -af "name=${container_name}")
   for it in ${resp[@]}
   do    
-    if [ "$it" == "${container_name}" ]; then
+    if [[ ${it} == ${container_name} ]]; then
       return 0
     fi
   done  
@@ -379,107 +442,110 @@ function CheckContainer()
 ## $1: type {0: print only | 1: clean }
 function CleanFilesAndFolders()
 {
-  locale type
-  if [ "$#" -ne "1" ]; then type=0; else type=$1;fi
+  local type
+  if [[ $# -ne 1 ]]; then type=0; else type=$1;fi
   
   #echo "type $type"
-  if [ $type == "1" ];then echo "clean comodin files" ;else echo "Clean list Files";fi
+  [[ ${type} == 1 ]] && echo "clean comodin files" || echo "Clean list Files"
   for it in "${CLEAN_ARR_COMODIN_FILES[@]}"
   do
-    for it2 in $(ls $it 2>/dev/null )
+    for it2 in $(ls ${it} 2>/dev/null )
     do
-      if [ -f "$it2" ]
+      if [[ -f ${it2} ]]
       then
-        if [ $type == "1" ];then sudo rm -f $it2;else echo "  $it2";fi
+        [[ ${type} == 1 ]] && sudo rm -f ${it2} || echo "  ${it2}"
         #sudo rm -f $it2
       else
-        echo "File <$it2> not found."
+        echo "File <${it2}> not found."
       fi        
     done        
   done
     
-  if [ $type == "1" ];then echo "clean array files" ;fi
+  [[ ${type} == 1 ]] && echo "clean array files"
   for it in "${CLEAN_ARR_FILES[@]}"
   do
-    if [ -f "$it" ]
+    if [[ -f ${it} ]]
     then
-      if [ $type == "1" ];then sudo rm -f $it; else echo "  $it";fi
+      [[ ${type} == 1 ]] && sudo rm -f $it || echo "  ${it}"
       #echo "rm -f $it"
       #sudo rm -f $it
     else
-      echo "File <$it> not found."
+      echo "File <${it}> not found."
     fi
   done
   
   echo 
-  if [ $type == "1" ];then echo "clean array folders with prefix" ;else echo "Clean list Folders";fi  
+  [[ ${type} == 1 ]] && echo "clean array folders with prefix" || echo "Clean list Folders"
   for it in "${CLEAN_ARR_FOLDERS[@]}"
   do
     for it2 in $(ls $it 2>/dev/null)
     do      
       if [ -d "$it$it2" ]
       then
-        if [ $type == "1" ];then sudo rm -fR "$it$it2"; else echo "  $it$it2";fi
+        [[ ${type} == "1" ]] && sudo rm -fR "${it}${it2}" || echo "  ${it}${it2}"
         #sudo rm -fR "$it$it2"
       else
-        echo "Folder <$it$it2> not found."
+        echo "Folder <${it}${it2}> not found."
       fi        
     done        
   done
   
   
-  if [ $type == "1" ];then echo "clean array folders" ;fi
+  [[ ${type} == 1 ]] && echo "clean array folders"
   for it in "${CLEAN_ARR_DIR[@]}"
   do
-    if [ -d "$it" ]
+    if [[ -d ${it} ]]
     then
-      if [ $type == "1" ];then sudo rm -fR "$it"; else echo "  $it";fi
+      [[ ${type} == 1 ]] && sudo rm -fR "${it}" || echo "  ${it}"
       #sudo rm -fR "$it"
     else
-      echo "Folder <$it> not found."
+      echo "Folder <${it}> not found."
     fi
   done
   return 0
     
 
 }
+### END   Functions definitions
 
+
+### BEGIN Function MAIN
 function main()
 {  
   local app target
   app=${0##*/}  
   if [ "$#" -eq '0' ]; then
     # por defecto tomamos el target terminal
-    target="-s"
+    target=${DEFAULT_TARGET}
   else
     target=$1
   fi 
   
   case "$target" in    
     --top|top)
-      docker compose top
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" stats
       return 0
     ;;
     --rebuild|rebuild)
-      docker compose down
-      docker compose up -d      
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" down
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" up -d      
       return 0      
     ;;
     
     restart|--restart)      
-      if [ "$#" -gt "1" ]
+      if [[ $# -gt 1 ]]
       then
-        doceker restart "$2"
-        docker compose exec "$2" ${ENTRYPOINT}
+        docker restart "$2"
+        docker compose --file "$PWD/${CFG_COMPOSE_FILE}" exec "$2" ${ENTRYPOINT}
         return 0
       fi
-      doceker compose restart      
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" restart      
       return 0
     ;;
     
     inspect|--inspect)
       # Return low-level information on Container objects
-      for it in $(docker compose images -q)
+      for it in $(docker compose --file "$PWD/${CFG_COMPOSE_FILE}" images -q)
       do 
         echo "inspect ${it}" 
         docker inspect "${it}"
@@ -494,37 +560,46 @@ function main()
             
     build|--build|-b)
       # build and start in daemon
-      docker compose up -d      
+      #docker compose build -f ${CFG_COMPOSE_FILE}
+      if [[ ! -f ${CFG_COMPOSE_FILE} ]]
+      then 
+        echo "Config File <${CFG_COMPOSE_FILE}> not found"
+        return 0
+      fi
+      echo "${CFG_COMPOSE_FILE}"
+      #docker compose up -d
+      echo "docker compose -f \"$PWD/${CFG_COMPOSE_FILE}\""
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" up -d
       return 0
     ;;
     
     -s|start|--start)
       if [ "$#" -gt "1" ]; then
         echo "docker start $2"
-        docker compose start        
+        docker compose --file "$PWD/${CFG_COMPOSE_FILE}" start        
         return 0      
       fi      
-      echo "docker compose start"
-      docker compose start      
+      echo "docker compose '${CFG_COMPOSE_FILE}' start"
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" start      
       return 0
     ;;
     
     status|--status)
       # listamso las imagenes
-      docker compose images
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" images
       # los proceso corriendo
-      docker compose top
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" top
       
       # si pasamos una contenedor name, print status de este
       local container_name
-      if [ "$#" -gt "1" ]; then
+      if [[ $# -gt 1 ]]; then
         container_name=$2
       else
         return 0        
       fi
       
       CheckContainer "${container_name}"
-      if [ "$?" -eq "0" ]; then
+      if [[ $? -eq 0 ]]; then
         echo "Localized Container <${container_name}> in Local host"        
         docker ps -s -af "name=${container_name}"        
       else
@@ -535,11 +610,11 @@ function main()
     
     -l|logs|--logs)
       local container_name
-      if [ "$#" -gt "1" ]; then
+      if [[ $# -gt 1 ]]; then
         docker logs -t "$2"
         return 0
       fi
-      docker compose logs      
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" logs
       return 0
     ;;
 
@@ -548,22 +623,22 @@ function main()
         docker stop $2
         return 0      
       fi      
-      docker compose stop
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" stop
       return 0
     ;;
 
     -k|kill|--kill)      
-      if [ "$#" -gt "1" ]; then
+      if [[ $# -gt 1 ]]; then
         docker kill $2
         return 0      
       fi
-      docker compose kill
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" kill
       return 0
     ;;    
     
     attach|--attach)
       local container_name
-      if [ "$#" -gt "1" ]; then
+      if [[ $# -gt 1 ]]; then
         container_name=$2
       else
         container_name=${DOCKERCONTAINER}        
@@ -574,40 +649,43 @@ function main()
 
     --rm)
       # capturamos las imagenes usadas
-      images=$(docker compose images -q)
+      images=$(docker compose --file "$PWD/${CFG_COMPOSE_FILE}" images -q)
       # detenemos servicios
-      docker compose stop
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" stop
       # removemos las images del enviroment
-      docker compose down
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" down
       # removemos las imagenes desde host
-      docker rmi ${DOCKERIMAGE}
+      docker rmi ${images}
       return 0
     ;;
     
     terminal|--terminal|-t)
       local container_name
-      if [ "$#" -gt "1" ]; then
+      if [[ $# -gt 1 ]]; then
         container_name=$2
       else
         container_name=$DOCKERCONTAINER
       fi
       CheckContainer "${container_name}"
-      if [ "$?" -eq "0" ]; then
+      if [[ $? -eq 0 ]]; then
         echo "Localized Container <${container_name}> in Local host" 
         docker ps -s -af "name=${container_name}"
       else
         echo "Container <${container_name}> not found"
       fi
-
+      
+      GetEntryPoint "${container_name}"
+      if [[ $? -ne 0 ]]; then return 0; fi
+      echo "ENTRYPOINT: $ENTRYPOINT"      
       docker exec -it ${container_name} ${ENTRYPOINT}
-      if [ "$?" -ne "0" ]; then        
+      if [[ $? -ne 0 ]]; then        
         echo "Error open the terminal for <${container_name}>"
       fi
       return 0
     ;;
 
     --clean)
-      docker compose stop
+      docker compose --file "$PWD/${CFG_COMPOSE_FILE}" stop
       CleanFilesAndFolders "1"
       return 0
     ;;    
@@ -625,5 +703,8 @@ function main()
   esac
   return 0
 }
+### END   Function MAIN
 
+### BEGIN ENTRY POINT TO RUN
 main "$@" && exit 0
+### END   ENTRY POINT TO RUN

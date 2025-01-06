@@ -60,7 +60,7 @@ from flask import request, jsonify, g,abort
 
 ## local modules
 from Models.Models import Users,Comicios,db,auth
-from Config.Config import app
+from Config.Config import app , DATABASE_TYPE
 from ApiErrorHandler.ApiErrorHandler import validate_json_request
 from os import path
 
@@ -295,7 +295,8 @@ def get_comicios():
 
 if (__name__ == "__main__"):
   ''' para testing utilizamos sqlite como BBDD '''
-  if not path.exists('db.sqlite'):
+  #if( DATABASE_TYPE == 'sqlite' and not path.exists('db.sqlite') ):
+  if(not path.exists('db.sqlite') ):
     # Create database within app context 
     with app.app_context():
       db.create_all()
@@ -309,7 +310,8 @@ if (__name__ == "__main__"):
   #app.run()
 else:
   ''' run with wsgi, no lo ejecuta directamente el interprete '''
-  if not path.exists('db.sqlite'):
+  #if( DATABASE_TYPE == 'sqlite' and not path.exists('db.sqlite') ):
+  if(not path.exists('db.sqlite') ):
     # Create database within app context 
     with app.app_context():
       db.create_all()

@@ -88,8 +88,8 @@ RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r re
 #CMD ["python3", "main.py"]
 
 #### BEGIN config debug
-#ENTRYPOINT [ "python" ]
-#CMD [ "main.py" ]
+ENTRYPOINT [ "python" ]
+CMD [ "main.py" ]
 #### END   config debug
 ##
 #### BEGIN config deploy
@@ -99,6 +99,6 @@ ENV GUNICORN_TIMEOUT=120
 ENV GUNICORN_APP_IP='0.0.0.0'
 ENV GUNICORN_APP_PORT='8080'
 
-CMD ["gunicorn","--config", "cfg_wsgi.py", "main:app"]
+#CMD ["gunicorn","--config", "cfg_wsgi.py", "main:app"]
 #### END   config deploy
 ### END   config daemon

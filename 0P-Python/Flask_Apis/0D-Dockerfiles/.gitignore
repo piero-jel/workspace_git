@@ -1,2 +1,5 @@
 ## descartamos seguimiento de los archivos de log
 *_old.txt
+bashrc.sh
+docker_config
+Dockerfile
