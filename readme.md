@@ -1,6 +1,6 @@
 # Project Examples
-  + [Python](#python)
-  + [C plus plus](#c-plus-plus)
+  + [Python](0P-Python/readme.md#python-examples)
+  + [C plus plus](0C-C++/readme.md#c-plus-plus-examples)
 
   
   
