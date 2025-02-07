@@ -1,0 +1,13 @@
+{
+  "listas": 10,
+  "escanios" : 21,
+  "votos" : [
+        {"name":"Partido A","votos":391000}
+      , {"name":"Partido B","votos":311000}
+      , {"name":"Partido C","votos":184000}
+      , {"name":"Partido D","votos": 73000}
+      , {"name":"Partido E","votos": 27000}
+      , {"name":"Partido F","votos": 12000}
+      , {"name":"Partido G","votos":  2000}
+    ]
+}

@@ -40,8 +40,8 @@
 ### BEGIN USER SETTING
 CONTAINER_NAME='FlaskApis'
 IMGAGE_NAME='flask-apis'
-#CFG_DBMS='sqlite'
-CFG_DBMS='pgsql'
+CFG_DBMS='sqlite'
+#CFG_DBMS='pgsql'
 ### END   USER SETTING
 
 ## BEGIN SETTING APLICATIONS, not edit
@@ -73,18 +73,38 @@ if [[ ! -v DOCKERCONTAINER ]]; then DOCKERIMAGE="jeluccioni/${IMGAGE_NAME}"; fi
 ENTRYPOINT='bash'
 
 
-case "${CFG_DBMS}" in 
-  'pgsql')
-    echo "Setting data RDBMS PostgreSQL"
-  ;;
-  'sqlite')
-    echo "Setting data base autocontenida sqlite"
-  ;;
-  *)
-    echo "ERROR in setting CFG_DBMS <${CFG_DBMS}>, not suported"
-    exit 0
-  ;;
-esac
+## $1 opcional, default ${CFG_DBMS}
+function check_dbms() {
+  local cfg_dbms msg
+  if [[ $# -ge '1' ]]
+  then 
+    cfg_dbms=$1
+    msg=1
+  else
+    cfg_dbms=${CFG_DBMS}
+    msg=0
+  fi
+  
+  case "${cfg_dbms}" in 
+    'pgsql')
+      [[ ${msg} -eq 1 ]] && echo "Setting data RDBMS PostgreSQL"
+      return 0
+    ;;
+    'sqlite')
+      [[ ${msg} -eq 1 ]] && echo "Setting data base autocontenida sqlite"
+      return 0
+    ;;
+    *)
+      echo "ERROR in setting CFG_DBMS <${cfg_dbms}>, not suported"
+      return 
+    ;;
+  esac
+}
+## Si falla el checquo inicial de dbms salimos de la ejecucion
+check_dbms || exit 1
+
+
+
 ## END   check CFG_DBMS values
 
 
@@ -129,6 +149,7 @@ CLEAN_ARR_DIR=(
   "ApiErrorHandler/__pycache__"
   "Config/__pycache__"
   "Models/__pycache__/"
+  "0T-TestScripts/UnitTest_Comicios/__pycache__"
 )
 
 ##
@@ -174,10 +195,17 @@ EOH
   ;;  
   --rebuild)
     cat << EOH >&2
---rebuild 
-  rebuild 
+--rebuild [--dbms=sqlite | --dbms=pgsql]
+  rebuild [--dbms=sqlite | --dbms=pgsql]
   
   Reconstruye la imagen y el contenedor, util cuando se realizan cambios sobre los archivos de configuracion.
+  Con la opcion --dbms podemos indicar el DataBase Management System, este debe coincidir con el que se construyo el proyecto
+  anteriormente.
+  
+Example:
+  devops.sh -b
+  devops.sh -b --dbms=sqlite
+  devops.sh -b --dbms=pgsql
 
 EOH
   return 0
@@ -279,9 +307,21 @@ EOH
  -s [CONTAINER-NAME]    
 --start [CONTAINER-NAME]
   start [CONTAINER-NAME]
+  
+ -s [--dbms=sqlite | --dbms=pgsql]    
+--start [--dbms=sqlite | --dbms=pgsql]
+  start [--dbms=sqlite | --dbms=pgsql]
+  
 
   [CONTAINER-NAME] : it is optional, defautl container is <$DOCKERCONTAINER>
   Inicia el Contenedor, previamente creado (de lo contrario notificara error).
+  
+Examples:
+
+devops.sh --start
+devops.sh -s
+devops.sh --start --dbms=sqlite
+devops.sh --start --dbms=pgsql
 
 EOH
     return 0
@@ -315,14 +355,23 @@ EOH
   
   --build)
     cat << EOH >&2
---build 
-     -b 
-  build 
-     
+--build [--dbms=sqlite | --dbms=pgsql ]
+     -b [--dbms=sqlite | --dbms=pgsql ]
+  build [--dbms=sqlite | --dbms=pgsql ]
+  
+  
+  Construye el proyecto con las imagenes y conetenedors establecidos en '${CFG_COMPOSE_FILE}'.
+  Con la opcion --dbms podemos indicar el DataBase Management System.
+  
   Default values:    
     + Container ${DOCKERCONTAINER}
+    + yml file ${CFG_COMPOSE_FILE}
 
-  Construye el proyecto con las imagenes y conetenedors establecidos en '${CFG_COMPOSE_FILE}'.
+  
+Examples:
+  devops.sh -b
+  devops.sh -b --dbms=sqlite
+  devops.sh -b --dbms=pgsql
 
 EOH
     return 0
@@ -527,6 +576,16 @@ function main()
       return 0
     ;;
     --rebuild|rebuild)
+      local cfg_dbms
+      ## CFG_COMPOSE_FILE="docker-compose-${CFG_DBMS}.yml"
+      if [[ $# -ge '2' ]] 
+      then        
+        cfg_dbms=${2#"--dbms="}
+        ## si falla el check salimos
+        check_dbms "${cfg_dbms}" || return 1
+        CFG_COMPOSE_FILE="docker-compose-${cfg_dbms}.yml"        
+      fi
+      
       docker compose --file "$PWD/${CFG_COMPOSE_FILE}" down
       docker compose --file "$PWD/${CFG_COMPOSE_FILE}" up -d      
       return 0      
@@ -559,6 +618,16 @@ function main()
     ;;   
             
     build|--build|-b)
+      local cfg_dbms
+      ## CFG_COMPOSE_FILE="docker-compose-${CFG_DBMS}.yml"
+      if [[ $# -ge '2' ]] 
+      then        
+        cfg_dbms=${2#"--dbms="}
+        ## si falla el check salimos
+        check_dbms "${cfg_dbms}" || return 1
+        CFG_COMPOSE_FILE="docker-compose-${cfg_dbms}.yml"        
+      fi
+      
       # build and start in daemon
       #docker compose build -f ${CFG_COMPOSE_FILE}
       if [[ ! -f ${CFG_COMPOSE_FILE} ]]
@@ -574,12 +643,18 @@ function main()
     ;;
     
     -s|start|--start)
-      if [ "$#" -gt "1" ]; then
-        echo "docker start $2"
+      local cfg_dbms
+      if [[ $# -gt "1" ]]
+      then                
+        cfg_dbms=${2#"--dbms="}
+        ## si falla el check salimos
+        check_dbms "${cfg_dbms}" || return 1
+        CFG_COMPOSE_FILE="docker-compose-${cfg_dbms}.yml"        
+        echo "docker start with config file <${CFG_COMPOSE_FILE}>"
         docker compose --file "$PWD/${CFG_COMPOSE_FILE}" start        
         return 0      
       fi      
-      echo "docker compose '${CFG_COMPOSE_FILE}' start"
+      echo "docker compose '${CFG_COMPOSE_FILE}' start <$#>"
       docker compose --file "$PWD/${CFG_COMPOSE_FILE}" start      
       return 0
     ;;

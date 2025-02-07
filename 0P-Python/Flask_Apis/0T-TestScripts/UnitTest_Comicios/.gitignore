@@ -1,8 +1,13 @@
 # forced add this files
 !.gitignore
 
-## discard old files
-*_old*
+
+# discard olds files
+*_old.*
+
+
+# discard folder/
+__pycache__/
 
 # discard log files
 *.log

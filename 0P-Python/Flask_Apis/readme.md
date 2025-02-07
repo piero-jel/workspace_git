@@ -1,15 +1,15 @@
 # Contenido
   + [Observaciones](#observaciones)
   + [Armado del Contenedor](#armado-del-contenedor)
-  + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicacion)
-  + [Instalaccion utilidades para el manejo sin docker](#instalaccion-utilidades-para-el-manejo-sin-docker)
+  + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicación)
+  + [Ejecuccion sin docker](#ejecuccion-sin-docker)
     - [Instacion python3 linux](#instacion-python-linux)
     - [Instacion pip linux](#instacion-pip-linux)
     - [Instalaccion dependencias del proyecto](#instalaccion-dependencias-del-proyecto)
-    - [Ejecucion del proyecto](#ejecucion-del-proyecto)
+    - [Ejecucion del proyecto](#ejecución-del-proyecto)
 
-  + [Ejecucion del proyecto](#ejecucion-del-proyecto)
-  + [Script de testing](#script-de-testing)
+  + [Ejecucion del proyecto](#ejecución-del-proyecto)
+  + [Bash Script de testing](#bash-script-de-testing)
     - **Creación de Usuario** [curl_register.sh](#creacion-de-usuario)
     - **Login** [curl_login.sh](#login)
     - **Editar Usuario** [curl_edit_register.sh](#editar-usuario)
@@ -31,15 +31,13 @@
     - [Get All Comicios](#get-all-comicios)
     - [Publicar un Comicios](#publicar-un-comicio)
     - [Healt Check](#healt-check)
-
-  + [Eliminicacion y clean de directorios](#eliminicacion-y-clean-de-directorios)
-
-  + [Docker Example](#docker-example)
-
+  
+  + [Test mediante request](#test-mediante-request)
+  + [Unit Test con request](#unit-test-con-request)
   + [Autor](#autor)
 
 # Observaciones
-El armado del proyecto contempla que ya posee instalado docker (Sistemas anfitriones donde se realizaron los despliegues Linux debian, ubuntu). O en su defecto que se instalen python3 con su gestro de paquetes (**pip**), con el cual instalaremos los paquetes necesario para el armado y ejecucion del proyecto.
+El armado del proyecto esta contemplado que ya posee instalado docker y que el sistema anfitrión es linux (distribuciones **debian**, **ubuntu**, en las cuales se desplegaron).
 
 ## Install Docker Compose V2
 Search del instalador:
@@ -52,14 +50,14 @@ docker-compose-v2/jammy-updates 2.24.6+ds1-0ubuntu1~22.04.1 amd64
   tool for running multi-container applications on Docker
 ~~~
 
-Obtenemso informacion para el packages:
+Obtenemos información para él packages:
 
 ~~~ bash
 apt-cache search docker-compose-v2
 docker-compose-v2 - tool for running multi-container applications on Docker
 ~~~
 
-Instalaccion del packages:
+Instalación del packages:
 
 ~~~ bash
 sudo apt update && sudo apt upgrade -y
@@ -82,20 +80,21 @@ Para esto dentro del directorio **0D-Dockerfiles** contamos con la siguientes es
     └── requerimientos.txt
 ~~~
 
-  + **bashrc** : directorio con los archivos de configuracion para el usuario del sistema (setting de alias y path enviroment)
+  + **bashrc** : directorio con los archivos de configuración para el usuario del sistema (setting de alias y path enviroment)
   
-  + **pgsql** : Los archivos necesarios para la configuracion de la base de datos postgresql
-    - Dockerfile : archivo con la configuracion para armar la imagen principal de la aplicaicon
-    - requerimientos.txt : archivo con las dependencias de librerias para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
+  + **pgsql** : Los archivos necesarios para la configuración de la base de datos postgresql
+    - Dockerfile : archivo con la configuración para armar la imagen principal de la aplicación
+    - requerimientos.txt : archivo con las dependencias de librerías para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
     
-  + **sqlite** : Los archivos necesarios para la configuracion de la base de datos (auto contenida) sqlite
-    - Dockerfile : archivo con la configuracion para armar la imagen principal de la aplicaicon
-    - requerimientos.txt : archivo con las dependencias de librerias para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
+  + **sqlite** : Los archivos necesarios para la configuración de la base de datos (auto contenida) sqlite
+    - Dockerfile : archivo con la configuración para armar la imagen principal de la aplicación
+    - requerimientos.txt : archivo con las dependencias de librerías para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
     
-Los archivos de construccion de la imagen estan separados en funcion del tipo de base de datos a utilizar. Para configurar esto contamos dentro del archivo [devops.sh](devops.sh) con la variable **CFG_COMPOSE_FILE** . La cual puede tener uno de los siguentes valores:
+Los archivos de construcción de la imagen estan separados en función del tipo de base de datos a utilizar. Para configurar esto contamos dentro del archivo [devops.sh](devops.sh) con la variable **CFG_COMPOSE_FILE** . La cual puede tener uno de los siguientes valores:
 
-  + ```CFG_DBMS='sqlite'``` : para la seleccion de base de datos sqlite
-  + ```CFG_DBMS='pgsql'``` : para la seleccion de PostgreSQL
+  + ```CFG_DBMS='sqlite'``` : para la selección de base de datos sqlite
+  + ```CFG_DBMS='pgsql'``` : para la selección de PostgreSQL
+  
   
   
 Con los archivos correspondiente configurados (*los mismos están configurado para el proyecto*) podemos armar el contenedor mediante el uso del script **devops.sh** :
@@ -104,7 +103,20 @@ Con los archivos correspondiente configurados (*los mismos están configurado pa
 devops.sh --build
 devops.sh -b
 ~~~
-Con este no solo se creara la imagen si no tambien el contendor y se ejecuta el mismo. Para validar el estado podemos ejecutar:
+En el caso de querer construir el proyecto sin la necesidad de modificar los script podemos ejecutar los comandos anteriores especificando **DataBase Management System** con la opción ```--dbms=``` .
+
+~~~ bash
+## para DBMS sqlite
+devops.sh -b --dbms=sqlite
+devops.sh --build --dbms=sqlite
+
+## para DBMS PostgreSQL
+devops.sh -b --dbms=pgsql
+devops.sh --build --dbms=pgsql
+~~~
+
+
+Con este no solo se creara la imagen si no también el contenedor y se ejecuta el mismo. Para validar el estado podemos ejecutar:
 
 ~~~ bash
 devops.sh --status
@@ -112,14 +124,14 @@ devops.sh status
 ~~~
 Este nos traera la info unicamente relacionada al contenedor configurado para este proyecto.
 
-Si el **status** del contendor no es **up**, podemos verificar que sucedio con la ayuda del siguente comando:
+Si el **status** del contenedor no es **up**, podemos verificar que sucedió con la ayuda del siguiente comando:
 
 ~~~ bash
 devops.sh --logs
 devops.sh logs
 ~~~
 
-Para ver la evolucion en tiempo real de cada contenedor (uso de memoria y cpu por cada proceso dentro de cada uno), contamos con :
+Para ver la evolución en tiempo real de cada contenedor (uso de memoria y **cpu** por cada proceso dentro de cada uno), contamos con :
 
 ~~~ bash
 devops.sh --top
@@ -127,7 +139,7 @@ devops.sh top
 ~~~
 
 
-Como la mayoria de los script, este posee un help para acceder al mismo podemos realizarlo de la siguiente forma:
+Como la mayoría de los script, este posee un help para acceder al mismo podemos realizarlo de la siguiente forma:
 
 ~~~ bash
 devops.sh -h
@@ -153,7 +165,7 @@ Setting data base autocontenida sqlite
     devops.sh {--help | -h} --top
 
 ~~~
-Lo mismo vemos para la opcion '--help' (```devops.sh --help```).
+Lo mismo vemos para la opción '--help' (```devops.sh --help```).
 
 Para obtener información detallada de lo que hace uno en particular, debemos usar la sintaxis (```devops.sh -h <LongOption>```):
 
@@ -171,8 +183,8 @@ Setting data base autocontenida sqlite
 
 ~~~
 
-# Instalaccion utilidades para el manejo sin docker
-Para la ejecucion sin el uso de contenedor debemos tener instalada en el host los siguentes comandos:
+# Ejecuccion sin docker
+Para la ejecución sin el uso de contenedor debemos tener instalada en el host los siguientes comandos:
 
   + **python3**
   + **pip3** (gestor de paquetes python)
@@ -205,197 +217,246 @@ Para la ejecucion sin el uso de contenedor debemos tener instalada en el host lo
 
 # Esquema de directorios de la Aplicacion
 
-  + [0D-Dockerfiles](0D-Dockerfiles/) Directorio con las configuraciones para docker.
-  + [0T-TestScripts](0T-TestScripts/) : Directorio con los Script bash y archivos json para los test de la aplicacion
-  + [ApiErrorHandler](ApiErrorHandler/) : Modulo con las Funciones para manejo en el armado de los response en caso de error.
-  + [Config](Config/) : Modulo para la configuracion del proyecto
-  + [Models](Models/) : Modulo para el modelo de los registros (de BBDD) de la aplicacion
-  + [logs](logs/) : directorio donde se localiza el log de la aplicacion
-  + [main.py](main.py) : script principal de la aplicacion
-  + [cfg_wsgi.py](cfg_wsgi.py) : script con la configuracion wsgi para servicio **Gunicorn**
-  + [readme.md](readme.md) : este documento
+  + **0D-Dockerfiles** : directorio con los archivos auxiliares para la creación de las imágenes para docker.
+  + **0T-TestScripts** : Directorio con los diferentes Script bash, python y archivos json para los test de la aplicación.
+    - Bash Script para el test usando ```curl```.
+    - Python Script (```test_With_request.py```) para el test mediante el uso de request
+    - Python Script para el test unitario (```test_ApisRestComicios.py```0) mediante el uso de unittest y request (sin mock), este usa auxiliar mente el modelo de clase definido en ```Comicios.py```, con la finalidad de facilitar la implementación y posible modificación de la APIs.
+    
+  + **ApiErrorHandler** : Modulo con las Funciones para manejo en el armado de los response en caso de error.
+  + **Config** : Modulo para la configuración del proyecto
+  + **Models** : Modulo para el modelo de los registros (de BBDD) de la aplicación
+  + **logs** : directorio donde se localiza el log de la aplicación
+  + **main.py** : script principal de la aplicación
+  + **cfg_wsgi.py** : script con la configuración wsgi para servicio **Gunicorn**
+  + **readme.md** : este documento 
 
 ~~~
-.
-├── 0D-Dockerfiles
-│   │
-│   ├── bashrc
-│   │
-│   ├── pgsql
-│   │   ├── Dockerfile
-│   │   └── requerimientos.txt
-│   │
-│   └── sqlite
-│       ├── Dockerfile
-│       └── requerimientos.txt
-│
-├── 0T-TestScripts
-│   ├── curl_comicio.sh
-│   ├── curl_edit_register.sh
-│   ├── curl_get_comicio_id.sh
-│   ├── curl_get_comicios_details.sh
-│   ├── curl_get_comicios.sh
-│   ├── curl_get_users.sh
-│   ├── curl_health_check.sh
-│   ├── curl_login.sh
-│   ├── curl_register.sh
-│   ├── post_comicio_01.json
-│   ├── post_comicio_02.json
-│   ├── post_comicio_03.json
-│   ├── post_comicio_04.json
-│   ├── register_user.json
-│   └── utilities.sh
-│
-├── ApiErrorHandler
-│   ├── ApiErrorHandler.py
-│   └── __init__.py
-│
-│
-├── Config
-│   ├── Config.py
-│   └── __init__.py
-│
-├── Models
-│   ├── __init__.py
-│   └── Models.py
-│
-├── cfg_wsgi.py
-├── main.py
-│
-├── devops.sh
-├── docker-compose-pgsql.yml
-├── docker-compose-sqlite.yml
-├── logs
-└── readme.md
-
-
+  .
+  ├── 0D-Dockerfiles
+  │   ├── bashrc
+  │   ├── docker_config
+  │   ├── Dockerfile
+  │   ├── pgsql
+  │   │   ├── Dockerfile
+  │   │   └── requerimientos.txt
+  │   ├── requerimientos_old.txt
+  │   └── sqlite
+  │       ├── Dockerfile
+  │       └── requerimientos.txt
+  ├── 0T-TestScripts
+  │   ├── curl_comicio.sh
+  │   ├── curl_edit_register.sh
+  │   ├── curl_get_comicio_id.sh
+  │   ├── curl_get_comicios_details.sh
+  │   ├── curl_get_comicios.sh
+  │   ├── curl_get_users.sh
+  │   ├── curl_health_check.sh
+  │   ├── curl_login.sh
+  │   ├── curl_register.sh
+  │   ├── post_comicio_01.json
+  │   ├── post_comicio_02.json
+  │   ├── post_comicio_03.json
+  │   ├── post_comicio_04.json
+  │   ├── register_user.json
+  │   ├── token_dump.log
+  │   ├── UnitTest_Comicios
+  │   │   ├── Comicios.py
+  │   │   ├── in
+  │   │   │   ├── post_comicio_01.json
+  │   │   │   ├── post_comicio_02.json
+  │   │   │   ├── post_comicio_03.json
+  │   │   │   ├── post_comicio_04.json
+  │   │   │   └── register_user.json
+  │   │   ├── __init__.py
+  │   │   ├── ou
+  │   │   │   ├── TestComicioApis.json
+  │   │   │   └── token.json
+  │   │   ├── test_ApisRestComicios.py
+  │   │   ├── test_Comicios.py
+  │   │   └── test_With_request.py  
+  │   │
+  │   └── utilities.sh
+  ├── ApiErrorHandler
+  │   ├── ApiErrorHandler.py
+  │   └── __init__.py
+  ├── cfg_wsgi.py
+  ├── Config
+  │   ├── Config.py
+  │   └── __init__.py
+  │
+  ├── devops.sh
+  ├── docker-compose-pgsql.yml
+  ├── docker-compose-sqlite.yml
+  ├── logs
+  ├── main.py
+  ├── Models
+  │   ├── __init__.py
+  │   └── Models.py
+  └── readme.md
 ~~~ 
 
 # Ejecucion del proyecto
-Para iniciar la aplicacion, dentro del entorno si docker, solo debemos ejecutar con **Python3** el script principal de la aplicacion
+Para iniciar la aplicación, dentro del entorno si docker, solo debemos ejecutar con **Python3** el script principal de la aplicación
 
 ~~~ bash
   python3 main.py
 ~~~
 
-En el caso de docker, luego del build podemos verificar si los contenedores estan correindo ejecutando:
+En el caso de docker, luego del build podemos verificar si los contenedores están corriendo ejecutando:
 
 ~~~ bash
 devops.sh --top
 ## Ctrl + C para finalizar
 ~~~
 
-De lo contrario, solo debemos iniciar los contendores:
+De lo contrario, solo debemos iniciar los contenedores:
 
 ~~~ bash
 devops.sh --start
 ~~~
 
-# Script de testing
+# Bash Script de testing
 El listado de script para testing, dentro del directorio ```0T-TestScripts```:
 
-  - **Creacion de Usuario** [curl_register](#creacion-de-usuario)
-  - **Login** [curl_login](#login)
-  - **Editar Usuario** [curl_edit_register](#editar-usuario)
-  - **Obtener todos los usuario** [curl_get_users](#obtener-todos-los-usuario)
-  - **Healt Check** [curl_health_check](#healt-check)
-  - **Obtener comicio por id**[curl_get_comicio_id](#obtener-comicio-por-id)
-  - **Obtener Todos los comicios para el usuario actual** [curl_get_comicios](#obtener-todos-los-comicios-para-el-usuario-actual)
+  - **Creacion de Usuario** [curl_register.sh](#creacion-de-usuario)
+  - **Login** [curl_login.sh](#login)
+  - **Editar Usuario** [curl_edit_register.sh](#editar-usuario)
+  - **Obtener todos los usuario** [curl_get_users.sh](#obtener-todos-los-usuario)
+  - **Healt Check** [curl_health_check.sh](#healt-check)
+  - **Obtener comicio por id**[curl_get_comicio_id.sh](#obtener-comicio-por-id)
+  - **Obtener Todos los comicios para el usuario actual** [curl_get_comicios.sh](#obtener-todos-los-comicios-para-el-usuario-actual)
   
-  - **Publicar comicio** [curl_comicio](#publicar-comicio)
+  - **Publicar comicio** [curl_comicio.sh](#publicar-comicio)
   
-  - **Obtener detalles de todos los comicios registrados** [curl_get_comicios_details](get-comicios-details)
+  - **Obtener detalles de todos los comicios registrados** [curl_get_comicios_details.sh](get-comicios-details)
   
-  - **Funciones utilitarias** [utilities](#funciones-utilitarias)
+  - **Funciones utilitarias** [utilities.sh](#funciones-utilitarias)
+
+  
 
 ## Creacion de Usuario
+1. Creando un nuevo usuario
 ~~~ bash
 curl_register.sh '{"username":"jel","password":"pass12345"}'
-request: http://127.0.0.1:5000/api/register
+request: http://127.0.0.1:8080/api/register
 
-curl -sS http://127.0.0.1:5000/api/register -i -X POST -H Content-Type: application/json --data {"username":"jel","password":"pass12345"} -w '\n'
 response: HTTP/1.1 201 CREATED
-Server: Werkzeug/3.0.3 Python/3.10.12
-Date: Sat, 18 May 2024 21:39:06 GMT
+Server: gunicorn
+Date: Thu, 30 Jan 2025 11:53:39 GMT
+Connection: keep-alive
 Content-Type: application/json
-Content-Length: 24
-Connection: close
+Content-Length: 19
 
-{
-  "username": "jel"
-}
+{"username":"jel"}
 ~~~
+
+2. Intentado crear un usuario ya existente
+~~~ bash
+request: http://127.0.0.1:8080/api/register
+
+response: HTTP/1.1 200 OK
+Server: gunicorn
+Date: Thu, 30 Jan 2025 11:54:04 GMT
+Connection: keep-alive
+Content-Type: application/json
+Content-Length: 59
+
+{"code":400,"message":"username <jel> ya esta registrado"}
+~~~
+
 
 ## Login
 ~~~ bash
 curl_login.sh "jel:pass12345"
-request: http://127.0.0.1:5000/api/login
+request: http://127.0.0.1:8080/api/login
 
-{ "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzE2MDcwNzUxLjc2NDY3ODd9.XGiCk9qoLLRqaQwiFhavNaqn4luCW9vpRVvfQCnH3cQ", "timeout": 1800 
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZXhwIjoxNzM4MjM5ODc0LjMyMjMwNH0.NCAWOkUb6XWxwf6lsFTca1Jv6BTye6Q7SuOKk0YcxCc",
+  "timeout": 1800,
+  "username": "jel"
 }
 ~~~
 
 ## Editar Usuario
 ~~~ bash
 curl_edit_register.sh '{"password":"12345"}'
-request: http://127.0.0.1:5000/api/register
 
-response: HTTP/1.1 200 OK
-Server: Werkzeug/3.0.3 Python/3.10.12
-Date: Sat, 18 May 2024 21:54:45 GMT
-Content-Type: application/json
-Content-Length: 190
-Connection: close
+request: http://127.0.0.1:8080/api/register
 
 {
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzE2MDcxMDg1LjE3NjExODR9.zRZQu61aUHEXNoSv1LZnEvWCyT-w3g8HcSQK8BORLII",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZXhwIjoxNzM4MjQwMTMxLjQ4MjkwODV9.BboA3tYk3i_YggA2A7b7NnEFIHZhtcidhE-JSAcOE2c",
   "timeout": 1800,
   "username": "jel"
+}
+~~~
+
+## Healt Check
+~~~ bash
+curl_health_check.sh
+request: http://127.0.0.1:8080/api/HealthCheck
+
+{
+  "version": "0.5.0"
 }
 ~~~
 
 ## Obtener todos los usuario
 ~~~ bash
 curl_get_users.sh 
-request: http://127.0.0.1:5000/api/users
+request: http://127.0.0.1:8080/api/users
 
-curl -sS -u eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzE2MDcxNjU2LjYxOTE4NjJ9.ha2GXLFvFZtjoetY6P-KdapcTFyit6UZ1v_Bo2zHph8:notrelevant http://127.0.0.1:5000/api/users -X GET -H Content-Type: application/json -w '\n'
-response: {
+{
   "users": [
     "nombre_usuario",
-    "user_01",
     "jel"
   ]
 }
 ~~~
 
+## Publicar Comicio
+~~~
+curl_comicio.sh post_comicio_01.json
+request: http://127.0.0.1:8080/api/comicio
+@post_comicio_01.json
 
-## Healt Check
-~~~ bash
-curl_health_check.sh 
-request: http://127.0.0.1:5000/api/HealthCheck
-
-{ 
-  "version": "0.0.1" 
+{
+  "comicios": [
+    {
+      "escanios": 3,
+      "lista": "Partido A"
+    },
+    {
+      "escanios": 3,
+      "lista": "Partido B"
+    },
+    {
+      "escanios": 1,
+      "lista": "Partido C"
+    },
+    {
+      "escanios": 0,
+      "lista": "Partido D"
+    },
+    {
+      "escanios": 0,
+      "lista": "Partido E"
+    }
+  ],
+  "id": "238b537b8ad7172220150d4f1d81cca1"
 }
 ~~~
 
+
+
 ## Obtener comicio por id
-~~~ 
-curl_get_comicio_id.sh d8257e84b09053f6c3c8ba53d4269d85
-request: http://127.0.0.1:5000/api/get_comicio/d8257e84b09053f6c3c8ba53d4269d85
-
-
-response: HTTP/1.1 200 OK
-Server: Werkzeug/3.0.3 Python/3.10.12
-Date: Sat, 18 May 2024 22:14:47 GMT
-Content-Type: application/json
-Content-Length: 840
-Connection: close
+~~~
+curl_get_comicio_id.sh 238b537b8ad7172220150d4f1d81cca1
+request: http://127.0.0.1:8080/api/get_comicio/238b537b8ad7172220150d4f1d81cca1
 
 {
-  "date": "Sat, 18 May 2024 19:14:31 GMT",
-  "id": "d8257e84b09053f6c3c8ba53d4269d85",
+  "date": "Thu, 30 Jan 2025 09:00:54 GMT",
+  "id": "238b537b8ad7172220150d4f1d81cca1",
   "request": {
     "escanios": 7,
     "listas": 10,
@@ -447,30 +508,18 @@ Connection: close
 }
 ~~~
 
+
 ## Obtener Todos los comicios para el usuario actual
 ~~~ bash
-request: http://127.0.0.1:5000/api/get_comicios
+curl_get_comicios.sh
+request: http://127.0.0.1:8080/api/get_comicios
 
-
-response: HTTP/1.1 200 OK
-Server: Werkzeug/3.0.3 Python/3.10.12
-Date: Sat, 18 May 2024 22:12:47 GMT
-Content-Type: application/json
-Content-Length: 366
-Connection: close
 
 {
   "ids": [
-    "f302ef7949b442eb88aee338217d0103",
-    "77b54bfb8aee34590c23c6b36aa12c15",
-    "c766f5f7520a86c6169fe4c322ed2f43",
-    "ba9ea3928fcdd64ead224ed085289001",
-    "26baa07ba90134e1d3aa41bc0152884e",
-    "0b0f4697ef452d332973317c0137ab71",
-    "5b19c3f8f207f95d20dd3a66619f0491",
-    "6c3de225c80b0e985dc47dde428068d8"
+    "238b537b8ad7172220150d4f1d81cca1"
   ],
-  "user": "nombre_usuario"
+  "user": "jel"
 }
 ~~~
 
@@ -778,54 +827,8 @@ request: http://127.0.0.1:3000/api/get_comicio/ac6aa154bab6fbf3029396ba7db744e0
 ~~~
 
 
-## Publicar Comicio
-~~~ 
-curl_comicio.sh post_comicio_01.json 
-request: http://127.0.0.1:5000/api/comicio
-@post_comicio_01.json
-
-response: HTTP/1.1 200 OK
-Server: Werkzeug/3.0.3 Python/3.10.12
-Date: Sat, 18 May 2024 22:14:31 GMT
-Content-Type: application/json
-Content-Length: 372
-Connection: close
-
-{
-  "comicios": [
-    {
-      "escanios": 3,
-      "lista": "Partido A"
-    },
-    {
-      "escanios": 3,
-      "lista": "Partido B"
-    },
-    {
-      "escanios": 1,
-      "lista": "Partido C"
-    },
-    {
-      "escanios": 0,
-      "lista": "Partido D"
-    },
-    {
-      "escanios": 0,
-      "lista": "Partido E"
-    }
-  ],
-  "id": "d8257e84b09053f6c3c8ba53d4269d85"
-}
-~~~
 
 
-<!-- 
-Test: public all json files family ```post_comicio_*```:
-
-~~~ bash
-  for it in $(ls post_comicio_*.json); do curl_comicio.sh $it ;done
-~~~
--->
 
 ## Funciones utilitarias
 Este script no debería ser invocado como los demás, ya que solo contiene funciones utilitarias de uso común entre todos los demás script, como así también el setting de variables generales como:
@@ -873,7 +876,7 @@ Estas pueden ser redefinidas dentro de cada script especifico para un propósito
 
 
 ## Modificar un usuario
-```PATH ${url}/api/register/${username}```
+```PATCH ${url}/api/register/${username}```
 
 ***Debe estar logueado el usuario actual que usa la APIs (el token del mismo debe estar vigente).***
 ### request:
@@ -987,7 +990,7 @@ Debemos usar el **username** y **password** con el cual se creo el Usuario a log
 ~~~
   
 ## Get All Comicios
-```GET ${url}/api/comicios```
+```GET ${url}/api/get_comicios```
 
 ***Debe estar logueado el usuario actual que usa la APIs (el token del mismo debe estar vigente).***
 
@@ -1016,7 +1019,7 @@ Listado de los Hash Id de los comicios publicados por el usuario actual.
 ## Publicar un Comicio
 ```POST ${url}/api/comicio```
 
-Esta API realiza el calculo y registro de comicios en funcion de la cantidad de votos por listas y escaños, segun el metodo de [D'Hondt](https://es.wikipedia.org/wiki/Sistema_D%27Hondt).
+Esta API realiza el calculo y registro de comicios en función de la cantidad de votos por listas y escaños, según el método de [D'Hondt](https://es.wikipedia.org/wiki/Sistema_D%27Hondt).
 
 ***Debe estar logueado el usuario actual que usa la APIs (el token del mismo debe estar vigente).***
 
@@ -1035,8 +1038,8 @@ Esta API realiza el calculo y registro de comicios en funcion de la cantidad de 
 }
 ~~~
 
-  + **listas** : numero de listas de la publicacion, opcional (de lo contrario se calcula en funcion del objeto **votos**)
-  + **escanios** : excaños a disputar.
+  + **listas** : numero de listas de la publicación, opcional (de lo contrario se calcula en función del objeto **votos**)
+  + **escanios** : excanios a disputar.
   + **votos** : lista de objetos con la dupla de **nombre de la lista** y **cantidad de votos** por cada una de estas.
 
 ### response
@@ -1073,7 +1076,7 @@ Esta API realiza el calculo y registro de comicios en funcion de la cantidad de 
 ## Healt Check
 ```GET ${url}/api/HealthCheck```
 
-Esta peticion nos permite verificar el estado de la APIs como asi tambien el login.
+Esta petición nos permite verificar el estado de la APIs como así también el login.
 
 ***Debe estar logueado el usuario actual que usa la APIs (el token del mismo debe estar vigente).***
 
@@ -1090,93 +1093,310 @@ Versión actual de las APIs.
 
 
 
-# Eliminicacion y clean de directorios
-Para la eliminacion del proyecto, en caso de despliegues con docker, contamos con las opciones de ejecucion del script:
+# Test mediante request
+Para esto nos movemos al directorio ```0T-TestScripts/UnitTest_Comicios```, donde tenemos el script ```test_With_request.py``` con los diferentes test.
 
 ~~~ bash
-devops.sh --rm
-~~~
-Este detiene en contenedor/s, elimina estos y luego elimina la imagen creada.
+cd 0T-TestScripts/UnitTest_Comicios
 
-En caso de necesitar eliminar los archivos auto generados por python y sqlite contamos con la opcion clean, la cual debe ejecutarse luego del anterior. Ya que de otra forma no podra recuperar el nombre autogenerado para la imagen.
+test_With_request.py help -s
+
+  Funcion que lista todos los test disponibles en este modulo.
+
+  Params
+    opt Opcional (default None) opcion para especificar formato del help
+      --short o -s impresion corta.
+  
+Listado de test para el modulo: "test_With_request.py"
+
+test_With_request.py create_user [-q | --quiet]       : Creacion de un nuevo usuario.
+test_With_request.py edit_user [-q | --quiet]         : Edit User, obtiene un nuevo token para el uaurio modificado.
+test_With_request.py get_users [-q | --quiet]         : Obtener el listado actual de usuarios.
+test_With_request.py login [-q | --quiet]             : Login, obtiene nuevo token para el usuario.
+test_With_request.py health_check [-q | --quiet]      : Health Check, con la version actual de la api.
+test_With_request.py post_comicio [-q | --quiet]      : Publicar comicio.
+test_With_request.py get_comicios [-q | --quiet]      : Obtener todos los comicios registrado para el usuario.
+test_With_request.py get_comicio_id [-q | --quiet]    : Obtener Comicio por id.
+test_With_request.py help [-q | --quiet]              : Visualiza este mensaje de ayuda.
+~~~
+  - La opción '-s' o '--short' en el help indica que debe visualizar la descripciones breves de cada caso de test.
+  - La opción '-q' o '--quiet' luego de la opción deshabilita la impresión extendida de información, sobre la utilidad.
+  
+***Los test individuales son validos solo si el servicio o los contenedores esta en ejecución, de lo contrario tendremos respuesta de error relacionados a la conexion.***
+
+## Install request
+Paso previo, verificamos si esta disponible en el sistema y en caso de si, que versión instalada tenemos:
 
 ~~~ bash
-devops.sh --clean
+python3 -m pip freeze | grep requests
+requests==2.28.2
 ~~~
-***Esta opcion Nos pedira clave del usuario super/root.***
 
+En caso de no estar disponible (respuesta vaciá, en la ejecución anterior) o tener una versión por debajo de '1' instalamos el modulo:
 
-# Docker Example
-## Creacion
 ~~~ bash
-devops.sh -b
-[+] Building 1.6s (13/13) FINISHED                                                                                                                        docker:default
- => [flask-apis internal] load build definition from Dockerfile                                                                                                     0.0s
- => => transferring dockerfile: 3.46kB                                                                                                                              0.0s
- => [flask-apis internal] load metadata for docker.io/library/python:3.12                                                                                           1.5s
- => [flask-apis internal] load .dockerignore                                                                                                                        0.0s
- => => transferring context: 2B                                                                                                                                     0.0s
- => [flask-apis 1/7] FROM docker.io/library/python:3.12@sha256:e3d5b6f95ce66923b5e48a06ee5755abb097de96a8617c3f2f7d431d48e63d35                                     0.0s
- => [flask-apis internal] load build context                                                                                                                        0.0s
- => => transferring context: 39B                                                                                                                                    0.0s
- => CACHED [flask-apis 2/7] WORKDIR /home/user                                                                                                                      0.0s
- => CACHED [flask-apis 3/7] COPY requerimientos.txt ./                                                                                                              0.0s
- => CACHED [flask-apis 4/7] RUN mkdir -p /home/user                                                                                                                 0.0s
- => CACHED [flask-apis 5/7] RUN apt-get update                                                                                                                      0.0s
- => CACHED [flask-apis 6/7] RUN apt-get install -y python3-pip                                                                                                      0.0s
- => CACHED [flask-apis 7/7] RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requerimientos.txt                                        0.0s
- => [flask-apis] exporting to image                                                                                                                                 0.0s
- => => exporting layers                                                                                                                                             0.0s
- => => writing image sha256:30305f7c1fbf96fa655cfa96f44e9d28ab891b69df2ce831a1fac0e44e4620f4                                                                        0.0s
- => => naming to docker.io/library/flask_apis-flask-apis                                                                                                            0.0s
- => [flask-apis] resolving provenance for metadata file                                                                                                             0.0s
-[+] Running 2/2
- ✔ Network flask_apis_default  Created                                                                                                                              0.1s
- ✔ Container FlaskApis         Started
+python3 -m pip install requests==2.28
 ~~~
 
-## Verificacion
+## Create User
 ~~~ bash
- devops.sh logs
-FlaskApis  | [2024-08-25 13:06:28 -0300] [1] [INFO] Starting gunicorn 23.0.0
-FlaskApis  | [2024-08-25 13:06:28 -0300] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
-FlaskApis  | [2024-08-25 13:06:28 -0300] [1] [INFO] Using worker: gthread
-FlaskApis  | [2024-08-25 13:06:28 -0300] [7] [INFO] Booting worker with pid: 7
-FlaskApis  | [2024-08-25 13:06:28 -0300] [8] [INFO] Booting worker with pid: 8
-FlaskApis  | [2024-08-25 13:06:28 -0300] [9] [INFO] Booting worker with pid: 9
-FlaskApis  | [2024-08-25 13:06:28 -0300] [10] [INFO] Booting worker with pid: 10
-
-devops.sh top
-FlaskApis
-UID    PID    PPID   C    STIME   TTY   TIME       CMD
-root   8031   8011   3    12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
-root   8063   8031   13   12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
-root   8064   8031   13   12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
-root   8065   8031   13   12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
-root   8066   8031   13   12:46   ?     00:00:00   /usr/local/bin/python /usr/local/bin/gunicorn --config cfg_wsgi.py main:app
+test_With_request.py create_user -q jesus 4321
+Creando el usuario con el payload:
+ {'username': 'jesus', 'password': '4321'}
+Resp Code: 201
+Resp JSON:
+{
+  "username": "jesus"
+}
 ~~~
 
-## remove and clean
+## Intentar crear un usuario dupicado
 ~~~ bash
-devops.sh --rm
-[+] Stopping 1/1
- ✔ Container FlaskApis  Stopped                                                                                                                                     1.3s
-[+] Running 2/2
- ✔ Container FlaskApis         Removed                                                                                                                              0.1s
- ✔ Network flask_apis_default  Removed                                                                                                                              0.3s
-Untagged: flask_apis-flask-apis:latest
-Deleted: sha256:30305f7c1fbf96fa655cfa96f44e9d28ab891b69df2ce831a1fac0e44e4620f4
+test_With_request.py create_user -q jesus 4321
+Creando el usuario con el payload:
+ {'username': 'jesus', 'password': '4321'}
+Resp Code: 200
+Resp JSON:
+{
+  "code": 400,
+  "message": "username <jesus> ya esta registrado"
+}
+~~~
 
+## Edit user
+~~~ bash
+test_With_request.py edit_user -q jesus 1234 4321
+Editando el Usaurio <jesus>, con el payload
+{'password': '4321'}
+Resp Code: 200
+Resp JSON:
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzM4NjI4Nzk2Ljc5MjM0MTV9.1TM6OOY6ArHYEBg4qcuaEcj0bPgd0tD6VtwncF1IjCg",
+  "timeout": 1800,
+  "username": "jesus"
+}
+~~~
 
-devops.sh --clean
-clean comodin files
-clean array files
+## Obtener listado de Usuarios
+~~~ bash
+test_With_request.py get_users -q
+Get users, listado actual de usuarios, auth:
+('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzM4NjI4Nzk2Ljc5MjM0MTV9.1TM6OOY6ArHYEBg4qcuaEcj0bPgd0tD6VtwncF1IjCg', 'notrelevant')
 
-clean array folders with prefix
-clean array folders
+Resp Code: 200
+Resp JSON:
+{
+  "users": [
+    "jesus"
+  ]
+}
 ~~~
 
 
+## login
+~~~ bash
+test_With_request.py login -q jesus 4321
+Login User jesus, auth:
+('jesus', '4321')
+
+Resp Code: 200
+Resp JSON:
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzM4NjMxMjY2LjY3NDE4MjR9.QPRVKNjwiRWDOQCzIGzUQ2vY3yweRcMwRGT7bODMGlE",
+  "timeout": 1800,
+  "username": "jesus"
+}
+~~~
+
+## health check
+~~~ bash
+test_With_request.py health_check -q
+Health Check, username <jesus>
+
+Resp Code: 200
+Resp JSON:
+{
+  "version": "0.5.0"
+}
+~~~
+
+## Publicar un comicio
+~~~
+test_With_request.py post_comicio -q
+Publicar comicio, File: in/post_comicio_01.json | username <jesus> | Payload:
+{
+  "listas": 10,
+  "escanios": 7,
+  "votos": [
+    {
+      "name": "Partido A",
+      "votos": 340000
+    },
+    {
+      "name": "Partido B",
+      "votos": 280000
+    },
+    {
+      "name": "Partido C",
+      "votos": 160000
+    },
+    {
+      "name": "Partido D",
+      "votos": 60000
+    },
+    {
+      "name": "Partido E",
+      "votos": 15000
+    }
+  ]
+}
+
+Resp Code: 200
+Resp JSON:
+{
+  "comicios": [
+    {
+      "escanios": 3,
+      "lista": "Partido A"
+    },
+    {
+      "escanios": 3,
+      "lista": "Partido B"
+    },
+    {
+      "escanios": 1,
+      "lista": "Partido C"
+    },
+    {
+      "escanios": 0,
+      "lista": "Partido D"
+    },
+    {
+      "escanios": 0,
+      "lista": "Partido E"
+    }
+  ],
+  "id": "1d746807e4a828c64eedb824423aa9b8"
+}
+~~~
+
+## Obtener todos los comicios registrado para el usuario
+~~~ bash
+test_With_request.py get_comicios -q
+Los comicios registrado para el usuario <jesus>
+
+Resp Code: 200
+Resp JSON:
+{
+  "ids": [
+    "1d746807e4a828c64eedb824423aa9b8",
+    "34a869c0440813c2764f053696ac2c2b",
+    "97f1d1254c3241adf0ac5e58031a80a1",
+    "130233468fd4ea383afee0b98f82aeec",
+    "685c3d982b3d339c129b31339ff3b538",
+    "52c2126b6512c934c12bec30d0e3e2e8"
+  ],
+  "user": "jesus"
+}
+~~~
+
+
+
+## Obtener Comicio por id
+~~~
+test_With_request.py get_comicio_id -q 1d746807e4a828c64eedb824423aa9b8
+Comicios Registrado con el id:<1d746807e4a828c64eedb824423aa9b8>, username <jesus>
+
+Resp Code: 200
+Resp JSON:
+{
+  "date": "Mon, 03 Feb 2025 21:48:37 GMT",
+  "id": "1d746807e4a828c64eedb824423aa9b8",
+  "request": {
+    "escanios": 7,
+    "listas": 10,
+    "votos": [
+      {
+        "name": "Partido A",
+        "votos": 340000
+      },
+      {
+        "name": "Partido B",
+        "votos": 280000
+      },
+      {
+        "name": "Partido C",
+        "votos": 160000
+      },
+      {
+        "name": "Partido D",
+        "votos": 60000
+      },
+      {
+        "name": "Partido E",
+        "votos": 15000
+      }
+    ]
+  },
+  "response": [
+    {
+      "escanios": 3,
+      "lista": "Partido A"
+    },
+    {
+      "escanios": 3,
+      "lista": "Partido B"
+    },
+    {
+      "escanios": 1,
+      "lista": "Partido C"
+    },
+    {
+      "escanios": 0,
+      "lista": "Partido D"
+    },
+    {
+      "escanios": 0,
+      "lista": "Partido E"
+    }
+  ]
+}
+~~~
+
+# Unit Test con request
+Dentro del directorio ```0T-TestScripts/UnitTest_Comicios```, nos encontramos con el script ```test_ApisRestComicios.py``` con los test unitarios y secuenciales.
+
+~~~ bash
+python3 test_ApisRestComicios.py
+test_create_user (__main__.TestComicioApis)
+01- test create user ... ok
+test_edit_user (__main__.TestComicioApis)
+02- test edit user ... ok
+test_get_users (__main__.TestComicioApis)
+03- test get users ... ok
+test_login (__main__.TestComicioApis)
+04- test login ... ok
+test_health_check (__main__.TestComicioApis)
+05- test health check ... ok
+test_post_comicio (__main__.TestComicioApis)
+06- test post comicio ... ok
+test_get_comicios (__main__.TestComicioApis)
+07- test get comicios ... ok
+test_get_comicio_id (__main__.TestComicioApis)
+08- test get comicio id ... ok
+test_get_comicio_id_list (__main__.TestComicioApis)
+09- test get comicio id desde la lista de get comicios ... ok
+test_post_comicio_list (__main__.TestComicioApis)
+10- test post comicio, desde una lista de archivos ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 1.030s
+
+OK
+~~~
+
+
+***Los test individuales son validos solo si el servicio o los contenedores esta en ejecución, de lo contrario tendremos respuesta de error relacionados a la conexión.***
 # Autor
   + [Luccioni Jesuse Emanuel](mailto:piero.jel@gmail.com)
 

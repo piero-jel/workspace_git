@@ -48,7 +48,7 @@ fi
 echo "request: ${URI}"
 #declare -F pretty_json &> /dev/null &&  pretty_json "$DATA" && echo "$PRETTY_JSON" || echo $DATA
 echo
-# echo "curl -sS -u "${USER}" "${URI}" -i -X "${METHOD}" -H "${HEADER}" --data "${DATA}" -w '\n'"
+#echo  "curl -sS -u "${USER}" "${URI}" -i -X "${METHOD}" -H "${HEADER}" --data "${DATA}" -w '\n'"
 resp=$(curl -sS -u "${USER}" "${URI}" -i -X "${METHOD}" -H "${HEADER}" --data "${DATA}" -w '\n')
 
 ## save token session

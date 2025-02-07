@@ -116,6 +116,7 @@ def register():
   # set verify empty in decorator func @validate_json_request()
   username = request.json.get('username') 
   password = request.json.get('password')
+  app.logger.debug(f'Register usaer {username}')
   # Check for existing users
   user = None
   try:

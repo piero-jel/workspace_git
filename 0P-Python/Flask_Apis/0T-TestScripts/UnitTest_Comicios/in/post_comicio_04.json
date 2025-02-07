@@ -1,0 +1,13 @@
+{
+  "listas": 10,
+  "escanios" : 6,
+  "votos" : [
+        {"name":"Nulos y Blancos","votos": 30656}
+      , {"name":"Partido B"      ,"votos":  6745}
+      , {"name":"Partido G"      ,"votos": 63942}
+      , {"name":"Partido M"      ,"votos":  2590}
+      , {"name":"Partido N"      ,"votos": 41036}
+      , {"name":"Partido O"      ,"votos": 24854}
+      , {"name":"Partido P"      ,"votos":237460}
+    ]
+}
