@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+
+{% block title %} {{ titulo }} {% endblock %}
+
+{% block content %}
+    {% if link %}
+        {% for lnk in link %}            
+            <div style="margin-top: 10px; margin-left: 25px;">
+                <a href={{lnk.url}}  title="Click para abrir la vista {{lnk.title}}"> 
+                <strong style="font-size: x-large;">{{lnk.title}}</strong>
+                </a>
+            </div>
+        {% endfor %} 
+    {% else %}
+        <p>Sin listado de links.</p>
+    {% endif %}
+{% endblock %}

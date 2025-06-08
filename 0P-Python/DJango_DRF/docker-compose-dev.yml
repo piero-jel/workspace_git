@@ -1,0 +1,28 @@
+#version: "3.8"
+
+services:
+  rd_django:
+    build:
+      context: deploy/django/.
+    container_name: RTWebApp # set container name
+    restart: on-failure
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - "./rd_wepapp:/projects"
+
+    command: ["/projects/begin_services.sh"]
+      #- sh -c "python3 manage.py migrate && python3 manage.py load_list_items --pathfile in/items.json && python3 manage.py runserver 0.0.0.0:8080"
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m" # limits each log file to 10MB
+        max-file: "1"   # keeps only the 1 most
+
+    environment:
+      - TZ=America/Argentina/Buenos_Aires
+
+
+

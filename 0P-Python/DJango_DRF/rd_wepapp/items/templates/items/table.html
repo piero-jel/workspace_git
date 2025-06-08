@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+
+{% block title %} {{ titulo }} {% endblock %}
+
+{% block content %}
+    {% if table_head and table_rows %}
+        <div class="container-fluid">
+            <div class="tab-content">        
+                <!-- <div class="tab-pane" id="items_vs_seller"> -->
+                <div id="table">
+                    <table class="table table-strip table-hover table-responsive-sm table-responsive-md">
+                        <thead>
+                            <tr>
+                                {% for head in table_head %}
+                                    <th style="width:{{head_with}}%">{{head}}</th>
+                                {% endfor %}        
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for row in table_rows %}
+                            <tr>
+                                {% for col in row %}
+                                    <td>{{ col }}</td>
+                                {% endfor %}                                                     
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>No Items are available.</p>
+    {% endif %}    
+{% endblock %}

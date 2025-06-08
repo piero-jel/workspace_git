@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+
+{% block title %} {{ titulo }} {% endblock %}
+
+{% block content %}
+    {% if list_item %}
+        <div class="container-fluid">
+            <div class="tab-content">        
+                <!-- <div class="tab-pane" id="items_vs_seller"> -->
+                <div id="items_vs_seller">                    
+                    <!-- <table class="datatable-full table table-striped table-condensed"> -->
+                    <table class="table table-strip table-hover table-responsive-sm table-responsive-md">
+                        <thead>
+                            <tr>
+                                <th style="width:50%">{% trans 'Title' %}</th>
+                                <th style="width:25%">{% trans 'Price' %}</th>
+                                <th style="width:25%">{% trans 'Thumbnail' %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for h in list_item %}
+                            <tr>
+                                <td>{{ h.title }}</td>
+                                <td>{{ h.price }}</td>
+                                <td>
+                                    <img class="img-responsive" sizes="(max-width: 200px)" src={{ h.thumbnail }} alt={{ h.title }}> 
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>No Items are available.</p>
+    {% endif %}    
+{% endblock %}
+<!--
+<img class="img-responsive" src="http://http2.mlstatic.com/D_670057-MLA77592948855_072024-I.jpg" alt="Slider Image"> 
+
+-->

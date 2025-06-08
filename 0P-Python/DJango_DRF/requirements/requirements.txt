@@ -1,0 +1,50 @@
+requests
+urllib3
+numpy
+#psycopg2
+psycopg2-binary
+pandas
+polars
+pyarrow
+Django
+django-braces
+django-compat
+django-contrib-comments
+django-crispy-forms
+django-autocomplete-light
+django-datatables-view
+django-db-constraints
+django-extensions
+django-hijack
+django-leaflet
+django-no-last-login
+django-pandas
+django-session-security
+django-stronghold
+django-timezone-field
+djangorestframework
+coverage
+django-nose
+# djangorestframework-gis
+# crispy-bootstrap3
+# geocoder
+# openpyxl
+# pickleshare
+# Pillow
+# ptyprocess
+# pyparsing
+# python-crontab
+# python-dateutil
+# pytz
+# PyYAML
+# s3transfer
+# simplejson
+# six
+# sqlparse
+# stack-data
+# tool
+# toolz
+# uWSGI
+
+
+

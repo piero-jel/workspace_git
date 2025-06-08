@@ -1,0 +1,16 @@
+# forced add this files
+!.gitignore
+
+## find . -name __pycache__ -type d
+items/migrations/__pycache__/
+items/__pycache__/
+wepapp/__pycache__/
+items/management/commands/__pycache__/
+
+htmlcov/
+.coverage
+# discard database file
+db.sqlite3
+
+# discard log files
+*.log

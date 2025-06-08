@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+
+{% block title %} {{ titulo }} {% endblock %}
+
+{% block content %}
+    {% if items_list %}
+        <div class="container-fluid">
+            <div class="tab-content">        
+                <!-- <div class="tab-pane" id="items_vs_seller"> -->
+                <div id="items_vs_seller">
+                    <table class="datatable-full table table-striped table-condensed">
+                        <thead>
+                            <tr>
+                                <th>{% trans 'seller_id' %}</th>
+                                <th>{% trans 'seller_nickname' %}</th>
+                                <th>{% trans 'nro_publicaciones' %}</th>
+                                <th>{% trans 'mean_price' %}</th>                  
+                                <th>{% trans 'nro_gold_special' %}</th>
+                                <th>{% trans 'nro_gold_pro' %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for h in items_list %}
+                            <tr>
+                                <td>{{ h.seller_id }}</td>
+                                <td>{{ h.seller_nickname }}</td>
+                                <td>{{ h.nro_publicaciones }}</td>
+                                <td>{{ h.mean_price }}</td>
+                                <td>{{ h.nro_gold_special }}</td>
+                                <td>{{ h.nro_gold_pro }}</td>                        
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>No Items are available.</p>
+    {% endif %}
+{% endblock %}

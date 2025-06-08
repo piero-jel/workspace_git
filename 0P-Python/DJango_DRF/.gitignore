@@ -1,0 +1,22 @@
+# forced add this files
+!.gitignore
+
+#discard files reader
+*.pdf
+*.epub
+
+#discard compress files
+*.zip
+*.rar
+*.tar.gz
+*.tar
+*.gz
+
+
+
+##
+.venv/
+
+
+# discard log files
+*.log
