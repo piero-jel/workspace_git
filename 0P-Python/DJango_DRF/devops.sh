@@ -53,78 +53,6 @@ function main::help()
   container::help ${THIS_NAME} ${TARGET}
   return $?
 }
-
-
-
-
-
-## $1: type {0: print only | 1: clean }
-function CleanFilesAndFolders()
-{
-  local type
-  if [[ $# -ne 1 ]]; then type=0; else type=$1;fi
-  
-  #echo "type $type"
-  [[ ${type} == 1 ]] && echo "clean comodin files" || echo "Clean list Files"
-  for it in "${CLEAN_ARR_COMODIN_FILES[@]}"
-  do
-    for it2 in $(ls ${it} 2>/dev/null )
-    do
-      if [[ -f ${it2} ]]
-      then
-        [[ ${type} == 1 ]] && sudo rm -f ${it2} || echo "  ${it2}"
-        #sudo rm -f $it2
-      else
-        echo "File <${it2}> not found."
-      fi        
-    done        
-  done
-    
-  [[ ${type} == 1 ]] && echo "clean array files"
-  for it in "${CLEAN_ARR_FILES[@]}"
-  do
-    if [[ -f ${it} ]]
-    then
-      [[ ${type} == 1 ]] && sudo rm -f $it || echo "  ${it}"
-      #echo "rm -f $it"
-      #sudo rm -f $it
-    else
-      echo "File <${it}> not found."
-    fi
-  done
-  
-  echo 
-  [[ ${type} == 1 ]] && echo "clean array folders with prefix" || echo "Clean list Folders"
-  for it in "${CLEAN_ARR_FOLDERS[@]}"
-  do
-    for it2 in $(ls $it 2>/dev/null)
-    do      
-      if [ -d "$it$it2" ]
-      then
-        [[ ${type} == "1" ]] && sudo rm -fR "${it}${it2}" || echo "  ${it}${it2}"
-        #sudo rm -fR "$it$it2"
-      else
-        echo "Folder <${it}${it2}> not found."
-      fi        
-    done        
-  done
-  
-  
-  [[ ${type} == 1 ]] && echo "clean array folders"
-  for it in "${CLEAN_ARR_DIR[@]}"
-  do
-    if [[ -d ${it} ]]
-    then
-      [[ ${type} == 1 ]] && sudo rm -fR "${it}" || echo "  ${it}"
-      #sudo rm -fR "$it"
-    else
-      echo "Folder <${it}> not found."
-    fi
-  done
-  return 0
-    
-
-}
 ### END   Functions definitions
 
 
@@ -147,6 +75,7 @@ function main()
     container::help ${THIS_NAME} ${TARGET}
     return 0
   fi
+
   case "${TARGET}" in
     '--build')
         shift
@@ -158,7 +87,7 @@ function main()
     '--up')
         shift
         ## Opciones con argumentos opcinales
-        echo "Local URL: http://localhost:8080"
+        echo "Local URL: <${URL_LOCAL_HOME}>"
         container::up "$@"
         return 0
     ;;
@@ -170,18 +99,19 @@ function main()
     ;;
     '--start')
         ## Opciones con un argumento mandatorio        
-        if [[ -z ${2} ]]
+        if [[ ${SERVICES_MUL_APP} == 'true' ]] && [[ -z ${2} ]]
         then        
           echo "Opcion <${1}> sin parametros"
           return 1
         fi
+        echo "Local URL: <${URL_LOCAL_HOME}>"
         container::start $2
         return $?
 
     ;;
     '--stop')
         ## Opciones con un argumento mandatorio
-        if [[ -z ${2} ]]
+        if [[ ${SERVICES_MUL_APP} == 'true' ]] && [[ -z ${2} ]]
         then        
           echo "Opcion <${1}> sin parametros"
           return 1
@@ -191,14 +121,14 @@ function main()
     ;;
     '--restart')
         ## Opciones con un argumento mandatorio
-        if [[ -z ${2} ]]
+        if [[ ${SERVICES_MUL_APP} == 'true' ]] && [[ -z ${2} ]]
         then        
           echo "Opcion <${1}> sin parametros"
           return 1
         fi
         container::restart $2
         return $?
-    ;;
+    ;;    
     '--term')
         ## Opciones con un argumento mandatorio
                 ## Opciones con un argumento mandatorio
@@ -229,22 +159,24 @@ function main()
       container::info
       return $?
     ;;
-    --coverage)
-      container::run "app" "Action.sh --coverage"
-      ou_file='rd_wepapp/htmlcov/index.html'
-      if command -v gio &> /dev/null;
-      then
-        gio open "$PWD/${ou_file}"
-      else
-        echo "Report, open with browser: <$PWD/${ou_file}>"
-      fi
-      return 0
+    '--coverage')
+      container::coverage
+      return $?
     ;;
+
+    '--clean')
+        container::clean
+        return 0        
+    ;;
+
     '--help'|'-h')
       if [[ ! -z ${2} ]]
       then 
         TARGET=${2}
-      fi      
+      else 
+        TARGET='-h'
+      fi
+      #echo "TARGET<${TARGET}>"
       main::help
       return $?
     ;;

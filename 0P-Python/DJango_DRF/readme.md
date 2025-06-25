@@ -1,4 +1,8 @@
 # Contenido
+<!--
+Pendiente nginx deploy
+https://medium.com/@akshatgadodia/deploying-a-django-application-with-docker-nginx-and-certbot-eaf576463f19
+-->
 
 * [Run Project With Enviroment](#enviroment)
   + [Creacion del virtual enviroment](#creacion-del-virtual-enviroment)
@@ -61,7 +65,7 @@ Resumen de los pasos para poner en marcha el proyecto:
 
 ```bash
 ## creamos el venv
-cd Assessment_Python
+cd DJango_DRF
 bash activate.sh
 
 ## ponemos en marcha el proyecto
@@ -214,18 +218,19 @@ Para este script `devops.sh`, debemos considerar tener instalado en el sistema l
 ## coverage
 Para esto podemos realizar los siguientes pasos:
 
+1. Atachando una terminal al contenedor de la aplicacion.
 ```bash
-cd Assessment_Python
+cd DJango_DRF
 devops.sh --term app
 ```
-este paso nos dejara en el directorio del proyecto dentro del contenedor (`Assessment_Python/rd_wepapp`), para ejecutar el coverage solo debemos correr la siguiente linea:
+este paso nos dejara en el directorio del proyecto dentro del contenedor (`DJango_DRF/rd_wepapp`), para ejecutar el coverage solo debemos correr la siguiente linea:
 
 ```bash
 bash Action.sh --coverage
 ```
-Y para visualizar el informe debemos abrir el archivo html `Assessment_Python/rd_wepapp/htmlcov/index.html`, para cerrar la consola atachada al contenedor solo debemos presionar la combinación de teclas `ctrl + d` (o ingresar el comando `exit` ).
+Y para visualizar el informe debemos abrir el archivo html `DJango_DRF/rd_wepapp/htmlcov/index.html`, para cerrar la consola atachada al contenedor solo debemos presionar la combinación de teclas `ctrl + d` (o ingresar el comando `exit` ).
 
-También contamos con la opción:
+2. Ejecutando la acciones sobre un Contenedor que ya esta corriendo:
 ```bash
 devops.sh --coverage
 ```

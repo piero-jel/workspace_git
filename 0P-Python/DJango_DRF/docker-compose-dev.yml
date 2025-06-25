@@ -24,5 +24,24 @@ services:
     environment:
       - TZ=America/Argentina/Buenos_Aires
 
+  # rd_nginx:
+  #   container_name: RDNginx
+  #   #restart: always
+  #   restart: on-failure
 
+  #   #image: nginx:latest
+  #   image: nginx:1.27.5
+    
+    
+  #   volumes:
+  #     - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf
+  #     - ./deploy/nginx/certs:/etc/ssl/certs
+
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+
+  #   depends_on:
+  #     - rd_django
+  
 

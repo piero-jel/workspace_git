@@ -170,16 +170,17 @@ function container::down(){
 
 
 function container::service(){
-  local trj_srv srv
-  trj_srv=( start stop restart)
+  local trj_srv srv tarjet
+  trj_srv=( start stop restart status )
   if [[ ! ${trj_srv[@]} =~ ${1} ]]
   then
     echo "action <${1}> no permitida"
     return 1
   fi
   trj=${1}
+  tarjet=${2:-'all'}
 
-  case "$2" in
+  case "${tarjet}" in
     'ddbb')
       if [[ ${BASH_DEBUG} == "true" ]];then
         echo "docker compose --file ${COMPOSE_FILE} ${trj} ${SERVICE_DDBB}"
@@ -194,6 +195,13 @@ function container::service(){
         docker compose --file ${COMPOSE_FILE} ${trj} ${SERVICE_APP}
       fi
     ;;
+    'nginx')
+      if [[ ${BASH_DEBUG} == "true" ]];then
+        echo "docker compose --file ${COMPOSE_FILE} ${trj} ${SERVICE_NGINX}"
+      else
+        docker compose --file ${COMPOSE_FILE} ${trj} ${SERVICE_NGINX}
+      fi
+    ;;
     'all')
       if [[ ${BASH_DEBUG} == "true" ]];then
         echo "docker compose --file ${COMPOSE_FILE} ${trj}"
@@ -202,7 +210,7 @@ function container::service(){
       fi
     ;;
     *)
-      echo "opcion <$2> incorrecta"
+      echo "opcion <${tarjet}> incorrecta"
       return 1
     ;;
   esac
@@ -224,6 +232,12 @@ function container::stop(){
 ## $1 {ddbb,app,all}
 function container::restart(){
   container::service "restart" ${1}
+  return $?
+}
+
+## $1 {ddbb,app,all}
+function container::status(){
+  container::service "status" ${1}
   return $?
 }
 
@@ -257,6 +271,20 @@ function container::term(){
         echo "docker exec -it \"${id_container}\" \"${ENTRYPOINT_APP}\""
       else
         docker exec -it "${id_container}" "${ENTRYPOINT_APP}"
+      fi
+    ;;
+    'nginx')
+      __get_container_id "${CONTAINER_NGINX}"
+      if [[ $? -ne 0 ]]
+      then
+        echo "Contenedor <${CONTAINER_NGINX}> not found"
+        return 1
+      fi
+      id_container=${CONTAINER_ID}
+      if [[ ${BASH_DEBUG} == "true" ]];then
+        echo "docker exec -it \"${id_container}\" \"${CONTAINER_NGINX}\""
+      else
+        docker exec -it "${id_container}" "${CONTAINER_NGINX}"
       fi
     ;;
     *)
@@ -349,8 +377,46 @@ function container::info(){
   echo "DEFAULT_TARGET   : ${DEFAULT_TARGET}"
 }
 
+function container::coverage(){
+  container::run "app" "Action.sh --coverage"
+  [[ $? -ne 0 ]] && return 0
+  echo "ret<$?>"
+  ou_file='rd_wepapp/htmlcov/index.html'
+  if command -v gio &> /dev/null;
+  then
+    gio open "$PWD/${ou_file}"
+  else
+    echo "Report, open with browser: <$PWD/${ou_file}>"
+  fi
+  return 0
+}
 
 
+
+## $1 Parametro Opcional file docker compose
+function container::clean(){  
+  local images  
+  # obtenemos el nombre del archivo p/docker compose
+  __get_param_file "$@"
+  [[ $? -ne 0 ]] && return 1
+
+  images=$(docker compose --file "${PARAM_FILE}" images -q)
+  docker compose --file "${PARAM_FILE}" stop
+  docker compose --file "${PARAM_FILE}" down
+  docker compose --file "${PARAM_FILE}" rm -fsv
+
+  if [[ ! -z ${images} ]];then
+    echo "images<${images}>"
+    docker rmi ${images}
+  fi
+
+  # clean builder chaceh
+  docker image prune -af
+  docker builder prune -af
+  ## delete dir
+  sudo find . -name __pycache__ -type d -exec rm -rf {} +
+  return 0
+}
 
 
 
@@ -365,6 +431,8 @@ function container::help {
             '--term'
             '--top'
             '--logs'
+            '--coverage'
+            '--clean'
           )
 
   app_name=${1}
@@ -377,7 +445,7 @@ function container::help {
   fi
 
   case "$target" in
-  --build)
+  '--build')
     cat << EOH >&2
 --build [-f <path-file> | --file <path-file>]
 
@@ -391,7 +459,7 @@ Example:
 EOH
   return 0
   ;;
-  --up)
+  '--up')
     cat << EOH >&2
 --up [-f <path-file> | --file <path-file>]
 
@@ -405,7 +473,7 @@ Example:
 EOH
   return 0
   ;;
-  --down)
+  '--down')
     cat << EOH >&2
 --down [-f <path-file> | --file <path-file>]
 
@@ -420,7 +488,7 @@ EOH
   return 0
   ;;
 
-  --start)
+  '--start')
     cat << EOH >&2
 --start <target>
   Inicia el servicio del contenedor, target:
@@ -438,7 +506,7 @@ EOH
   return 0
   ;;
 
-  --stop)
+  '--stop')
     cat << EOH >&2
 --stop <target>
   Detiene el servicio del contenedor, target:
@@ -456,7 +524,7 @@ EOH
   return 0
   ;;
 
-  --restart)
+  '--restart')
     cat << EOH >&2
 --restart <target>
   Reinicia el servicio del contenedor, target:
@@ -474,7 +542,7 @@ EOH
   return 0
   ;;
 
-  --logs)
+  '--logs')
     cat << EOH >&2
 --logs
 
@@ -486,7 +554,19 @@ EOH
   return 0
   ;;
 
-  --top)
+  '--clean')
+    cat << EOH >&2
+--clean
+
+  Realiza el clean de los directorios creados de forma automatica.
+
+Example:
+  ${app_name} --logs
+EOH
+  return 0
+  ;;
+
+  '--top')
     cat << EOH >&2
 --top [-f <path-file> | --file <path-file>]
 
@@ -501,7 +581,7 @@ EOH
   return 0
   ;;
 
-  --term)
+  '--term')
     cat << EOH >&2
 --term <target>
   Conexion a una terminal dentro del Contendor deseado
@@ -517,7 +597,21 @@ EOH
   return 0
   ;;
 
-  --help|-h)
+
+  '--coverage')
+    cat << EOH >&2
+--coverage 
+  Realiza el test y genera el reporte 'code coverage' del codigo.
+    
+Example:
+  ${app_name} --coverage
+
+EOH
+  return 0
+  ;;
+
+
+  '--help'|'-h')
   cat << EOH >&2
   ${app_name} {--help | -h }        Visualiza Help General
   ${app_name} {--help | -h } <target> para un help Especifico
@@ -532,9 +626,9 @@ EOH
 
   *)
 cat << EOH >&2
-    -h                             : llamado a help con parametro <$arg1> incorrecto (no documentado).
+  ${app_name} {--help | -h }        Llamado a help con parametro <${target}> incorrecto (no documentado).
+
 EOH
-    container::help "--help"
     return 0
   ;;
   esac
