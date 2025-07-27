@@ -299,39 +299,35 @@ function container::term(){
 ## $1 {ddbb,app}
 ## $2 command to run in container
 function container::run(){
-  local id_container entry_point
+  local id_container entry_point flags
+
+  flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"
   case "$1" in
     'ddbb')
-      __get_container_id "${CONTAINER_DDBB}"
-      if [[ $? -ne 0 ]]
-      then
-        echo "Contenedor <${CONTAINER_DDBB}> not found"
-        return 1
-      fi
+      # __get_container_id "${CONTAINER_DDBB}"
+      # if [[ $? -ne 0 ]]
+      # then
+      #   echo "Contenedor <${CONTAINER_DDBB}> not found"
+      #   return 1
+      # fi
       entry_point=${2:-${}}
-      id_container=${CONTAINER_ID}
+      #id_container=${CONTAINER_ID}|
       if [[ ${BASH_DEBUG} == "true" ]];then
-        echo "docker exec -it \"${id_container}\" \"${entry_point}\""
+        echo "docker compose --file ${COMPOSE_FILE} run ${flags} ${SERVICE_DDBB} ${ENTRYPOINT_DDBB} ${entry_point}"
       else
-        docker exec "${id_container}" "${entry_point}"
-        docker compose --file ${COMPOSE_FILE} run --rm -e TZ=America/Argentina/Buenos_Aires ${SERVICE_DDBB} ${ENTRYPOINT_DDBB} ${entry_point}
+        #docker exec "${id_container}" "${entry_point}"
+        docker compose --file ${COMPOSE_FILE} run ${flags} ${SERVICE_DDBB} ${ENTRYPOINT_DDBB} ${entry_point}
       fi
     ;;
-    'app')
-      __get_container_id "${CONTAINER_APP}"
-      if [[ $? -ne 0 ]]
-      then
-        echo "Contenedor <${CONTAINER_APP}> not found"
-        return 1
-      fi
-      entry_point=${2:-${ENTRYPOINT_APP}}
-      id_container=${CONTAINER_ID}
+    'app')      
+      entry_point=${2:-${ENTRYPOINT_APP}}      
       if [[ ${BASH_DEBUG} == "true" ]];then
-        echo "docker exec -it \"${id_container}\" \"${entry_point}\""
+        echo "docker compose --file ${COMPOSE_FILE} run ${flags} ${SERVICE_APP} ${ENTRYPOINT_DDBB} ${entry_point}"
       else
         # docker compose -f docker-compose-dev.yml run --rm -e TZ=America/Argentina/Buenos_Aires rd_django bash -c "bash Action.sh --coverage"
-        docker compose --file ${COMPOSE_FILE} run --rm -e TZ=America/Argentina/Buenos_Aires ${SERVICE_APP} ${ENTRYPOINT_DDBB} ${entry_point}
+        docker compose --file ${COMPOSE_FILE} run ${flags} ${SERVICE_APP} ${ENTRYPOINT_DDBB} ${entry_point}
       fi
+      return 0
     ;;
     *)
       echo "opcion <$1> para --term  incorrecta"
@@ -379,8 +375,7 @@ function container::info(){
 
 function container::coverage(){
   container::run "app" "Action.sh --coverage"
-  [[ $? -ne 0 ]] && return 0
-  echo "ret<$?>"
+  [[ $? -ne 0 ]] && return 0  
   ou_file='rd_wepapp/htmlcov/index.html'
   if command -v gio &> /dev/null;
   then
@@ -413,8 +408,11 @@ function container::clean(){
   # clean builder chaceh
   docker image prune -af
   docker builder prune -af
-  ## delete dir
-  sudo find . -name __pycache__ -type d -exec rm -rf {} +
+  ## delete dir  
+  sudo find . -name __pycache__ -type d -exec rm -rf {} +  
+  sudo find . -name htmlcov -type d -exec rm -rf {} +
+  sudo find . -name .coverage -type f -exec rm -rf {} +
+  sudo find . -name db.sqlite3 -type f -exec rm -rf {} +
   return 0
 }
 
@@ -448,13 +446,12 @@ function container::help {
   '--build')
     cat << EOH >&2
 --build [-f <path-file> | --file <path-file>]
-
-  Construye los contenedores, podemos usar '-f <path-file>' o '--file <path-file>' para usar un archivo de configuracion diferente.
+  Construye los contenedores, podemos usar '-f <path-file>' o '--file <path-file>' para usar un archivo de 
+  configuracion diferente.
 
 Example:
   ${app_name} --build
-  ${app_name} --build -f docker-compose-prod.yml
-  ${app_name} --build --file docker-compose-prod.yml
+  ${app_name} --build --file docker-compose-dev.yml
 
 EOH
   return 0
@@ -462,13 +459,11 @@ EOH
   '--up')
     cat << EOH >&2
 --up [-f <path-file> | --file <path-file>]
-
   Inicia los contenedores,  podemos usar '-f <path-file>' o '--file <path-file>' para usar un archivo de configuracion diferente.
 
 Example:
   ${app_name} --up
-  ${app_name} --up -f docker-compose-prod.yml
-  ${app_name} --up --file docker-compose-prod.yml
+  ${app_name} --up --file docker-compose-dev.yml
 
 EOH
   return 0
@@ -476,13 +471,11 @@ EOH
   '--down')
     cat << EOH >&2
 --down [-f <path-file> | --file <path-file>]
-
   Borra los contenedores, podemos usar '-f <path-file>' o '--file <path-file>' para usar un archivo de configuracion diferente.
 
 Example:
   ${app_name} --down
-  ${app_name} --down -f docker-compose-prod.yml
-  ${app_name} --down --file docker-compose-prod.yml
+  ${app_name} --down --file docker-compose-dev.yml
 
 EOH
   return 0
@@ -492,7 +485,6 @@ EOH
     cat << EOH >&2
 --start <target>
   Inicia el servicio del contenedor, target:
-
     + app : inicia solo el service para el contenedor de la aplicacion
     + ddbb : inicia solo el service para el contenedor de la base de datos
     + all : Inicia todos los servicios
@@ -510,7 +502,6 @@ EOH
     cat << EOH >&2
 --stop <target>
   Detiene el servicio del contenedor, target:
-
     + app : detiene solo el service para el contenedor de la aplicacion
     + ddbb : detiene solo el service para el contenedor de la base de datos
     + all : detiene todos los servicios
@@ -528,7 +519,6 @@ EOH
     cat << EOH >&2
 --restart <target>
   Reinicia el servicio del contenedor, target:
-
     + app : Reinicia solo el service para el contenedor de la aplicacion
     + ddbb : Reinicia solo el service para el contenedor de la base de datos
     + all : Reinicia todos los servicios
@@ -545,11 +535,11 @@ EOH
   '--logs')
     cat << EOH >&2
 --logs
-
   Target para ver los log en tiempo real de los servicios.
 
 Example:
   ${app_name} --logs
+
 EOH
   return 0
   ;;
@@ -557,11 +547,11 @@ EOH
   '--clean')
     cat << EOH >&2
 --clean
-
   Realiza el clean de los directorios creados de forma automatica.
 
 Example:
-  ${app_name} --logs
+  ${app_name} --clean
+
 EOH
   return 0
   ;;
@@ -569,12 +559,11 @@ EOH
   '--top')
     cat << EOH >&2
 --top [-f <path-file> | --file <path-file>]
-
-  Visulaiza el monitores de los contenedores, podemos usar '-f <path-file>' o '--file <path-file>' para usar un archivo de configuracion diferente.
+  Visulaiza el monitores de los contenedores, podemos usar '-f <path-file>' o '--file <path-file>'
+  para usar un archivo de configuracion diferente.
 
 Example:
-  ${app_name} --top
-  ${app_name} --top -f docker-compose-prod.yml
+  ${app_name} --top  
   ${app_name} --top --file docker-compose-dev.yml
 
 EOH
@@ -584,8 +573,7 @@ EOH
   '--term')
     cat << EOH >&2
 --term <target>
-  Conexion a una terminal dentro del Contendor deseado
-
+  Conexion a una terminal dentro del Contendor deseado:
     + app : Terminal al contenedor de la aplicacion
     + ddbb : Terminal al contenedor de la base de datos
 
@@ -596,8 +584,6 @@ Example:
 EOH
   return 0
   ;;
-
-
   '--coverage')
     cat << EOH >&2
 --coverage 
