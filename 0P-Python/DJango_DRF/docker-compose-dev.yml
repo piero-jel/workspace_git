@@ -25,7 +25,7 @@ services:
       - TZ=America/Argentina/Buenos_Aires
 
   # rd_nginx:
-  #   container_name: RDNginx
+  #   container_name: RdNginx
   #   #restart: always
   #   restart: on-failure
 

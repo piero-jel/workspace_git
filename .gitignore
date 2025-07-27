@@ -11,3 +11,6 @@
 # discard log files
 *.log
 
+rsync_workspace_git.sh
+rsync_workspace_git.exclude.rsync
+
