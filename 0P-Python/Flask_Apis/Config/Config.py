@@ -36,45 +36,52 @@ POSSIBILITY OF SUCH DAMAGE.
 \b Change History:
 Author         Date                 Version     Brief
 JEL            2024.04.19           0.3.8       Version Inicial no release
-JEL            2024.04.26           0.4.4       edit Config, quit edit set_logger() not currently in use
-JEL            2024.04.26           0.4.5       change logging for native compatibility, setting dictConfig
-
+JEL            2024.04.26           0.4.4       edit Config, quit edit set_logger() not
+                                                currently in use
+JEL            2024.04.26           0.4.5       change logging for native compatibility, setting
+                                                dictConfig
+JEL            2026.02.02           0.4.4       add pylint style PEP8
 """
-from flask import Flask
-from flask_login import LoginManager
-from logging.config import dictConfig
+## 1° standard import
 import os
+from logging.config import dictConfig
+
+## 2° third party imports
+from flask import Flask                # type: ignore
+from flask_login import LoginManager   # type: ignore
+
+## 3° import project module
 
 
-''' Definims dos hanlder consolo para debug y file 
-    Para deploy solo debemos dejar uno en la lista 'handlers': ['file']
+# Definims dos handler console para debug y file
+#   Para deploy solo debemos dejar uno en la lista 'handlers': ['file']
+#
+# dictConfig({
+#     'version': 1,
+#     'formatters': {
+#       'default': {
+#         'format': '%(asctime)s.%(msecs)03d [%(levelname)-9s] %(module)s: %(message)s',
+#         "datefmt": "%Y/%m/%dT%H:%M:%S",
+#       }
+#     },
+#     'handlers': {
+#       "console": {
+#         "class": "logging.StreamHandler",
+#         "stream": "ext://sys.stdout",
+#         "formatter": "default",
+#       },
+#       "file": {
+#         "class": "logging.FileHandler",
+#         "filename": "logs/app.log",
+#         "formatter": "default",
+#       }
+#     },
+#     'root': {
+#         'level': 'DEBUG',
+#         'handlers': ['console','file']
+#     }
+# })
 
-dictConfig({
-    'version': 1,
-    'formatters': {
-      'default': {
-        'format': '%(asctime)s.%(msecs)03d [%(levelname)-9s] %(module)s: %(message)s',
-        "datefmt": "%Y/%m/%dT%H:%M:%S",
-      }
-    },
-    'handlers': {
-      "console": {
-        "class": "logging.StreamHandler",
-        "stream": "ext://sys.stdout",
-        "formatter": "default",
-      },
-      "file": {
-        "class": "logging.FileHandler",
-        "filename": "logs/app.log",
-        "formatter": "default",
-      }
-    },
-    'root': {
-        'level': 'DEBUG',
-        'handlers': ['console','file']
-    }
-})    
-'''
 dictConfig({
     'version': 1,
     'formatters': {
@@ -97,18 +104,17 @@ dictConfig({
 })
 
 
-'''
-import logging
+# import logging
+#
+# Loggin configuration
+# LOGIN_CFG:dict = {
+#     "level": logging.DEBUG
+#   , "filename":f'{Path(__file__).resolve().parent.parent}/logs/app.log'
+#   , "filemode":'w'
+#   , "format":'%(asctime)s : %(message)s'
+# }
+# logging.basicConfig ( **LOGIN_CFG )
 
-# Loggin configuration 
-LOGIN_CFG:dict = {
-    "level": logging.DEBUG
-  , "filename":f'{Path(__file__).resolve().parent.parent}/logs/app.log'
-  , "filemode":'w'
-  , "format":'%(asctime)s : %(message)s'
-}
-logging.basicConfig ( **LOGIN_CFG )
-'''
 
 # Create a flask application
 app = Flask(__name__)
@@ -117,24 +123,24 @@ app = Flask(__name__)
 DATABASE_TYPE     = os.environ.get('DATABASE_TYPE', 'sqlite')
 
 POSTGRES_USER     = os.environ.get('POSTGRES_USER', 'postgres')
-POSTGRES_DB       = os.environ.get('POSTGRES_DB', 'python-backend') 
+POSTGRES_DB       = os.environ.get('POSTGRES_DB', 'python-backend')
 POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', '12345')
 DATABASE_IP       = os.environ.get('DATABASE_IP',   'db')
 DATABASE_PORT     = int(os.environ.get('DATABASE_PORT', '5432'))
 
 match DATABASE_TYPE:
-  case 'sqlite':
-    # Establecemos que tipo de BBDD usara  flask-sqlalchemy, como se conectara
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"    
-  case 'pgsql':
-    # app.config['SQLALCHEMY_DATABASE_URI']= 'postgresql+psycopg2://postgres:123456@localhost:5432/test'
-    # app.config['SQLALCHEMY_DATABASE_URI']= f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@192.168.0.84:5432/{POSTGRES_DB}'
-    app.config['SQLALCHEMY_DATABASE_URI']= f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DATABASE_IP}:{DATABASE_PORT}/{POSTGRES_DB}'
-  case _ :
-    # siempre como default dejamos sqlite
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"    
-  #end case
-#endmatch
+    case 'sqlite':
+        # Establecemos que tipo de BBDD usara  flask-sqlalchemy, como se conectara
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
+    case 'pgsql':
+        #app.config['SQLALCHEMY_DATABASE_URI']= f'postgresql+psycopg2://{POSTGRES_USER}:' \
+        #    f'{POSTGRES_PASSWORD}@192.168.0.84:5432/{POSTGRES_DB}'
+        app.config['SQLALCHEMY_DATABASE_URI']= f'postgresql+psycopg2://{POSTGRES_USER}:' \
+            f'{POSTGRES_PASSWORD}@{DATABASE_IP}:{DATABASE_PORT}/{POSTGRES_DB}'
+    case _ :
+        # siempre como default dejamos sqlite
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
+
 
 # Enter a secret key, clave para los ciphers
 app.config["SECRET_KEY"] = "12345"
@@ -152,11 +158,6 @@ app.config['TOKEN_TIME'] = 1800
 
 
 
-# LoginManager is needed for our application 
-# to be able to log in and out users
+# LoginManager is needed for our application to be able to log in and out users
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-
-
-

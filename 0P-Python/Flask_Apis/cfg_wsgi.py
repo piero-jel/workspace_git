@@ -37,16 +37,16 @@ POSSIBILITY OF SUCH DAMAGE.
 \b Change History:
 Author         Date                 Version     Brief
 JEL            2024.04.19           0.3.8       Version Inicial no release
+JEL            2026.02.02           0.4.4       add pylint style PEP8
 
 """
 import os
 
-''' En caso que no se localicen las variables de entorno establece los valores 
-    por defecto.
-'''
-## Nro de procesos 
+# En caso que no se localicen las variables de entorno establece los valores por defecto.
+
+## Nro de procesos
 workers = int(os.environ.get('GUNICORN_PROCESSES', '2'))
-## numero de thread 
+## numero de thread
 threads = int(os.environ.get('GUNICORN_THREADS', '4'))
 
 ## timeout 'seconds', previo al close de conexion

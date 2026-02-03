@@ -8,6 +8,8 @@
     - [Instalaccion dependencias del proyecto](#instalaccion-dependencias-del-proyecto)
     - [Ejecucion del proyecto](#ejecución-del-proyecto)
 
+  + [Ejecuccion con virtual enviroment sobre linux](#ejecuccion-con-virtual-enviroment-sobre-linux)
+
   + [Ejecucion del proyecto](#ejecución-del-proyecto)
   + [Bash Script de testing](#bash-script-de-testing)
     - **Creación de Usuario** [curl_register.sh](#creacion-de-usuario)
@@ -34,40 +36,44 @@
   
   + [Test mediante request](#test-mediante-request)
   + [Unit Test con request](#unit-test-con-request)
+
+
+  + [static code analyzers with pylint](#static-code-analyzers-with-pylint)
+
   + [Autor](#autor)
 
 # Observaciones
-El armado del proyecto esta contemplado que ya posee instalado docker y que el sistema anfitrión es linux (distribuciones **debian**, **ubuntu**, en las cuales se desplegaron).
+El armado del proyecto esta contemplado para ser desplegado usando docker. En el caso de que el sistema anfitrión sea linux (distribuciones **debian**, **ubuntu**) podemos seguir los pasos a continuacion para instalar el mismo.
 
 ## Install Docker Compose V2
 Search del instalador:
 
-~~~ bash
+``` bash
 apt search docker-compose-v2
 Ordenando... Hecho
 Buscar en todo el texto... Hecho
 docker-compose-v2/jammy-updates 2.24.6+ds1-0ubuntu1~22.04.1 amd64
   tool for running multi-container applications on Docker
-~~~
+```
 
 Obtenemos información para él packages:
 
-~~~ bash
+``` bash
 apt-cache search docker-compose-v2
 docker-compose-v2 - tool for running multi-container applications on Docker
-~~~
+```
 
 Instalación del packages:
 
-~~~ bash
+``` bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install docker-compose-v2
-~~~
+```
 
 # Armado del Contenedor
 Para esto dentro del directorio **0D-Dockerfiles** contamos con la siguientes estructura:
 
-~~~ bash
+``` bash
 0D-Dockerfiles/
 ├── bashrc
 │
@@ -78,7 +84,7 @@ Para esto dentro del directorio **0D-Dockerfiles** contamos con la siguientes es
 └── sqlite
     ├── Dockerfile
     └── requerimientos.txt
-~~~
+```
 
   + **bashrc** : directorio con los archivos de configuración para el usuario del sistema (setting de alias y path enviroment)
   
@@ -99,13 +105,13 @@ Los archivos de construcción de la imagen estan separados en función del tipo 
   
 Con los archivos correspondiente configurados (*los mismos están configurado para el proyecto*) podemos armar el contenedor mediante el uso del script **devops.sh** :
 
-~~~ bash
+``` bash
 devops.sh --build
 devops.sh -b
-~~~
+```
 En el caso de querer construir el proyecto sin la necesidad de modificar los script podemos ejecutar los comandos anteriores especificando **DataBase Management System** con la opción ```--dbms=``` .
 
-~~~ bash
+``` bash
 ## para DBMS sqlite
 devops.sh -b --dbms=sqlite
 devops.sh --build --dbms=sqlite
@@ -113,35 +119,35 @@ devops.sh --build --dbms=sqlite
 ## para DBMS PostgreSQL
 devops.sh -b --dbms=pgsql
 devops.sh --build --dbms=pgsql
-~~~
+```
 
 
 Con este no solo se creara la imagen si no también el contenedor y se ejecuta el mismo. Para validar el estado podemos ejecutar:
 
-~~~ bash
+``` bash
 devops.sh --status
 devops.sh status
-~~~
+```
 Este nos traera la info unicamente relacionada al contenedor configurado para este proyecto.
 
 Si el **status** del contenedor no es **up**, podemos verificar que sucedió con la ayuda del siguiente comando:
 
-~~~ bash
+``` bash
 devops.sh --logs
 devops.sh logs
-~~~
+```
 
 Para ver la evolución en tiempo real de cada contenedor (uso de memoria y **cpu** por cada proceso dentro de cada uno), contamos con :
 
-~~~ bash
+``` bash
 devops.sh --top
 devops.sh top
-~~~
+```
 
 
 Como la mayoría de los script, este posee un help para acceder al mismo podemos realizarlo de la siguiente forma:
 
-~~~ bash
+``` bash
 devops.sh -h
 Setting data base autocontenida sqlite
   devops.sh {--help | -h }        Visualiza Help General
@@ -164,12 +170,12 @@ Setting data base autocontenida sqlite
     devops.sh {--help | -h} --clean
     devops.sh {--help | -h} --top
 
-~~~
+```
 Lo mismo vemos para la opción '--help' (```devops.sh --help```).
 
 Para obtener información detallada de lo que hace uno en particular, debemos usar la sintaxis (```devops.sh -h <LongOption>```):
 
-~~~ bash
+``` bash
 devops.sh -h --build
 Setting data base autocontenida sqlite
 --build 
@@ -181,7 +187,7 @@ Setting data base autocontenida sqlite
 
   Construye el proyecto con las imagenes y conetenedors establecidos en 'docker-compose-sqlite.yml'.
 
-~~~
+```
 
 # Ejecuccion sin docker
 Para la ejecución sin el uso de contenedor debemos tener instalada en el host los siguientes comandos:
@@ -190,30 +196,43 @@ Para la ejecución sin el uso de contenedor debemos tener instalada en el host l
   + **pip3** (gestor de paquetes python)
 
 ## Instacion python linux
-~~~ bash  
+``` bash
   sudo apt update && sudo apt upgrade -y  
   sudo apt install -y python3  
-~~~
+```
 
 ## Instacion pip linux
-~~~ bash  
+``` bash
   sudo apt-get install -y python3-pip
-~~~
+```
 
 
 ## Instalaccion dependencias del proyecto
-~~~ bash
+``` bash
   # sobre el directorio root del proyecto
   pip3 install --no-cache-dir -r 0D-Dockerfiles/requerimientos.txt
-~~~
+```
 
 
 ## Ejecucion del proyecto
-~~~ bash
+``` bash
   # sobre el directorio root del proyecto
   python3 main.py
-~~~
+```
 
+
+# Ejecuccion con virtual enviroment sobre linux
+Para esto contamos con el script [activate.sh](activate.sh), el cual solo depende de la instalacion de [python en el sistema](#instacion-python-linux). Este script realiza dos o solo una tarea dependiendo del contexto:
+
+  1. Si el directorio del entorno virtual no existe crea el mismo e instala las dependencias sobre este.
+  2. Habilita el entorno virtual y nos deja la terminal lista para [lanzar el proyecto](ejecucion-del-proyecto).
+
+Para ejecutar el mismo solo debemos ejecutar el script de la siguente forma:
+
+```bash
+bash activate.sh
+```
+> Note: en caso de necesitar reinstalar el entorno virtual solo debemos ejecutar el comando **`bash activate.sh --clean`**, este eliminara el contexto actual para que luego pueda rearmar el mismo ejecutando **`bash activate.sh`**
 
 # Esquema de directorios de la Aplicacion
 
@@ -231,7 +250,7 @@ Para la ejecución sin el uso de contenedor debemos tener instalada en el host l
   + **cfg_wsgi.py** : script con la configuración wsgi para servicio **Gunicorn**
   + **readme.md** : este documento 
 
-~~~
+```
   .
   ├── 0D-Dockerfiles
   │   ├── bashrc
@@ -294,27 +313,27 @@ Para la ejecución sin el uso de contenedor debemos tener instalada en el host l
   │   ├── __init__.py
   │   └── Models.py
   └── readme.md
-~~~ 
+```
 
 # Ejecucion del proyecto
 Para iniciar la aplicación, dentro del entorno si docker, solo debemos ejecutar con **Python3** el script principal de la aplicación
 
-~~~ bash
+``` bash
   python3 main.py
-~~~
+```
 
 En el caso de docker, luego del build podemos verificar si los contenedores están corriendo ejecutando:
 
-~~~ bash
+``` bash
 devops.sh --top
 ## Ctrl + C para finalizar
-~~~
+```
 
 De lo contrario, solo debemos iniciar los contenedores:
 
-~~~ bash
+``` bash
 devops.sh --start
-~~~
+```
 
 # Bash Script de testing
 El listado de script para testing, dentro del directorio ```0T-TestScripts```:
@@ -337,7 +356,7 @@ El listado de script para testing, dentro del directorio ```0T-TestScripts```:
 
 ## Creacion de Usuario
 1. Creando un nuevo usuario
-~~~ bash
+``` bash
 curl_register.sh '{"username":"jel","password":"pass12345"}'
 request: http://127.0.0.1:8080/api/register
 
@@ -349,10 +368,10 @@ Content-Type: application/json
 Content-Length: 19
 
 {"username":"jel"}
-~~~
+```
 
 2. Intentado crear un usuario ya existente
-~~~ bash
+``` bash
 request: http://127.0.0.1:8080/api/register
 
 response: HTTP/1.1 200 OK
@@ -363,11 +382,11 @@ Content-Type: application/json
 Content-Length: 59
 
 {"code":400,"message":"username <jel> ya esta registrado"}
-~~~
+```
 
 
 ## Login
-~~~ bash
+``` bash
 curl_login.sh "jel:pass12345"
 request: http://127.0.0.1:8080/api/login
 
@@ -376,10 +395,10 @@ request: http://127.0.0.1:8080/api/login
   "timeout": 1800,
   "username": "jel"
 }
-~~~
+```
 
 ## Editar Usuario
-~~~ bash
+``` bash
 curl_edit_register.sh '{"password":"12345"}'
 
 request: http://127.0.0.1:8080/api/register
@@ -389,20 +408,20 @@ request: http://127.0.0.1:8080/api/register
   "timeout": 1800,
   "username": "jel"
 }
-~~~
+```
 
 ## Healt Check
-~~~ bash
+``` bash
 curl_health_check.sh
 request: http://127.0.0.1:8080/api/HealthCheck
 
 {
   "version": "0.5.0"
 }
-~~~
+```
 
 ## Obtener todos los usuario
-~~~ bash
+``` bash
 curl_get_users.sh 
 request: http://127.0.0.1:8080/api/users
 
@@ -412,10 +431,10 @@ request: http://127.0.0.1:8080/api/users
     "jel"
   ]
 }
-~~~
+```
 
 ## Publicar Comicio
-~~~
+```
 curl_comicio.sh post_comicio_01.json
 request: http://127.0.0.1:8080/api/comicio
 @post_comicio_01.json
@@ -445,12 +464,12 @@ request: http://127.0.0.1:8080/api/comicio
   ],
   "id": "238b537b8ad7172220150d4f1d81cca1"
 }
-~~~
+```
 
 
 
 ## Obtener comicio por id
-~~~
+```
 curl_get_comicio_id.sh 238b537b8ad7172220150d4f1d81cca1
 request: http://127.0.0.1:8080/api/get_comicio/238b537b8ad7172220150d4f1d81cca1
 
@@ -506,11 +525,11 @@ request: http://127.0.0.1:8080/api/get_comicio/238b537b8ad7172220150d4f1d81cca1
     }
   ]
 }
-~~~
+```
 
 
 ## Obtener Todos los comicios para el usuario actual
-~~~ bash
+``` bash
 curl_get_comicios.sh
 request: http://127.0.0.1:8080/api/get_comicios
 
@@ -521,16 +540,16 @@ request: http://127.0.0.1:8080/api/get_comicios
   ],
   "user": "jel"
 }
-~~~
+```
 
 ## Get Comicios Details
 Este script primero ejecuta la peticion para obtener todos los [id de comicios registrados por el usuario actual](#obtener-todos-los-comicios-para-el-usuario-actual) y luego para cada **id** realiza una [peticion detallada del comicio en cuestion](#obtener-comicio-por-id)
 
-~~~ bash
+``` bash
   curl_get_comicios_details.sh
-~~~
+```
 
-~~~ 
+```
 request: http://127.0.0.1:3000/api/get_comicio/18186ff6d81a597aa10b1c8d50ed89b6
 
 {
@@ -824,7 +843,7 @@ request: http://127.0.0.1:3000/api/get_comicio/ac6aa154bab6fbf3029396ba7db744e0
     }
   ]
 }
-~~~
+```
 
 
 
@@ -855,12 +874,12 @@ Estas pueden ser redefinidas dentro de cada script especifico para un propósito
 ```POST ${url}/api/register```
 
 ### request  
-~~~ json
+``` json
 {
   "username":"nombre_usuario",
   "password":"pass12345"
 }
-~~~
+```
 
 + **username** : nombre de usuario con el que se creara el nuevo registro, este no debe existir actualmente.
 + **password** : clave para el usuario.
@@ -868,11 +887,11 @@ Estas pueden ser redefinidas dentro de cada script especifico para un propósito
 ***Nota: ninguno de los campos puede estar vacio.***
 
 ### response
-~~~ json
+``` json
 {
   "username": "nombre_usuario"
 }
-~~~
+```
 
 
 ## Modificar un usuario
@@ -880,23 +899,23 @@ Estas pueden ser redefinidas dentro de cada script especifico para un propósito
 
 ***Debe estar logueado el usuario actual que usa la APIs (el token del mismo debe estar vigente).***
 ### request:
-~~~ json
+``` json
 {  
   "password":"pass12345"
 }
-~~~
+```
   + **password** : nuevo clave para el usuario, no puede ser un campo vacio.
   
 
 
 ### response 
-~~~ json
+``` json
 {
   "access_token": "nuevo token",
   "timeout": 1800,
   "username": "nombre del usuario"
 }
-~~~
+```
 
 ## Obtener todos los usuarios
 ```GET ${url}/api/users```
@@ -907,7 +926,7 @@ Estas pueden ser redefinidas dentro de cada script especifico para un propósito
   - No Aplica
 
 ### response
-~~~ json
+``` json
 {
   "users": [
     "nombre_usuario",
@@ -915,7 +934,7 @@ Estas pueden ser redefinidas dentro de cada script especifico para un propósito
     "jel"
   ]
 }
-~~~
+```
 Lista de usuarios que actualmente están activos en el sistema
 
 
@@ -929,12 +948,12 @@ Debemos usar el **username** y **password** con el cual se creo el Usuario a log
   - No Aplica
   
 ### response
-~~~ json
+``` json
 {  
   "timeout": 600,
   "access_token":"token ...."
 }
-~~~
+```
   + **timeout** : tiempo de duración para el token generado.
   + **access_token** : token que se debe utilizar para la invocación futura de las demás APIs.
   
@@ -951,7 +970,7 @@ Debemos usar el **username** y **password** con el cual se creo el Usuario a log
   - No Aplica
   
 ### response
-~~~ json
+``` json
 {
   "date": "Sat, 18 May 2024 19:14:31 GMT",
   "id": "6c3de225c80b0e985dc47dde428068d8",
@@ -987,7 +1006,7 @@ Debemos usar el **username** y **password** con el cual se creo el Usuario a log
     }
   ]
 }
-~~~
+```
   
 ## Get All Comicios
 ```GET ${url}/api/get_comicios```
@@ -1000,7 +1019,7 @@ Debemos usar el **username** y **password** con el cual se creo el Usuario a log
 ### response
 Listado de los Hash Id de los comicios publicados por el usuario actual.
 
-~~~ json
+``` json
 {
   "ids": [
     "f302ef7949b442eb88aee338217d0103",
@@ -1014,7 +1033,7 @@ Listado de los Hash Id de los comicios publicados por el usuario actual.
   ],
   "user": "nombre_usuario"
 }
-~~~
+```
   
 ## Publicar un Comicio
 ```POST ${url}/api/comicio```
@@ -1024,7 +1043,7 @@ Esta API realiza el calculo y registro de comicios en función de la cantidad de
 ***Debe estar logueado el usuario actual que usa la APIs (el token del mismo debe estar vigente).***
 
 ### request
-~~~ json
+``` json
 {
   "listas": 10,
   "escanios" : 7,
@@ -1036,14 +1055,14 @@ Esta API realiza el calculo y registro de comicios en función de la cantidad de
       , {"name":"Partido E","votos":15000}     
     ]
 }
-~~~
+```
 
   + **listas** : numero de listas de la publicación, opcional (de lo contrario se calcula en función del objeto **votos**)
   + **escanios** : excanios a disputar.
   + **votos** : lista de objetos con la dupla de **nombre de la lista** y **cantidad de votos** por cada una de estas.
 
 ### response
-~~~ json
+``` json
 {
   "comicios": [
     {
@@ -1069,7 +1088,7 @@ Esta API realiza el calculo y registro de comicios en función de la cantidad de
   ],
   "id": "d8257e84b09053f6c3c8ba53d4269d85"
 }
-~~~
+```
 
 
 
@@ -1084,11 +1103,11 @@ Esta petición nos permite verificar el estado de la APIs como así también el 
   - No Aplica
 
 ### response
-~~~ json
+``` json
 { 
   "version": "0.4.5" 
 }
-~~~
+```
 Versión actual de las APIs. 
 
 
@@ -1096,7 +1115,7 @@ Versión actual de las APIs.
 # Test mediante request
 Para esto nos movemos al directorio ```0T-TestScripts/UnitTest_Comicios```, donde tenemos el script ```test_With_request.py``` con los diferentes test.
 
-~~~ bash
+``` bash
 cd 0T-TestScripts/UnitTest_Comicios
 
 test_With_request.py help -s
@@ -1118,7 +1137,7 @@ test_With_request.py post_comicio [-q | --quiet]      : Publicar comicio.
 test_With_request.py get_comicios [-q | --quiet]      : Obtener todos los comicios registrado para el usuario.
 test_With_request.py get_comicio_id [-q | --quiet]    : Obtener Comicio por id.
 test_With_request.py help [-q | --quiet]              : Visualiza este mensaje de ayuda.
-~~~
+```
   - La opción '-s' o '--short' en el help indica que debe visualizar la descripciones breves de cada caso de test.
   - La opción '-q' o '--quiet' luego de la opción deshabilita la impresión extendida de información, sobre la utilidad.
   
@@ -1127,19 +1146,19 @@ test_With_request.py help [-q | --quiet]              : Visualiza este mensaje d
 ## Install request
 Paso previo, verificamos si esta disponible en el sistema y en caso de si, que versión instalada tenemos:
 
-~~~ bash
+``` bash
 python3 -m pip freeze | grep requests
 requests==2.28.2
-~~~
+```
 
 En caso de no estar disponible (respuesta vaciá, en la ejecución anterior) o tener una versión por debajo de '1' instalamos el modulo:
 
-~~~ bash
+``` bash
 python3 -m pip install requests==2.28
-~~~
+```
 
 ## Create User
-~~~ bash
+``` bash
 test_With_request.py create_user -q jesus 4321
 Creando el usuario con el payload:
  {'username': 'jesus', 'password': '4321'}
@@ -1148,10 +1167,10 @@ Resp JSON:
 {
   "username": "jesus"
 }
-~~~
+```
 
 ## Intentar crear un usuario dupicado
-~~~ bash
+``` bash
 test_With_request.py create_user -q jesus 4321
 Creando el usuario con el payload:
  {'username': 'jesus', 'password': '4321'}
@@ -1161,10 +1180,10 @@ Resp JSON:
   "code": 400,
   "message": "username <jesus> ya esta registrado"
 }
-~~~
+```
 
 ## Edit user
-~~~ bash
+``` bash
 test_With_request.py edit_user -q jesus 1234 4321
 Editando el Usaurio <jesus>, con el payload
 {'password': '4321'}
@@ -1175,10 +1194,10 @@ Resp JSON:
   "timeout": 1800,
   "username": "jesus"
 }
-~~~
+```
 
 ## Obtener listado de Usuarios
-~~~ bash
+``` bash
 test_With_request.py get_users -q
 Get users, listado actual de usuarios, auth:
 ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzM4NjI4Nzk2Ljc5MjM0MTV9.1TM6OOY6ArHYEBg4qcuaEcj0bPgd0tD6VtwncF1IjCg', 'notrelevant')
@@ -1190,11 +1209,11 @@ Resp JSON:
     "jesus"
   ]
 }
-~~~
+```
 
 
 ## login
-~~~ bash
+``` bash
 test_With_request.py login -q jesus 4321
 Login User jesus, auth:
 ('jesus', '4321')
@@ -1206,10 +1225,10 @@ Resp JSON:
   "timeout": 1800,
   "username": "jesus"
 }
-~~~
+```
 
 ## health check
-~~~ bash
+``` bash
 test_With_request.py health_check -q
 Health Check, username <jesus>
 
@@ -1218,10 +1237,10 @@ Resp JSON:
 {
   "version": "0.5.0"
 }
-~~~
+```
 
 ## Publicar un comicio
-~~~
+```
 test_With_request.py post_comicio -q
 Publicar comicio, File: in/post_comicio_01.json | username <jesus> | Payload:
 {
@@ -1278,10 +1297,10 @@ Resp JSON:
   ],
   "id": "1d746807e4a828c64eedb824423aa9b8"
 }
-~~~
+```
 
 ## Obtener todos los comicios registrado para el usuario
-~~~ bash
+``` bash
 test_With_request.py get_comicios -q
 Los comicios registrado para el usuario <jesus>
 
@@ -1298,12 +1317,12 @@ Resp JSON:
   ],
   "user": "jesus"
 }
-~~~
+```
 
 
 
 ## Obtener Comicio por id
-~~~
+```
 test_With_request.py get_comicio_id -q 1d746807e4a828c64eedb824423aa9b8
 Comicios Registrado con el id:<1d746807e4a828c64eedb824423aa9b8>, username <jesus>
 
@@ -1361,12 +1380,12 @@ Resp JSON:
     }
   ]
 }
-~~~
+```
 
 # Unit Test con request
 Dentro del directorio ```0T-TestScripts/UnitTest_Comicios```, nos encontramos con el script ```test_ApisRestComicios.py``` con los test unitarios y secuenciales.
 
-~~~ bash
+``` bash
 python3 test_ApisRestComicios.py
 test_create_user (__main__.TestComicioApis)
 01- test create user ... ok
@@ -1393,10 +1412,37 @@ test_post_comicio_list (__main__.TestComicioApis)
 Ran 10 tests in 1.030s
 
 OK
-~~~
+```
 
 
-***Los test individuales son validos solo si el servicio o los contenedores esta en ejecución, de lo contrario tendremos respuesta de error relacionados a la conexión.***
+> Note: ***Los test individuales son validos solo si el servicio o los contenedores esta en ejecución, de lo contrario tendremos respuesta de error relacionados a la conexión.***
+
+
+# static code analyzers with pylint
+
+## Instalaccion
+```bash
+python3 -m pip install pylint
+```
+
+
+## Ejecucion
+```bash
+## modo recursivo
+pylint --recursive=y .
+```
+
+Por cada modulo:
+```bash
+## Packages Models
+pylint ./Models/
+
+## Packages Config
+pylint ./Config/
+```
+
+
+
 # Autor
   + [Luccioni Jesuse Emanuel](mailto:piero.jel@gmail.com)
 

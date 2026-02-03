@@ -36,108 +36,115 @@ POSSIBILITY OF SUCH DAMAGE.
 \b Change History:
 Author         Date                 Version     Brief
 JEL            2024.04.19           0.3.8       Version Inicial no release
-JEL            2024.04.22           0.4.0       add function decorator for check request validate_json_request()
-                                                delete objects JsonHanlderError, JsonDefaultError and
-                                                functions response_json_error() with privates functions (
-                                                '__get_codes_api()', '__get_message_codes()' )
-                                 
+JEL            2024.04.22           0.4.0       add function decorator for check request
+                                                validate_json_request()
+                                                delete objects JsonHanlderError, JsonDefaultError
+                                                and functions response_json_error() with privates 
+                                                functions ('__get_codes_api()',
+                                                '__get_message_codes()' )
+JEL            2026.02.02           0.4.4       add pylint style PEP8
 
 """
+## 1° standard import
 import functools
-from flask import jsonify,abort,request
+
+## 2° third party imports
+from flask import jsonify,abort,request   # type: ignore
 
 
 def split_name_type(data:str) -> tuple:
-  ''' Funcion para el split de name type
-      - data : string formato
-        + <name:type>  : no se verifica el contendido
-        + <name:!type> : se verifica el contenido util para str , len(lst), len(dct.items())
-  '''
-  idx:int = data.find(':')
-  if(idx == -1):
-    raise ValueError(f'argument error <{data}>, ":" not found')
-  # end if
-  if(idx == 0):
-    return (None,data[1:],False)
-  # end if  
-  
-  if(data[idx+1:][0] == '!'):
-    return (data[0:idx] , data[idx+2:] , True)
-  
-  return (data[0:idx] , data[idx+1:] , False)
-# end def
-
-'''
-def get_response_json(msg:str, code:int):
-  return jsonify({ 'code' : code, 'message': msg})
-jsonify({'code':400,'message':}  
-'''
-def validate_json_request(*targets):
-  ''' Decorator function para validar los request json, solo 
-      los item del root.
-      - targets : listado de campos a validad desde el root
-        Formato 
-          + 'name:type': busca el name y verifica el tipo
-          
-          + 'name:!type': busca el name, verifica el tipo y en caso de type
-          str|list|dict verifica que el mimos no este vacio
-
-          + ':type' : 'sin name' en caso de necesitar validar el tipo del root 
-          (donde type solo puede ser dict|list, o deribados de estos )
-  '''
-  def decorator_validate_json_request(func):
-    ''' Decorador interno que recibe la fucion ('Funcion de orden Superior')
-        , ya que el decorador principal recive argumentos. 
-        Esta se encarga de armar y retornar el wrapper o funcion que 
-        se encarga de realizar la verificacion
+    ''' Funcion para el split de name type
+        - data : string formato
+            + <name:type>  : no se verifica el contendido
+            + <name:!type> : se verifica el contenido util para str , len(lst), len(dct.items())
     '''
-    @functools.wraps(func) # call decorator factory
-    def wrapper_validate_json_request(*args,**kwargs):
-      ''' Funcion wrapper que se encarga de la validacion
-          - args: listado ordenado de argumentos 
-          - kwargs : diccionario de argumentos (dupla nombre = valor )
-      '''
-      req = request.get_json()      
-      for it in targets:        
-        n,t,m = split_name_type(it)
-        if(n == None):
-          # root type dict or list
-          if(not t in ('list','dict')):
-            raise ValueError(f'type <{t}> in argument root <{it}> not supported')
-          # end if
-          if(type(req).__name__ != t): 
-            pretty_resp:dict = {'dict':'JSON Object','list':'JSON Array'}
-            abort(jsonify({'code':400,'message':f'type <{pretty_resp[type(req).__name__]}> in root, was expected <{pretty_resp[t]}>'}))            
-          else:
-            continue # root solo validamos tipo 
-          #end if
-        # end if
-        if( not n in req):
-          abort(jsonify({ 'code' : 400, 'message': f'object <{n}> not found in request'}))          
-        # end if
-        if( type(req[n]).__name__ != t ):
-          abort(jsonify({'code':400,'message': f'object <{n}> is not type <{t}>' }))
-        # end if
-        if( m ):
-          match t:
-            case 'str':
-              if(req[n].strip()==""):
-                abort(jsonify({'code':400,'message': f'field <{n}> is empty'}))
-            case 'list':
-              if(len(req[n])):
-                abort(jsonify({'code':400,'message': f'json array <{n}> is empty'}))
-            case 'dict':
-              if(len(req[n].items())):
-                abort(jsonify({'code':400,'message': f'json object <{n}> is empty'}))
-            case _:
-              # no tenemos patron para comprobar el mandato, pasamos al proximo item
-              pass
-          #end match
-        # end if
-      # end for
-      return func(*args,**kwargs)
-    # end def
-    return wrapper_validate_json_request
-  # end def
-  return decorator_validate_json_request
-# end def
+    idx:int = data.find(':')
+    if idx == -1:
+        raise ValueError(f'argument error <{data}>, ":" not found')
+
+    if idx == 0 :
+        return (None,data[1:],False)
+
+
+    if data[idx+1:][0] == '!':
+        return (data[0:idx] , data[idx+2:] , True)
+
+    return (data[0:idx] , data[idx+1:] , False)
+
+
+
+
+def validate_json_request(*targets):
+    ''' Decorator function para validar los request json, solo 
+        los item del root.
+        - targets : listado de campos a validad desde el root
+            Formato 
+            + 'name:type': busca el name y verifica el tipo
+            
+            + 'name:!type': busca el name, verifica el tipo y en caso de type
+            str|list|dict verifica que el mimos no este vacio
+
+            + ':type' : 'sin name' en caso de necesitar validar el tipo del root 
+            (donde type solo puede ser dict|list, o deribados de estos )
+    '''
+    def decorator_validate_json_request(func):
+        ''' Decorador interno que recibe la fucion ('Funcion de orden Superior')
+            , ya que el decorador principal recive argumentos. 
+            Esta se encarga de armar y retornar el wrapper o funcion que 
+            se encarga de realizar la verificacion
+        '''
+        @functools.wraps(func) # call decorator factory
+        def wrapper_validate_json_request(*args,**kwargs):
+            ''' Funcion wrapper que se encarga de la validacion
+                - args: listado ordenado de argumentos 
+                - kwargs : diccionario de argumentos (dupla nombre = valor )
+            '''
+            req = request.get_json()
+            for it in targets:
+                n,t,m = split_name_type(it)
+                if n is None :
+                    # root type dict or list
+                    if not t in ('list','dict'):
+                        abort(jsonify({'code':400,
+                                       'message': f'type <{t}> in root object <{it}> not supported'
+                                    }
+                                )
+                            )
+
+                    if type(req).__name__ != t :
+                        pretty_resp:dict = {'dict':'JSON Object','list':'JSON Array'}
+                        abort(jsonify({'code':400,
+                                       'message':f'type <{pretty_resp[type(req).__name__]}>' \
+                                        f' in root, was expected <{pretty_resp[t]}>'
+                                    }))
+                    else:
+                        continue # root solo validamos tipo
+
+                if not n in req:
+                    abort(jsonify({'code':400, 'message': f'object <{n}> not found in request'}))
+
+                if type(req[n]).__name__ != t:
+                    abort(jsonify({'code':400,'message': f'object <{n}> is not type <{t}>' }))
+
+                if m :
+                    match t:
+                        case 'str':
+                            if req[n].strip()=="":
+                                abort(jsonify({'code':400,'message': f'field <{n}> is empty'}))
+                        case 'list':
+                            if len(req[n]):
+                                abort(jsonify({'code':400,'message': f'json array <{n}> is empty'}))
+                        case 'dict':
+                            if len(req[n].items()):
+                                abort(jsonify({'code':400,'message':f'json object <{n}> is empty'}))
+                        case _:
+                            # no tenemos patron para comprobar el mandato, pasamos al proximo item
+                            pass
+
+
+
+            return func(*args,**kwargs)
+
+        return wrapper_validate_json_request
+
+    return decorator_validate_json_request

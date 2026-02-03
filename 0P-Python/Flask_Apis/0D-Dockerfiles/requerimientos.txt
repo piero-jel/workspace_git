@@ -7,3 +7,9 @@ SQLAlchemy
 Flask-HTTPAuth
 PyJWT
 Gunicorn
+
+## SOLO DEVELOP
+pylint
+tabulate
+coverage
+requests
