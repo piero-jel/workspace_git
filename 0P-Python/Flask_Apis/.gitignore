@@ -15,3 +15,5 @@ __pycache__/
 
 # discard log files, para evitar el seguimiento accidental en el root
 *.log
+
+.venv/
