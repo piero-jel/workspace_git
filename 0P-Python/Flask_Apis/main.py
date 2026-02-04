@@ -123,9 +123,13 @@ def register():
 
 
     if user:
-        # usuario ya esta registrado
+        # usuario ya esta registrado, retornamos el 400, en lugar del abort(jsonify(resp:dict)), ex:
+        # abort(jsonify({'code':77,'message': f'username <{username}> ya esta registrado'}))
         app.logger.debug('username <%s> ya esta registrado',username)
-        abort(jsonify({'code':400,'message': f'username <{username}> ya esta registrado'}))
+        return (jsonify({
+            'code': 11, 
+            'message': f'username <{username}> ya esta registrado'
+            }), 400)
 
     ## Creamos el nuevo usuario
     user = Users(username,password)
@@ -149,11 +153,11 @@ def edit_register():
     try:
         user = Users.query.filter_by(username = g.user.username).first()
     except Exception as e: # pylint: disable=broad-exception-caught
-        abort(jsonify({'code':500,'error': f'error interno en BBDD, detalle: {e}'}))
+        abort(jsonify({'code':55,'error': f'error interno en BBDD, detalle: {e}'}))
 
     if not user:
         # 'username:password or token not linked to a registered user'
-        abort(jsonify({'code':400,
+        abort(jsonify({'code':88,
                        'message': 'username:password or token not linked to a registered user'
                     }))
 
@@ -192,7 +196,7 @@ def get_users():
     try:
         users = Users.query.all()
     except Exception as e: # pylint: disable=broad-exception-caught
-        return (jsonify({'code':500,'error': f'error interno en BBDD, detalle: {e}'}),500)
+        return (jsonify({'code':55,'error': f'error interno en BBDD, detalle: {e}'}),200)
 
     app.logger.debug('get_users(): user: %s',g.user.username)
     return (jsonify({'users': [ x.username for x in users]}),200)
@@ -223,7 +227,7 @@ def comicio():
 
 
 
-@app.route('/api/get_comicio/<string:id>', methods=['GET'])
+@app.route('/api/get_comicio/<string:id_hash>', methods=['GET'])
 @auth.login_required
 def get_comicio(id_hash:str):
     ''' API para obtener un comicio por id
@@ -232,15 +236,13 @@ def get_comicio(id_hash:str):
     '''
     app.logger.debug('get_comicio(): user: %s',g.user.username)
     # Check for existing id_hash, consideramos solo el id
-    #ret = Comicios.query.filter_by(id_hash = id,user_id=g.user.id).first()
     ret = Comicios.query.filter_by(id_hash = id_hash).first()
     if ret is None :
         # id hash no found
         app.logger.debug('id <%s> not found',id_hash)
-        abort(jsonify({'code':400,'message': f'id <{id_hash}> not found' }))
+        abort(jsonify({'code':99,'message': f'id <{id_hash}> not found' }))
 
     return ret.get_response()
-    #return (jsonify(ret.get_response()),200)
 
 
 @app.route('/api/get_comicios', methods=['GET'])
@@ -254,8 +256,8 @@ def get_comicios():
         q = Comicios.query.filter_by(user_id=g.user.id).all()
     except Exception as e: # pylint: disable=broad-exception-caught
         app.logger.debug('Exception %s : %s',type(e).__name__,e)
-        return (jsonify({'code':500,'error': 'error interno en BBDD'}),500)
-    # end try
+        return (jsonify({'code':55,'error': 'error interno en BBDD'}),200)
+
     ret = [x.id_hash for x in q]
     return (jsonify({'user':g.user.username,'ids': ret}),200)
 

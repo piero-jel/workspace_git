@@ -12,6 +12,7 @@ import unittest   # import lib unit test
 from Comicios import Comicio # import Object under test pylint: disable=import-error
 from utils import get_log,Logger  #pylint: disable=import-error
 
+CURR_DIR = Path(__file__).resolve().parent
 class TestComicioApis(unittest.TestCase):
     '''
     Modelo para los test de la apis Comicio
@@ -20,7 +21,7 @@ class TestComicioApis(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # path file json, donde se realiza el load/store del objeto principal
-        cls.json_file:str = 'ou/TestComicioApis.json'
+        cls.json_file:str = f'{CURR_DIR}/ou/TestComicioApis.json'
         cls.log:Logger = get_log('TestComicioApis')
 
     def setUp(self):
@@ -63,7 +64,7 @@ class TestComicioApis(unittest.TestCase):
             'auth' : self.comicio.get_auth(target)
         }
         resp = self.comicio.request_method(target)(**params)
-        self.assertTrue(self.comicio.verify_response(type=target,response=resp,repeat=True))
+        self.assertTrue(self.comicio.verify_response(tipo=target,response=resp,repeat=True))
 
     def test_edit_user(self):
         '''02- test edit user'''    
@@ -74,7 +75,7 @@ class TestComicioApis(unittest.TestCase):
             'auth' : self.comicio.get_auth(target)
         }
         resp = self.comicio.request_method(target)(**params)
-        self.assertTrue(self.comicio.verify_response(type=target,response=resp))
+        self.assertTrue(self.comicio.verify_response(tipo=target,response=resp))
 
     def test_get_users(self):
         '''03- test get users'''    
@@ -84,7 +85,7 @@ class TestComicioApis(unittest.TestCase):
             'auth' : self.comicio.get_auth(target)
         }
         resp = self.comicio.request_method(target)(**params)
-        self.assertTrue(self.comicio.verify_response(type=target,response=resp))
+        self.assertTrue(self.comicio.verify_response(tipo=target,response=resp))
 
     def test_login(self):
         '''04- test login'''    
@@ -94,7 +95,7 @@ class TestComicioApis(unittest.TestCase):
             'auth' : self.comicio.get_auth(target)
         }
         resp = self.comicio.request_method(target)(**params)
-        self.assertTrue(self.comicio.verify_response(type=target,response=resp))
+        self.assertTrue(self.comicio.verify_response(tipo=target,response=resp))
 
     def test_health_check(self):
         '''05- test health check'''    
@@ -104,19 +105,19 @@ class TestComicioApis(unittest.TestCase):
             'auth' : self.comicio.get_auth(target)
         }
         resp = self.comicio.request_method(target)(**params)
-        self.assertTrue(self.comicio.verify_response(type=target,response=resp))
+        self.assertTrue(self.comicio.verify_response(tipo=target,response=resp))
 
     def test_post_comicio(self):
         '''06- test post comicio'''    
         target = 'comicio'
-        path_file:str = 'in/post_comicio_01.json'
+        path_file:str = f'{CURR_DIR}/in/post_comicio_01.json'
         params = {
             'url'  : self.comicio.get_endpoint(target),
             'json' : self.comicio.get_payload(target,path=path_file),
             'auth' : self.comicio.get_auth(target)
         }
         resp = self.comicio.request_method(target)(**params)
-        self.assertTrue(self.comicio.verify_response(type=target,response=resp))
+        self.assertTrue(self.comicio.verify_response(tipo=target,response=resp))
 
     def test_get_comicios(self):
         '''07- test get comicios'''    
@@ -126,17 +127,17 @@ class TestComicioApis(unittest.TestCase):
             'auth' : self.comicio.get_auth(target)
         }
         resp = self.comicio.request_method(target)(**params)
-        self.assertTrue(self.comicio.verify_response(type=target,response=resp))
+        self.assertTrue(self.comicio.verify_response(tipo=target,response=resp))
 
     def test_get_comicio_id(self):
         '''08- test get comicio id'''    
         target = 'get_comicio_id'
         params = {
-            'url'  : self.comicio.get_endpoint(target,id=self.comicio.ids[0]),
+            'url'  : self.comicio.get_endpoint(target,id=self.comicio.contex['ids'][0]),
             'auth' : self.comicio.get_auth(target)
         }
         resp = self.comicio.request_method(target)(**params)
-        self.assertTrue(self.comicio.verify_response(type=target,response=resp))
+        self.assertTrue(self.comicio.verify_response(tipo=target,response=resp))
 
     def test_get_comicio_id_list(self):
         '''09- test get comicio id desde la lista de get comicios'''    
@@ -145,15 +146,15 @@ class TestComicioApis(unittest.TestCase):
             'url'  : None,      
             'auth' : self.comicio.get_auth(target)
         }
-        for it in self.comicio.ids:
+        for it in self.comicio.contex['ids']:
             params['url'] = self.comicio.get_endpoint(target,id=it)
             resp = self.comicio.request_method(target)(**params)
-            self.assertTrue(self.comicio.verify_response(type=target,response=resp))
+            self.assertTrue(self.comicio.verify_response(tipo=target,response=resp))
 
     def test_post_comicio_list(self):
         '''10- test post comicio, desde una lista de archivos'''    
         target = 'comicio'
-        path_file:str = 'in/post_comicio_{:02d}.json'
+        path_file:str = str(CURR_DIR) + '/in/post_comicio_{:02d}.json'
         params = {
         'url'  : self.comicio.get_endpoint(target) ,      
         'auth' : self.comicio.get_auth(target)
@@ -162,7 +163,7 @@ class TestComicioApis(unittest.TestCase):
             #params['json'] = self.comicio.get_payload(target,path=f'in/post_comicio_{idx:02}.json')
             params['json'] = self.comicio.get_payload(target,path=path_file.format(idx))
             resp = self.comicio.request_method(target)(**params)
-            self.assertTrue(self.comicio.verify_response(type=target,response=resp))
+            self.assertTrue(self.comicio.verify_response(tipo=target,response=resp))
 
 
 def create_suite():

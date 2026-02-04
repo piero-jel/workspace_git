@@ -177,6 +177,8 @@ class Users(UserMixin, db.Model):
             app.logger.debug('verify_password_with_token() set context user %s',ctxg.user)
             if not ctxg.user:
                 # valido el token pero no esta el usuario en la base
+                app.logger.debug('Se valido el token pero el usuario <%s> no esta en la BBDD',
+                                username_or_token)
                 return False
 
             return True

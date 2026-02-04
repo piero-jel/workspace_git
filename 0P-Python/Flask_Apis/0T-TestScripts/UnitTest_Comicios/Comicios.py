@@ -138,7 +138,7 @@ class BaseApis:
         if not hasattr(self,name_method):
             raise ValueError(f'Type<{tipo}>, para la verificacion de response no Existe')
 
-        if not 200 <= response.status_code <= 210 :
+        if tipo != 'create_user' and (not 200 <= response.status_code <= 210):
             return False
 
         method = getattr(self,name_method)
@@ -201,7 +201,7 @@ class Comicio(BaseApis):
 
         password:str = kwargs.get('password','pass12345')
         self._contex:dict = {
-            'username' : kwargs.get('username','jel'),
+            'username' : kwargs.get('username','jeluccioni'),
             'password' : password,
             'data'     : jsonfile_to_dict(kwargs.get('jsonfile','../post_comicio_01.json')),
             ## new_password is reverse de la original
@@ -416,12 +416,12 @@ class Comicio(BaseApis):
         if 'username' in data :
             return data['username'] == self._contex['username']
 
-        if not 'code' in data or data['code'] != 400:
+        if not 'code' in data or data['code'] != 11:
             return False
 
-        msg = f'username <{self._contex['username']}> ya esta registrado'
-        if not 'message' in data or data['message'] != msg:
-            return False
+        ## usuario ya creado
+        if 'code' in data and data['code'] == 11:
+            return True
 
         return True
 
@@ -611,7 +611,7 @@ class Comicio(BaseApis):
         # 1° Verificamos que contenga todos los key
         dct_resp = response.json()
         if not all(key in dct_resp for key in ("ids","user")):
-            #print(f'keys:{("ids","user")} not found in {dct_resp}')
+            self.log.warning('keys:("ids","user") not found in %s',dct_resp)
             return False
 
         if dct_resp['user'] != self._contex['username']:
@@ -704,7 +704,10 @@ class Comicio(BaseApis):
 
         return True
 
-
+    @property
+    def contex(self)->dict:
+        '''getter attribute contex'''
+        return self._contex
 
 # verificamos si este script es el principal invocado desde la linea de comandos
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ SQLAlchemy
 Flask-HTTPAuth
 PyJWT
 Gunicorn
+python-dotenv
 
 ## SOLO DEVELOP
 pylint

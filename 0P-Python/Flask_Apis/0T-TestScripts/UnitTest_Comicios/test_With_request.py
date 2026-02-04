@@ -53,12 +53,9 @@ def test_get_comicio_id(id_hash:str='fac0179bf7a42e755e17bab20e51f2cd'):
     if TOKEN is None or not 'access_token' in TOKEN:
         return 0
 
-    #     "fac0179bf7a42e755e17bab20e51f2cd",
-    #     "05df7faa91a18f39b46b3d821d66e88f",
-    #     "03a60fcdb024e0230b081e3c311ca99c"
     auth_tkn = (TOKEN['access_token'],'notrelevant')
     log:Logger = get_log('test_get_comicio_id')
-    log.debug(f'Comicios Registrado con el id:<{id_hash}>, username <{TOKEN["username"]}>\n')
+    log.debug(f'Comicios Registrado con el id:<{id_hash}>, username <{TOKEN["username"]}>')
     response:requests.Response = None
     try:
         response = requests.get( url+id_hash, auth=auth_tkn,timeout=TIMEOUT)
@@ -271,21 +268,22 @@ def test_edit_user(user='jel',key='123ABC789',new_key='789ABC123'):
     payload = { "password": new_key}
     log:Logger = get_log('test_edit_user')
 
-    log.info('Editando el Usaurio <%s>, con el payload <%s>',user,payload)
+    log.info('Editando el Usuario <%s>, con el payload <%s>',user,payload)
 
     response:requests.Response = None
     try:
-        response = requests.patch ( url,json=payload, auth=(user,key),timeout=TIMEOUT)
+        response = requests.patch(url,json=payload, auth=(user,key),timeout=TIMEOUT)
     except Exception as e:# pylint: disable=broad-exception-caught
         log.error('Error en la peticion, detalle: %s',e)
         return 0
 
-    log.info('Resp Code: %s',response.status_code)
 
     if not 200 <= response.status_code <= 210:
-        log.warning('Resp Code fuera del rango OK')
+        log.warning('Resp Code %s Fuera del rango, detalle:\n%s',
+                    response.status_code,response)
         return 0
 
+    log.info('Resp Code: %s',response.status_code)
     resp = response.json()
     if 'access_token' in resp:
         # Almacenamos el token

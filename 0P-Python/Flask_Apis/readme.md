@@ -1113,13 +1113,18 @@ Versión actual de las APIs.
 
 
 # Test mediante request
-Para esto nos movemos al directorio ```0T-TestScripts/UnitTest_Comicios```, donde tenemos el script ```test_With_request.py``` con los diferentes test.
+Para esto nos movemos al directorio `0T-TestScripts/UnitTest_Comicios`, donde tenemos el script `test_With_request.py` con los diferentes test.
+
+
+## Visualizacion del help
+```bash
+cd 0T-TestScripts/UnitTest_Comicios
+python3 test_With_request.py help -s
+```
+
+Salida del comando anterior:
 
 ``` bash
-cd 0T-TestScripts/UnitTest_Comicios
-
-test_With_request.py help -s
-
   Funcion que lista todos los test disponibles en este modulo.
 
   Params
@@ -1143,67 +1148,100 @@ test_With_request.py help [-q | --quiet]              : Visualiza este mensaje d
   
 ***Los test individuales son validos solo si el servicio o los contenedores esta en ejecución, de lo contrario tendremos respuesta de error relacionados a la conexion.***
 
-## Install request
-Paso previo, verificamos si esta disponible en el sistema y en caso de si, que versión instalada tenemos:
+### Verificamos la isntalaccion de request
+Paso previo, verificamos si esta disponible en el sistema o ambiente virtual el **package** `request`. En caso de estarlo, verificamos la versión instalada:
 
 ``` bash
 python3 -m pip freeze | grep requests
-requests==2.28.2
+requests==2.32.5
 ```
 
-En caso de no estar disponible (respuesta vaciá, en la ejecución anterior) o tener una versión por debajo de '1' instalamos el modulo:
+En caso de no estar disponible (respuesta vaciá, en la ejecución anterior) o tener una versión por debajo de '1' instalamos el **package**:
 
 ``` bash
-python3 -m pip install requests==2.28
+python3 -m pip install requests==2.32
 ```
 
-## Create User
+
+## Apertura de logs
+Con la aplicacion corriendo, podemos atachar una terminal a los logs en el caul veremos la respuesta de cada peticion. Para esto en una consola ejecutamos :
+
+```bash
+tail -f 0T-TestScripts/UnitTest_Comicios/logs/test_$(date +%Y%m%d).log
+```
+> Note: el nombre del log esta atado a la fecha de ejecucion del test, no del servicio. Ya que es otro log por separado.
+
+
+
+## Creamos un Usuario
 ``` bash
-test_With_request.py create_user -q jesus 4321
-Creando el usuario con el payload:
- {'username': 'jesus', 'password': '4321'}
-Resp Code: 201
-Resp JSON:
+python3 test_With_request.py create_user -q jesus 4321
+```
+Salida por log:
+```bash
+2026-02-04 12:27:34.165 INFO    - Creando el usuario con el payload: {'username': 'jesus', 'password': '4321'}
+2026-02-04 12:27:34.166 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
+2026-02-04 12:27:34.370 DEBUG   - http://127.0.0.1:8080 "POST /api/register HTTP/1.1" 201 26
+2026-02-04 12:27:34.371 INFO    - Resp Code: 201
+2026-02-04 12:27:34.371 INFO    - Resp JSON:
 {
   "username": "jesus"
 }
 ```
 
-## Intentar crear un usuario dupicado
+
+## Intentamos crear un usuario dupicado
 ``` bash
-test_With_request.py create_user -q jesus 4321
-Creando el usuario con el payload:
- {'username': 'jesus', 'password': '4321'}
-Resp Code: 200
-Resp JSON:
+python3 test_With_request.py create_user -q jesus 4321
+```
+
+Salida por log:
+```bash
+2026-02-04 12:39:14.245 INFO    - Creando el usuario con el payload: {'username': 'jesus', 'password': '4321'}
+2026-02-04 12:39:14.246 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
+2026-02-04 12:39:14.251 DEBUG   - http://127.0.0.1:8080 "POST /api/register HTTP/1.1" 400 55
+2026-02-04 12:39:14.251 INFO    - Resp Code: 400
+2026-02-04 12:39:14.252 INFO    - Resp JSON:
 {
-  "code": 400,
   "message": "username <jesus> ya esta registrado"
 }
 ```
 
+
 ## Edit user
 ``` bash
-test_With_request.py edit_user -q jesus 1234 4321
-Editando el Usaurio <jesus>, con el payload
-{'password': '4321'}
-Resp Code: 200
-Resp JSON:
+python3 test_With_request.py edit_user -q jesus 1234 4321
+```
+
+Salida por log:
+```bash
+2026-02-04 13:06:46.014 INFO    - Editando el Usuario <jesus>, con el payload <{'password': '4321'}>
+2026-02-04 13:06:46.015 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
+2026-02-04 13:06:46.819 DEBUG   - http://127.0.0.1:8080 "PATCH /api/register HTTP/1.1" 200 191
+2026-02-04 13:06:46.820 INFO    - Resp Code: 200
+2026-02-04 13:06:46.821 INFO    - Resp JSON:
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzM4NjI4Nzk2Ljc5MjM0MTV9.1TM6OOY6ArHYEBg4qcuaEcj0bPgd0tD6VtwncF1IjCg",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzcwMjIzMDA2LjgxNzg3OH0._7XhX0D3q7S6bRqWAlmTcXA-ZOmIUkUpVhAsa9PjtnA",
   "timeout": 1800,
   "username": "jesus"
 }
 ```
 
 ## Obtener listado de Usuarios
-``` bash
-test_With_request.py get_users -q
-Get users, listado actual de usuarios, auth:
-('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzM4NjI4Nzk2Ljc5MjM0MTV9.1TM6OOY6ArHYEBg4qcuaEcj0bPgd0tD6VtwncF1IjCg', 'notrelevant')
+Para este paso y los siguentes necesitamos el token, por lo que si no editamos el usaurio debemos primero ejecutar el [login](#login) para obtener el mismo.
 
-Resp Code: 200
-Resp JSON:
+``` bash
+python3 test_With_request.py get_users -q
+```
+
+
+Salida por log:
+```bash
+2026-02-04 13:08:22.585 INFO    - Get users, listado actual de usuarios, auth: ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzcwMjIzMDA2LjgxNzg3OH0._7XhX0D3q7S6bRqWAlmTcXA-ZOmIUkUpVhAsa9PjtnA', 'notrelevant')
+2026-02-04 13:08:22.586 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
+2026-02-04 13:08:22.593 DEBUG   - http://127.0.0.1:8080 "GET /api/users HTTP/1.1" 200 33
+2026-02-04 13:08:22.593 INFO    - Resp Code: 200
+2026-02-04 13:08:22.593 INFO    - Resp JSON:
 {
   "users": [
     "jesus"
@@ -1211,17 +1249,24 @@ Resp JSON:
 }
 ```
 
-
 ## login
 ``` bash
-test_With_request.py login -q jesus 4321
-Login User jesus, auth:
-('jesus', '4321')
+## si ejecutamos el paso de modificacion de usaurio
+python3 test_With_request.py login -q jesus 4321
 
-Resp Code: 200
-Resp JSON:
+## en caso de saltear la modificacion de usuario usamos la clave original
+python3 test_With_request.py login -q jesus 1234
+```
+
+Salida por log:
+```bash
+2026-02-04 13:09:46.674 INFO    - Login User jesus, auth:('jesus', '4321')
+2026-02-04 13:09:46.674 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
+2026-02-04 13:09:46.754 DEBUG   - http://127.0.0.1:8080 "GET /api/login HTTP/1.1" 200 192
+2026-02-04 13:09:46.754 INFO    - Resp Code: 200
+2026-02-04 13:09:46.755 INFO    - Resp JSON:
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzM4NjMxMjY2LjY3NDE4MjR9.QPRVKNjwiRWDOQCzIGzUQ2vY3yweRcMwRGT7bODMGlE",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNzcwMjIzMTg2Ljc1MzM4MDN9.-YN4wl8OgFZ1u4ob_oKq5S88jZrRUKJxCVj2K9ynCIw",
   "timeout": 1800,
   "username": "jesus"
 }
@@ -1229,20 +1274,29 @@ Resp JSON:
 
 ## health check
 ``` bash
-test_With_request.py health_check -q
-Health Check, username <jesus>
+python3 test_With_request.py health_check -q
+```
 
-Resp Code: 200
-Resp JSON:
+Salida por log:
+```bash
+2026-02-04 13:10:48.321 INFO    - Health Check, username <jesus>
+2026-02-04 13:10:48.321 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
+2026-02-04 13:10:48.324 DEBUG   - http://127.0.0.1:8080 "GET /api/HealthCheck HTTP/1.1" 200 25
+2026-02-04 13:10:48.325 INFO    - Resp Code: 200
+2026-02-04 13:10:48.325 INFO    - Resp JSON:
 {
   "version": "0.5.0"
 }
 ```
 
 ## Publicar un comicio
+```bash
+python3 test_With_request.py post_comicio -q
 ```
-test_With_request.py post_comicio -q
-Publicar comicio, File: in/post_comicio_01.json | username <jesus> | Payload:
+
+Salida por log:
+```
+2026-02-04 13:11:43.052 INFO    - Publicar comicio, File: in/post_comicio_01.json | username <jesus> | Payload:
 {
   "listas": 10,
   "escanios": 7,
@@ -1269,9 +1323,10 @@ Publicar comicio, File: in/post_comicio_01.json | username <jesus> | Payload:
     }
   ]
 }
-
-Resp Code: 200
-Resp JSON:
+2026-02-04 13:11:43.053 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
+2026-02-04 13:11:43.945 DEBUG   - http://127.0.0.1:8080 "POST /api/comicio HTTP/1.1" 200 372
+2026-02-04 13:11:43.946 INFO    - Resp Code: 200
+2026-02-04 13:11:43.946 INFO    - Resp JSON:
 {
   "comicios": [
     {
@@ -1295,42 +1350,48 @@ Resp JSON:
       "lista": "Partido E"
     }
   ],
-  "id": "1d746807e4a828c64eedb824423aa9b8"
+  "id": "dbb2bc603628e38c13a58ff3fea4cd77"
 }
 ```
 
-## Obtener todos los comicios registrado para el usuario
-``` bash
-test_With_request.py get_comicios -q
-Los comicios registrado para el usuario <jesus>
 
-Resp Code: 200
-Resp JSON:
+## Obtener todos los comicios registrado para el usuario
+
+``` bash
+python3 test_With_request.py get_comicios -q
+```
+
+
+Salida por log:
+```bash
+2026-02-04 13:14:36.022 INFO    - Los comicios registrado para el usuario <jesus>
+2026-02-04 13:14:36.023 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
+2026-02-04 13:14:36.026 DEBUG   - http://127.0.0.1:8080 "GET /api/get_comicios HTTP/1.1" 200 77
+2026-02-04 13:14:36.026 INFO    - Resp Code: 200
+2026-02-04 13:14:36.026 INFO    - Resp JSON:
 {
   "ids": [
-    "1d746807e4a828c64eedb824423aa9b8",
-    "34a869c0440813c2764f053696ac2c2b",
-    "97f1d1254c3241adf0ac5e58031a80a1",
-    "130233468fd4ea383afee0b98f82aeec",
-    "685c3d982b3d339c129b31339ff3b538",
-    "52c2126b6512c934c12bec30d0e3e2e8"
+    "dbb2bc603628e38c13a58ff3fea4cd77"
   ],
   "user": "jesus"
 }
 ```
 
-
-
 ## Obtener Comicio por id
+```bash
+python3 test_With_request.py get_comicio_id -q "dbb2bc603628e38c13a58ff3fea4cd77"
 ```
-test_With_request.py get_comicio_id -q 1d746807e4a828c64eedb824423aa9b8
-Comicios Registrado con el id:<1d746807e4a828c64eedb824423aa9b8>, username <jesus>
 
-Resp Code: 200
-Resp JSON:
+Salida por log:
+```
+2026-02-04 13:19:49.696 DEBUG   - Comicios Registrado con el id:<dbb2bc603628e38c13a58ff3fea4cd77>, username <jesus>
+2026-02-04 13:19:49.697 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
+2026-02-04 13:19:49.707 DEBUG   - http://127.0.0.1:8080 "GET /api/get_comicio/dbb2bc603628e38c13a58ff3fea4cd77 HTTP/1.1" 200 840
+2026-02-04 13:19:49.708 INFO    - Resp Code: 200
+2026-02-04 13:19:49.708 INFO    - Resp JSON:
 {
-  "date": "Mon, 03 Feb 2025 21:48:37 GMT",
-  "id": "1d746807e4a828c64eedb824423aa9b8",
+  "date": "Wed, 04 Feb 2026 13:11:43 GMT",
+  "id": "dbb2bc603628e38c13a58ff3fea4cd77",
   "request": {
     "escanios": 7,
     "listas": 10,
@@ -1380,6 +1441,7 @@ Resp JSON:
     }
   ]
 }
+
 ```
 
 # Unit Test con request

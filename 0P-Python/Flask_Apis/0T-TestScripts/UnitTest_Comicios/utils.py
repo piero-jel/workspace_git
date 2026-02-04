@@ -1,14 +1,16 @@
-
-
+'''
+Docstring for 0T-TestScripts.UnitTest_Comicios.utils
+'''
 import json
 from pathlib import Path
+from datetime import datetime
 from logging import ( Logger,
                         getLogger,basicConfig,
                         #INFO,
                         DEBUG
                     )
-from datetime import datetime
 
+DIR_LOGS = f'{Path(__file__).resolve().parent}/logs'
 CONFIG_LOGGING:dict = {
     'level'    : DEBUG,
     #'level'    : INFO,
@@ -16,7 +18,7 @@ CONFIG_LOGGING:dict = {
     #'format'   : "%(asctime)s.%(msecs)03d %(levelname)s %(filename)s:%(funcName)s() - %(message)s",
     'format'   : "%(asctime)s.%(msecs)03d %(levelname)-8.8s- %(message)s",
     'datefmt'  : "%Y-%m-%d %H:%M:%S",
-    'filename' : f"./logs/test_{datetime.now().strftime('%Y%m%d')}.log"
+    'filename' : f"{DIR_LOGS}/test_{datetime.now().strftime('%Y%m%d')}.log"
 }
 
 

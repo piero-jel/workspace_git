@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test_ApisRestComicios",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "0T-TestScripts/UnitTest_Comicios/test_ApisRestComicios.py",
+            "args":[ ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "args":[ ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Unittest MODULE_NAME",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "unittest",
+            "purpose": ["debug-test"],
+            "console": "integratedTerminal",
+            "args": ["-v","tests.test_MODULE_NAME"]
+        }        
+    ]
+}
