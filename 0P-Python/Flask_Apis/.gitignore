@@ -5,15 +5,19 @@
 # discard folder/
 instance/
 __pycache__/
+**/__pycache__/
 
 
 # discard old foldes 
 *_old*/
+**/*_old*/
 
-# discard old files 
-*_old*
+# discard old files
+**/*_old*
 
 # discard log files, para evitar el seguimiento accidental en el root
 *.log
+**/*.log
 
 .venv/
+**/.venv/

@@ -1,5 +1,4 @@
 # forced add this files
 !.gitignore
 
-# discard log files
-*.log
+token.json

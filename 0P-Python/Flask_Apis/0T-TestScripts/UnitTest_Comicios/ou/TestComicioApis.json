@@ -1,0 +1,19 @@
+{
+  "username": "jeluccioni",
+  "password": "pass1234",
+  "data": null,
+  "new_password": "pass1234",
+  "tkn": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZXhwIjoxNzcwMjMxMzUzLjM1MzQ2N30.NmwYzYuUw0RJmnt9_tDITps14m7xAcC7p6S2Gj0wNPI",
+  "timeout": null,
+  "ids": [
+    "65b7ecb4ee2ec3ebfed5b69c8a631d73",
+    "8652ee78da47c6bce0320301913fc2ce",
+    "3a5ecfccb233d9723aedf8fa87f9293a",
+    "f5785990a3c18a37e96896a93023dc59",
+    "0d3b6537360f97040dfeeefcb1785472",
+    "94056fe92691f6598243ebef942429d0",
+    "e547a0ab05e25191ae2c58cbf1fa12a6",
+    "095c538552d400df80f567670325fad4",
+    "611b489ae6e99e1b5f984114a71b16c0"
+  ]
+}
