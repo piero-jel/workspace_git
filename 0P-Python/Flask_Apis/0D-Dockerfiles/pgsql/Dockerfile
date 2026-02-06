@@ -33,44 +33,19 @@
 ##
 ### END   Copyright
 ##########################################################################################################
-#
 FROM python:3.12
 
 LABEL author="JELuccioni"
 LABEL email="jeluccioni@gmail.com"
 
-ENV REFRESHED_AT 2024-05-16
-# LABEL version="1.0" location="Argentina" type="Dev Ops" role="Python3"
-
-## BEGIN for python install locale module
-# RUN apt-get update && \
-#     apt-get install -y locales && \
-#     sed -i -e 's/# es_AR UTF-8/es_AR UTF-8/' /etc/locale.gen && \
-#     dpkg-reconfigure --frontend=noninteractive locales
-# 
-# ENV LANG es_AR.UTF-8
-# ENV LC_NUMERIC es_AR.UTF-8
-## END   for python install locale module
+ENV REFRESHED_AT 2024-11-12
+LABEL version="1.0" location="Argentina" type="Dev Ops" role="Python3"
 
 
-## -- creamos el directorio principal
 WORKDIR /home/user
 COPY requerimientos.txt ./
 RUN mkdir -p /home/user
 
-## set enviroment vars:
-#ENV LANG=es_AR LANGUAGE=es_AR.UTF-8
-## FIXME
-## for locale.Error: unsupported locale setting" on pip install
-## equivalent export LC_ALL=C
-#ENV LC_ALL=C
-
-## set alias, no funciona de esta forma
-### BEGIN set alias in root files
-#RUN export PATH=$PATH:/home/user
-
-
-### END
 
 ### BEGIN install packages python 
 RUN apt-get update
@@ -88,8 +63,8 @@ RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r re
 #CMD ["python3", "main.py"]
 
 #### BEGIN config debug
-ENTRYPOINT [ "python" ]
-CMD [ "main.py" ]
+# ENTRYPOINT [ "python" ]
+# CMD [ "main.py" ]
 #### END   config debug
 ##
 #### BEGIN config deploy
@@ -99,6 +74,6 @@ ENV GUNICORN_TIMEOUT=120
 ENV GUNICORN_APP_IP='0.0.0.0'
 ENV GUNICORN_APP_PORT='8080'
 
-#CMD ["gunicorn","--config", "cfg_wsgi.py", "main:app"]
+CMD ["gunicorn","--config", "cfg_wsgi.py", "main:app"]
 #### END   config deploy
 ### END   config daemon
