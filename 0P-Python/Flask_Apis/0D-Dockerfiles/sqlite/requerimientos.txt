@@ -7,3 +7,4 @@ SQLAlchemy
 Flask-HTTPAuth
 PyJWT
 Gunicorn
+requests

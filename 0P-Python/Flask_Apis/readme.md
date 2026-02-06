@@ -3,38 +3,38 @@
   + [Armado del Contenedor](#armado-del-contenedor)
   + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicación)
 
-  + [Ejecuccion con docker](#ejecuccion-con-docker)
+  + [Ejecuccion con docker](#ejecución-con-docker)
 
-  + [Ejecuccion sin docker](#ejecuccion-sin-docker)
-    - [Instacion python3 linux](#instacion-python-linux)
-    - [Instacion pip linux](#instacion-pip-linux)
-    - [Instalaccion dependencias del proyecto](#instalaccion-dependencias-del-proyecto)
+  + [Ejecuccion sin docker](#ejecución-sin-docker)
+    - [Instacion python3 linux](#instalación-python-linux)
+    - [Instacion pip linux](#instalación-pip-linux)
+    - [Instalaccion dependencias del proyecto](#instalación-dependencias-del-proyecto)
     - [Ejecucion del proyecto](#ejecución-del-proyecto)
 
-  + [Ejecuccion con virtual enviroment sobre linux](#ejecuccion-con-virtual-enviroment-sobre-linux)
+  + [Ejecuccion con virtual enviroment sobre linux](#ejecución-con-virtual-enviroment-sobre-linux)
 
   + [Ejecucion del proyecto](#ejecución-del-proyecto)
   + [Bash Script de testing](#bash-script-de-testing)
-    - **Creación de Usuario** [curl_register.sh](#creacion-de-usuario)
+    - **Creación de Usuario** [curl_register.sh](#creación-de-usuario)
     - **Login** [curl_login.sh](#login)
     - **Editar Usuario** [curl_edit_register.sh](#editar-usuario)
     - **Obtener todos los usuario** [curl_get_users.sh](#obtener-todos-los-usuario)
     - **Healt Check** [curl_health_check.sh](#healt-check)
-    - **Obtener comicios por id** [curl_get_comicio_id.sh](#obtener-comicio-por-id)
+    - **Obtener comicios por id** [curl_get_comicio_id.sh](#obtener-comicios-por-id)
     - **Obtener Todos los comicios para el usuario actual** [curl_get_comicios.sh](#obtener-todos-los-comicios-para-el-usuario-actual)
 
     - **Publicar comicios** [curl_comicio.sh](#publicar-comicio)
 
     - **Obtener detalles de todos los comicios registrados** [curl_get_comicios_details.sh](get-comicios-details)
 
-  + [Documentación de las APIs](#documentacion-de-las-apis)
+  + [Documentación de las APIs](#documentación-de-las-apis)
     - [Registrar un nuevo usuario](#registrar-un-nuevo-usuario)
     - [Modificar un nuevo usuario](#modificar-un-nuevo-usuario)
     - [Obtener todos los usuarios](#obtener-todos-los-usuarios)
     - [Login Obtener token](#login-obtener-token)
-    - [Get Comicios por Id](#get-comicio-por-id)
+    - [Get Comicios por Id](#get-comicios-por-id)
     - [Get All Comicios](#get-all-comicios)
-    - [Publicar un Comicios](#publicar-un-comicio)
+    - [Publicar un Comicios](#publicar-un-comicios)
     - [Healt Check](#healt-check)
 
   + [Test mediante request](#test-mediante-request)
@@ -46,7 +46,7 @@
   + [Autor](#autor)
 
 # Observaciones
-El armado del proyecto esta contemplado para ser desplegado usando docker. En el caso de que el sistema anfitrión sea linux (distribuciones **debian**, **ubuntu**) podemos seguir los pasos a continuacion para instalar el mismo.
+El armado del proyecto esta contemplado para ser desplegado usando docker. En el caso de que el sistema anfitrión sea linux (distribuciones **debian**, **ubuntu**) podemos seguir los pasos a continuación para instalar el mismo.
 
 ## Install Docker Compose V2
 Search del instalador:
@@ -93,11 +93,11 @@ Para esto dentro del directorio **0D-Dockerfiles** contamos con la siguientes es
 
   + **pgsql** : Los archivos necesarios para la configuración de la base de datos postgresql
     - Dockerfile : archivo con la configuración para armar la imagen principal de la aplicación
-    - requerimientos.txt : archivo con las dependencias de librerías para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
+    - `requerimientos.txt` : archivo con las dependencias de librerías para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
 
   + **sqlite** : Los archivos necesarios para la configuración de la base de datos (auto contenida) sqlite
     - Dockerfile : archivo con la configuración para armar la imagen principal de la aplicación
-    - requerimientos.txt : archivo con las dependencias de librerías para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
+    - `requerimientos.txt` : archivo con las dependencias de librerías para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
 
 Los archivos de construcción de la imagen estan separados en función del tipo de base de datos a utilizar. Para configurar esto contamos dentro del archivo [devops.sh](devops.sh) con la variable **CFG_COMPOSE_FILE** . La cual puede tener uno de los siguientes valores:
 
@@ -131,7 +131,7 @@ Con este no solo se creara la imagen si no también el contenedor y se ejecuta e
 devops.sh --status
 devops.sh status
 ```
-Este nos traera la info unicamente relacionada al contenedor configurado para este proyecto.
+Este nos traerá la información unicamente relacionada al contenedor configurado para este proyecto.
 
 Si el **status** del contenedor no es **up**, podemos verificar que sucedió con la ayuda del siguiente comando:
 
@@ -191,43 +191,61 @@ Setting data base autocontenida sqlite
   Construye el proyecto con las imagenes y conetenedors establecidos en 'docker-compose-sqlite.yml'.
 
 ```
-# Ejecuccion con docker
+# Ejecución con docker
+1. Construimos las imágenes y levantamos los servicios
+```bash
+bash devops.sh --build
+```
+
+2. Atachamos una terminal a los logs
+```bash
+tail -f -n0 logs/Flask_Apis.log
+```
+
+3. Conectamos una terminal al contenedor para realizar el test
+```bash
+bash devops.sh --terminal
+```
+
+4. Ejecutamos el test
+```bash
+python3 0T-TestScripts/UnitTest_Comicios/test_ApisRestComicios.py
+```
 
 
-
-# Ejecuccion sin docker
+# Ejecución sin docker
 Para la ejecución sin el uso de contenedor debemos tener instalada en el host los siguientes comandos:
 
   + **python3**
   + **pip3** (gestor de paquetes python)
 
-## Instacion python linux
+## Instalación python linux
 ``` bash
   sudo apt update && sudo apt upgrade -y
   sudo apt install -y python3
 ```
 
-## Instacion pip linux
+## Instalación pip linux
 ``` bash
   sudo apt-get install -y python3-pip
 ```
 
 
-## Instalaccion dependencias del proyecto
+## Instalación dependencias del proyecto
 ``` bash
   # sobre el directorio root del proyecto
   pip3 install --no-cache-dir -r 0D-Dockerfiles/requerimientos.txt
 ```
 
 
-## Ejecucion del proyecto
+## Ejecución del proyecto
 ``` bash
   # sobre el directorio root del proyecto
   python3 main.py
 ```
 
 
-# Ejecuccion con virtual enviroment sobre linux
+# Ejecución con virtual enviroment sobre linux
 Para esto contamos con el script [activate.sh](activate.sh), el cual solo depende de la instalacion de [python en el sistema](#instacion-python-linux). Este script realiza dos o solo una tarea dependiendo del contexto:
 
   1. Si el directorio del entorno virtual no existe crea el mismo e instala las dependencias sobre este.
@@ -321,7 +339,7 @@ bash activate.sh
   └── readme.md
 ```
 
-# Ejecucion del proyecto
+# Ejecución del proyecto
 Para iniciar la aplicación, dentro del entorno si docker, solo debemos ejecutar con **Python3** el script principal de la aplicación
 
 ``` bash
@@ -866,7 +884,7 @@ Estas pueden ser redefinidas dentro de cada script especifico para un propósito
 
 
 
-# Documentacion de las APIs
+# Documentación de las APIs
   - [Registrar un nuevo usuario](#registrar-un-nuevo-usuario)
   - [Modificar un usuario](#modificar-un-usuario)
   - [Obtener todos los usuarios](#obtener-todos-los-usuarios)
@@ -1122,7 +1140,7 @@ Versión actual de las APIs.
 Para esto nos movemos al directorio `0T-TestScripts/UnitTest_Comicios`, donde tenemos el script `test_With_request.py` con los diferentes test.
 
 
-## Visualizacion del help
+## Visualización del help
 ```bash
 python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py help -s
 ```
@@ -1180,11 +1198,11 @@ tail -f 0T-TestScripts/UnitTest_Comicios/logs/test_$(date +%Y%m%d).log
 
 ## Creamos un Usuario
 ``` bash
-python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py create_user -q jesus 4321
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py create_user -q jesus 1234
 ```
 Salida por log:
 ```bash
-2026-02-04 12:27:34.165 INFO    - Creando el usuario con el payload: {'username': 'jesus', 'password': '4321'}
+2026-02-04 12:27:34.165 INFO    - Creando el usuario con el payload: {'username': 'jesus', 'password': '1234'}
 2026-02-04 12:27:34.166 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
 2026-02-04 12:27:34.370 DEBUG   - http://127.0.0.1:8080 "POST /api/register HTTP/1.1" 201 26
 2026-02-04 12:27:34.371 INFO    - Resp Code: 201
@@ -1195,14 +1213,14 @@ Salida por log:
 ```
 
 
-## Intentamos crear un usuario dupicado
+## Intentamos crear un usuario duplicado
 ``` bash
-python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py create_user -q jesus 4321
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py create_user -q jesus 1234
 ```
 
 Salida por log:
 ```bash
-2026-02-04 12:39:14.245 INFO    - Creando el usuario con el payload: {'username': 'jesus', 'password': '4321'}
+2026-02-04 12:39:14.245 INFO    - Creando el usuario con el payload: {'username': 'jesus', 'password': '1234'}
 2026-02-04 12:39:14.246 DEBUG   - Starting new HTTP connection (1): 127.0.0.1:8080
 2026-02-04 12:39:14.251 DEBUG   - http://127.0.0.1:8080 "POST /api/register HTTP/1.1" 400 55
 2026-02-04 12:39:14.251 INFO    - Resp Code: 400
@@ -1233,7 +1251,7 @@ Salida por log:
 ```
 
 ## Obtener listado de Usuarios
-Para este paso y los siguentes necesitamos el token, por lo que si no editamos el usaurio debemos primero ejecutar el [login](#login) para obtener el mismo.
+Para este paso y los siguientes necesitamos el token, por lo que si no editamos el usaurio debemos primero ejecutar el [login](#login) para obtener el mismo.
 
 ``` bash
 python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py get_users -q
@@ -1256,10 +1274,10 @@ Salida por log:
 
 ## login
 ``` bash
-## si ejecutamos el paso de modificacion de usaurio
+## si ejecutamos el paso de modificación de usuario
 python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py login -q jesus 4321
 
-## en caso de saltear la modificacion de usuario usamos la clave original
+## en caso de saltear la modificación de usuario usamos la clave original
 python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py login -q jesus 1234
 ```
 
@@ -1299,7 +1317,7 @@ Salida por log:
 python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py post_comicio -q
 ```
 
-Salida por log:
+Salida por logs:
 ```
 2026-02-04 13:11:43.052 INFO    - Publicar comicio, File: in/post_comicio_01.json | username <jesus> | Payload:
 {
@@ -1382,7 +1400,7 @@ Salida por log:
 }
 ```
 
-## Obtener Comicio por id
+## Obtener Comicios por id
 ```bash
 python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py get_comicio_id -q "dbb2bc603628e38c13a58ff3fea4cd77"
 ```
