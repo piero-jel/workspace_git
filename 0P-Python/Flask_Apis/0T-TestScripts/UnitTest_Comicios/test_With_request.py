@@ -20,7 +20,7 @@ import requests # import para manejo de APIs Rest
 
 from utils import ( # pylint: disable=import-error
     dict_to_jsonfile,jsonfile_to_dict,
-    Logger,get_log
+    Logger,get_log,CURR_DIR
 )
 
 __VERSION__ : int = 0
@@ -30,6 +30,8 @@ IP:str    = '127.0.0.1'
 PORT:str  = '8080'
 TOKEN:str = None
 TIMEOUT:int = 20
+
+TOKEN_FILE_PATH:str = CURR_DIR + '/ou/token.json'
 
 
 class ExceptionRun(Exception):
@@ -66,7 +68,7 @@ def test_get_comicio_id(id_hash:str='fac0179bf7a42e755e17bab20e51f2cd'):
     log.info('Resp Code: %s',response.status_code)
 
     if not 200 <= response.status_code <= 210:
-        log.warning('Resp Code fuera del rango OK')
+        log.warning('Resp Code fuera del rango OK, response: %s',response)
         return 0
 
     response = response.json()
@@ -98,14 +100,14 @@ def test_get_comicios():
     log.info('Resp Code: %s',response.status_code)
 
     if not 200 <= response.status_code <= 210 :
-        log.warning('Resp Code fuera del rango OK')
+        log.warning('Resp Code fuera del rango OK, response: %s',response)
         return 0
 
     log.info('Resp JSON:\n%s',json.dumps(response.json(),indent=2))
     return 0
 
 
-def test_post_comicio(path='in/post_comicio_01.json'):
+def test_post_comicio(path:str=None):
     ''' 
     Test Publicar comicio
 
@@ -117,7 +119,7 @@ def test_post_comicio(path='in/post_comicio_01.json'):
     url=f'http://{IP}:{PORT}/api/comicio'
     log:Logger = get_log('test_post_comicio')
     if path is None:
-        path = 'in/post_comicio_01.json'
+        path = CURR_DIR + '/in/post_comicio_01.json'
 
     if TOKEN is None or not 'access_token' in TOKEN:
         log.warning('No contamos con Token para realizar la peticion')
@@ -141,7 +143,7 @@ def test_post_comicio(path='in/post_comicio_01.json'):
     log.info('Resp Code: %s',response.status_code)
 
     if not 200 <= response.status_code <= 210:
-        log.warning('Resp Code fuera del rango OK')
+        log.warning('Resp Code fuera del rango OK, response: %s',response)
         return 0
 
     response = response.json()
@@ -174,7 +176,7 @@ def test_health_check():
     log.info('Resp Code: %s',response.status_code)
 
     if not 200 <= response.status_code <= 210 :
-        log.warning('Resp Code fuera del rango OK')
+        log.warning('Resp Code fuera del rango OK, response: %s',response)
         return 0
 
     resp = response.json()
@@ -205,7 +207,7 @@ def test_login(user='jel',key='789ABC123'):
     log.info('Resp Code: %s',response.status_code)
 
     if not 200 <= response.status_code <= 210 :
-        log.warning('Resp Code fuera del rango OK')
+        log.warning('Resp Code fuera del rango OK, response %s',response)
         return 0
 
     # Si el estado es difetenete al rango, no tenemos body de respuesta
@@ -512,9 +514,9 @@ def out_of_range(in_argc:int,argv:list,len_defaults:int)->bool:
 # verificamos si este script es el principal invocado desde la linea de comandos
 if __name__ == "__main__":
     if TOKEN is None:
-        TOKEN = jsonfile_to_dict('ou/token.json')
+        TOKEN = jsonfile_to_dict(TOKEN_FILE_PATH)
 
     st:int = main()
 
     if st == 0 and TOKEN is not None:
-        dict_to_jsonfile(TOKEN,'ou/token.json')
+        dict_to_jsonfile(TOKEN,TOKEN_FILE_PATH)

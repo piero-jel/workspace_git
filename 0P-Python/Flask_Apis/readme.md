@@ -2,6 +2,9 @@
   + [Observaciones](#observaciones)
   + [Armado del Contenedor](#armado-del-contenedor)
   + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicación)
+
+  + [Ejecuccion con docker](#ejecuccion-con-docker)
+
   + [Ejecuccion sin docker](#ejecuccion-sin-docker)
     - [Instacion python3 linux](#instacion-python-linux)
     - [Instacion pip linux](#instacion-pip-linux)
@@ -19,11 +22,11 @@
     - **Healt Check** [curl_health_check.sh](#healt-check)
     - **Obtener comicios por id** [curl_get_comicio_id.sh](#obtener-comicio-por-id)
     - **Obtener Todos los comicios para el usuario actual** [curl_get_comicios.sh](#obtener-todos-los-comicios-para-el-usuario-actual)
-    
+
     - **Publicar comicios** [curl_comicio.sh](#publicar-comicio)
-    
+
     - **Obtener detalles de todos los comicios registrados** [curl_get_comicios_details.sh](get-comicios-details)
-    
+
   + [Documentación de las APIs](#documentacion-de-las-apis)
     - [Registrar un nuevo usuario](#registrar-un-nuevo-usuario)
     - [Modificar un nuevo usuario](#modificar-un-nuevo-usuario)
@@ -33,7 +36,7 @@
     - [Get All Comicios](#get-all-comicios)
     - [Publicar un Comicios](#publicar-un-comicio)
     - [Healt Check](#healt-check)
-  
+
   + [Test mediante request](#test-mediante-request)
   + [Unit Test con request](#unit-test-con-request)
 
@@ -87,22 +90,22 @@ Para esto dentro del directorio **0D-Dockerfiles** contamos con la siguientes es
 ```
 
   + **bashrc** : directorio con los archivos de configuración para el usuario del sistema (setting de alias y path enviroment)
-  
+
   + **pgsql** : Los archivos necesarios para la configuración de la base de datos postgresql
     - Dockerfile : archivo con la configuración para armar la imagen principal de la aplicación
     - requerimientos.txt : archivo con las dependencias de librerías para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
-    
+
   + **sqlite** : Los archivos necesarios para la configuración de la base de datos (auto contenida) sqlite
     - Dockerfile : archivo con la configuración para armar la imagen principal de la aplicación
     - requerimientos.txt : archivo con las dependencias de librerías para python (listados de package ```para python```, los cuales se instalaran mediante ```pip```)
-    
+
 Los archivos de construcción de la imagen estan separados en función del tipo de base de datos a utilizar. Para configurar esto contamos dentro del archivo [devops.sh](devops.sh) con la variable **CFG_COMPOSE_FILE** . La cual puede tener uno de los siguientes valores:
 
   + ```CFG_DBMS='sqlite'``` : para la selección de base de datos sqlite
   + ```CFG_DBMS='pgsql'``` : para la selección de PostgreSQL
-  
-  
-  
+
+
+
 Con los archivos correspondiente configurados (*los mismos están configurado para el proyecto*) podemos armar el contenedor mediante el uso del script **devops.sh** :
 
 ``` bash
@@ -178,16 +181,19 @@ Para obtener información detallada de lo que hace uno en particular, debemos us
 ``` bash
 devops.sh -h --build
 Setting data base autocontenida sqlite
---build 
-     -b 
-  build 
-     
-  Default values:    
+--build
+     -b
+  build
+
+  Default values:
     + Container FlaskApis
 
   Construye el proyecto con las imagenes y conetenedors establecidos en 'docker-compose-sqlite.yml'.
 
 ```
+# Ejecuccion con docker
+
+
 
 # Ejecuccion sin docker
 Para la ejecución sin el uso de contenedor debemos tener instalada en el host los siguientes comandos:
@@ -197,8 +203,8 @@ Para la ejecución sin el uso de contenedor debemos tener instalada en el host l
 
 ## Instacion python linux
 ``` bash
-  sudo apt update && sudo apt upgrade -y  
-  sudo apt install -y python3  
+  sudo apt update && sudo apt upgrade -y
+  sudo apt install -y python3
 ```
 
 ## Instacion pip linux
@@ -241,14 +247,14 @@ bash activate.sh
     - Bash Script para el test usando ```curl```.
     - Python Script (```test_With_request.py```) para el test mediante el uso de request
     - Python Script para el test unitario (```test_ApisRestComicios.py```0) mediante el uso de unittest y request (sin mock), este usa auxiliar mente el modelo de clase definido en ```Comicios.py```, con la finalidad de facilitar la implementación y posible modificación de la APIs.
-    
+
   + **ApiErrorHandler** : Modulo con las Funciones para manejo en el armado de los response en caso de error.
   + **Config** : Modulo para la configuración del proyecto
   + **Models** : Modulo para el modelo de los registros (de BBDD) de la aplicación
   + **logs** : directorio donde se localiza el log de la aplicación
   + **main.py** : script principal de la aplicación
   + **cfg_wsgi.py** : script con la configuración wsgi para servicio **Gunicorn**
-  + **readme.md** : este documento 
+  + **readme.md** : este documento
 
 ```
   .
@@ -293,7 +299,7 @@ bash activate.sh
   │   │   │   └── token.json
   │   │   ├── test_ApisRestComicios.py
   │   │   ├── test_Comicios.py
-  │   │   └── test_With_request.py  
+  │   │   └── test_With_request.py
   │   │
   │   └── utilities.sh
   ├── ApiErrorHandler
@@ -345,14 +351,14 @@ El listado de script para testing, dentro del directorio ```0T-TestScripts```:
   - **Healt Check** [curl_health_check.sh](#healt-check)
   - **Obtener comicio por id**[curl_get_comicio_id.sh](#obtener-comicio-por-id)
   - **Obtener Todos los comicios para el usuario actual** [curl_get_comicios.sh](#obtener-todos-los-comicios-para-el-usuario-actual)
-  
+
   - **Publicar comicio** [curl_comicio.sh](#publicar-comicio)
-  
+
   - **Obtener detalles de todos los comicios registrados** [curl_get_comicios_details.sh](get-comicios-details)
-  
+
   - **Funciones utilitarias** [utilities.sh](#funciones-utilitarias)
 
-  
+
 
 ## Creacion de Usuario
 1. Creando un nuevo usuario
@@ -422,7 +428,7 @@ request: http://127.0.0.1:8080/api/HealthCheck
 
 ## Obtener todos los usuario
 ``` bash
-curl_get_users.sh 
+curl_get_users.sh
 request: http://127.0.0.1:8080/api/users
 
 {
@@ -857,7 +863,7 @@ Este script no debería ser invocado como los demás, ya que solo contiene funci
   + **URL**: url armada con las anteriores con el postfix del tipo ```{http,https}```
 
 Estas pueden ser redefinidas dentro de cada script especifico para un propósito particular.
-  
+
 
 
 # Documentacion de las APIs
@@ -869,11 +875,11 @@ Estas pueden ser redefinidas dentro de cada script especifico para un propósito
   - [Get All Comicios](#get-all-comicios)
   - [Publicar un Comicio](#publicar-un-comicio)
   - [Healt Check](#healt-check)
-  
+
 ## Registrar un nuevo usuario
 ```POST ${url}/api/register```
 
-### request  
+### request
 ``` json
 {
   "username":"nombre_usuario",
@@ -900,15 +906,15 @@ Estas pueden ser redefinidas dentro de cada script especifico para un propósito
 ***Debe estar logueado el usuario actual que usa la APIs (el token del mismo debe estar vigente).***
 ### request:
 ``` json
-{  
+{
   "password":"pass12345"
 }
 ```
   + **password** : nuevo clave para el usuario, no puede ser un campo vacio.
-  
 
 
-### response 
+
+### response
 ``` json
 {
   "access_token": "nuevo token",
@@ -946,29 +952,29 @@ Debemos usar el **username** y **password** con el cual se creo el Usuario a log
 
 ### request
   - No Aplica
-  
+
 ### response
 ``` json
-{  
+{
   "timeout": 600,
   "access_token":"token ...."
 }
 ```
   + **timeout** : tiempo de duración para el token generado.
   + **access_token** : token que se debe utilizar para la invocación futura de las demás APIs.
-  
+
 
 
 ## Get Comicion por Id
 ```GET ${url}/api/comicio/${id}```
 
   - **id** : identificador hash del comicios, devuelto en la publicación de este.
-  
+
 ***Debe estar logueado el usuario actual que usa la APIs (el token del mismo debe estar vigente).***
 
 ### request
   - No Aplica
-  
+
 ### response
 ``` json
 {
@@ -1007,7 +1013,7 @@ Debemos usar el **username** y **password** con el cual se creo el Usuario a log
   ]
 }
 ```
-  
+
 ## Get All Comicios
 ```GET ${url}/api/get_comicios```
 
@@ -1015,7 +1021,7 @@ Debemos usar el **username** y **password** con el cual se creo el Usuario a log
 
 ### request
   - No Aplica
-  
+
 ### response
 Listado de los Hash Id de los comicios publicados por el usuario actual.
 
@@ -1034,7 +1040,7 @@ Listado de los Hash Id de los comicios publicados por el usuario actual.
   "user": "nombre_usuario"
 }
 ```
-  
+
 ## Publicar un Comicio
 ```POST ${url}/api/comicio```
 
@@ -1052,7 +1058,7 @@ Esta API realiza el calculo y registro de comicios en función de la cantidad de
       , {"name":"Partido B","votos":280000}
       , {"name":"Partido C","votos":160000}
       , {"name":"Partido D","votos":60000}
-      , {"name":"Partido E","votos":15000}     
+      , {"name":"Partido E","votos":15000}
     ]
 }
 ```
@@ -1104,11 +1110,11 @@ Esta petición nos permite verificar el estado de la APIs como así también el 
 
 ### response
 ``` json
-{ 
-  "version": "0.4.5" 
+{
+  "version": "0.4.5"
 }
 ```
-Versión actual de las APIs. 
+Versión actual de las APIs.
 
 
 
@@ -1118,8 +1124,7 @@ Para esto nos movemos al directorio `0T-TestScripts/UnitTest_Comicios`, donde te
 
 ## Visualizacion del help
 ```bash
-cd 0T-TestScripts/UnitTest_Comicios
-python3 test_With_request.py help -s
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py help -s
 ```
 
 Salida del comando anterior:
@@ -1130,7 +1135,7 @@ Salida del comando anterior:
   Params
     opt Opcional (default None) opcion para especificar formato del help
       --short o -s impresion corta.
-  
+
 Listado de test para el modulo: "test_With_request.py"
 
 test_With_request.py create_user [-q | --quiet]       : Creacion de un nuevo usuario.
@@ -1145,7 +1150,7 @@ test_With_request.py help [-q | --quiet]              : Visualiza este mensaje d
 ```
   - La opción '-s' o '--short' en el help indica que debe visualizar la descripciones breves de cada caso de test.
   - La opción '-q' o '--quiet' luego de la opción deshabilita la impresión extendida de información, sobre la utilidad.
-  
+
 ***Los test individuales son validos solo si el servicio o los contenedores esta en ejecución, de lo contrario tendremos respuesta de error relacionados a la conexion.***
 
 ### Verificamos la isntalaccion de request
@@ -1175,7 +1180,7 @@ tail -f 0T-TestScripts/UnitTest_Comicios/logs/test_$(date +%Y%m%d).log
 
 ## Creamos un Usuario
 ``` bash
-python3 test_With_request.py create_user -q jesus 4321
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py create_user -q jesus 4321
 ```
 Salida por log:
 ```bash
@@ -1192,7 +1197,7 @@ Salida por log:
 
 ## Intentamos crear un usuario dupicado
 ``` bash
-python3 test_With_request.py create_user -q jesus 4321
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py create_user -q jesus 4321
 ```
 
 Salida por log:
@@ -1210,7 +1215,7 @@ Salida por log:
 
 ## Edit user
 ``` bash
-python3 test_With_request.py edit_user -q jesus 1234 4321
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py edit_user -q jesus 1234 4321
 ```
 
 Salida por log:
@@ -1231,7 +1236,7 @@ Salida por log:
 Para este paso y los siguentes necesitamos el token, por lo que si no editamos el usaurio debemos primero ejecutar el [login](#login) para obtener el mismo.
 
 ``` bash
-python3 test_With_request.py get_users -q
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py get_users -q
 ```
 
 
@@ -1252,10 +1257,10 @@ Salida por log:
 ## login
 ``` bash
 ## si ejecutamos el paso de modificacion de usaurio
-python3 test_With_request.py login -q jesus 4321
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py login -q jesus 4321
 
 ## en caso de saltear la modificacion de usuario usamos la clave original
-python3 test_With_request.py login -q jesus 1234
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py login -q jesus 1234
 ```
 
 Salida por log:
@@ -1274,7 +1279,7 @@ Salida por log:
 
 ## health check
 ``` bash
-python3 test_With_request.py health_check -q
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py health_check -q
 ```
 
 Salida por log:
@@ -1291,7 +1296,7 @@ Salida por log:
 
 ## Publicar un comicio
 ```bash
-python3 test_With_request.py post_comicio -q
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py post_comicio -q
 ```
 
 Salida por log:
@@ -1358,7 +1363,7 @@ Salida por log:
 ## Obtener todos los comicios registrado para el usuario
 
 ``` bash
-python3 test_With_request.py get_comicios -q
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py get_comicios -q
 ```
 
 
@@ -1379,7 +1384,7 @@ Salida por log:
 
 ## Obtener Comicio por id
 ```bash
-python3 test_With_request.py get_comicio_id -q "dbb2bc603628e38c13a58ff3fea4cd77"
+python3 0T-TestScripts/UnitTest_Comicios/test_With_request.py get_comicio_id -q "dbb2bc603628e38c13a58ff3fea4cd77"
 ```
 
 Salida por log:
@@ -1445,37 +1450,58 @@ Salida por log:
 ```
 
 # Unit Test con request
-Dentro del directorio ```0T-TestScripts/UnitTest_Comicios```, nos encontramos con el script ```test_ApisRestComicios.py``` con los test unitarios y secuenciales.
+Dentro del directorio `0T-TestScripts/UnitTest_Comicios`, nos encontramos con el script `test_ApisRestComicios.py` con los test unitarios y secuenciales.
 
+1. Nos aseguramos que el servicio este corriendo, para cualqueira de los casos:
+  + [Ejecuccion con docker](#ejecuccion-con-docker)
+  + [Ejecuccion sin docker](#ejecuccion-sin-docker)
+    - [Ejecucion del proyecto](#ejecución-del-proyecto)
+  + [Ejecuccion con virtual enviroment sobre linux](#ejecuccion-con-virtual-enviroment-sobre-linux)
+
+2. Nos atachamos al log
+```bash
+# Si es la primera ves el archivo no existira, lo podemos crear
+touch 0T-TestScripts/UnitTest_Comicios/logs/test_$(date +%Y%m%d).log
+
+# atachamos la terminal al log
+tail -f -n0 0T-TestScripts/UnitTest_Comicios/logs/test_$(date +%Y%m%d).log
+```
+> Nota: el archivo de log lo genera automaticamente la ejecucion de los test, no es necesario crearlo. Pero si necesitamos la existencia del archivo si nos queremos atachar con una terminal a este.
+
+3. Ejecutamos el test
+```bash
+python3 0T-TestScripts/UnitTest_Comicios/test_ApisRestComicios.py
+```
+
+
+Salida por consola:
 ``` bash
-python3 test_ApisRestComicios.py
-test_create_user (__main__.TestComicioApis)
+test_create_user (__main__.TestComicioApis.test_create_user)
 01- test create user ... ok
-test_edit_user (__main__.TestComicioApis)
+test_edit_user (__main__.TestComicioApis.test_edit_user)
 02- test edit user ... ok
-test_get_users (__main__.TestComicioApis)
+test_get_users (__main__.TestComicioApis.test_get_users)
 03- test get users ... ok
-test_login (__main__.TestComicioApis)
+test_login (__main__.TestComicioApis.test_login)
 04- test login ... ok
-test_health_check (__main__.TestComicioApis)
+test_health_check (__main__.TestComicioApis.test_health_check)
 05- test health check ... ok
-test_post_comicio (__main__.TestComicioApis)
+test_post_comicio (__main__.TestComicioApis.test_post_comicio)
 06- test post comicio ... ok
-test_get_comicios (__main__.TestComicioApis)
+test_get_comicios (__main__.TestComicioApis.test_get_comicios)
 07- test get comicios ... ok
-test_get_comicio_id (__main__.TestComicioApis)
+test_get_comicio_id (__main__.TestComicioApis.test_get_comicio_id)
 08- test get comicio id ... ok
-test_get_comicio_id_list (__main__.TestComicioApis)
+test_get_comicio_id_list (__main__.TestComicioApis.test_get_comicio_id_list)
 09- test get comicio id desde la lista de get comicios ... ok
-test_post_comicio_list (__main__.TestComicioApis)
+test_post_comicio_list (__main__.TestComicioApis.test_post_comicio_list)
 10- test post comicio, desde una lista de archivos ... ok
 
 ----------------------------------------------------------------------
-Ran 10 tests in 1.030s
+Ran 10 tests in 5.156s
 
 OK
 ```
-
 
 > Note: ***Los test individuales son validos solo si el servicio o los contenedores esta en ejecución, de lo contrario tendremos respuesta de error relacionados a la conexión.***
 

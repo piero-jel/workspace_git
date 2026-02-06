@@ -8,7 +8,75 @@
             "program": "0T-TestScripts/UnitTest_Comicios/test_ApisRestComicios.py",
             "args":[ ],
             "console": "integratedTerminal"
+        },        
+        {
+            "name": "create_user",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "0T-TestScripts/UnitTest_Comicios/test_With_request.py",
+            "args":[ "create_user","-q",
+                "je_luccioni","12345Abcde"],
+            "console": "integratedTerminal"
         },
+        {
+            "name": "edit_user",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "0T-TestScripts/UnitTest_Comicios/test_With_request.py",
+            "args":[ "edit_user","-q",
+                "je_luccioni","12345Abcde","12345Abcde"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "get_users",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "0T-TestScripts/UnitTest_Comicios/test_With_request.py",
+            "args":[ "get_users","-q"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "login",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "0T-TestScripts/UnitTest_Comicios/test_With_request.py",
+            "args":[ "login","-q",
+                "je_luccioni","12345Abcde"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "health_check",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "0T-TestScripts/UnitTest_Comicios/test_With_request.py",
+            "args":[ "health_check","-q"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "post_comicio",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "0T-TestScripts/UnitTest_Comicios/test_With_request.py",
+            "args":[ "post_comicio","-q"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "get_comicios",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "0T-TestScripts/UnitTest_Comicios/test_With_request.py",
+            "args":[ "get_comicios","-q"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "get_comicio_id",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "0T-TestScripts/UnitTest_Comicios/test_With_request.py",
+            "args":[ "get_comicio_id","-q",
+                "f2055da99d8c1af2beb01690aceddf27"],
+            "console": "integratedTerminal"
+        },        
         {
             "name": "Current File",
             "type": "debugpy",

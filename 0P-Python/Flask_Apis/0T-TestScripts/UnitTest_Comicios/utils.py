@@ -10,7 +10,8 @@ from logging import ( Logger,
                         DEBUG
                     )
 
-DIR_LOGS = f'{Path(__file__).resolve().parent}/logs'
+CURR_DIR:str = str(Path(__file__).resolve().parent)
+DIR_LOGS:str = f'{CURR_DIR}/logs'
 CONFIG_LOGGING:dict = {
     'level'    : DEBUG,
     #'level'    : INFO,
