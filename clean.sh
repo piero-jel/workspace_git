@@ -12,6 +12,7 @@ CLEAN_RECURSIVE_FOLDERS=(
 )
 
 CLEAN_RECURSIVE_FILES=(
+  '.bash_history'
   '.coverage'
   '*.d'       # c/c++
   '*.o'       # c/c++
