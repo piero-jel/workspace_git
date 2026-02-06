@@ -406,7 +406,7 @@ function container::clean(){
   fi
 
   # clean builder chaceh
-  docker image prune -af
+  #docker image prune -af
   docker builder prune -af
   ## delete dir  
   sudo find . -name __pycache__ -type d -exec rm -rf {} +  

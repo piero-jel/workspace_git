@@ -53,13 +53,13 @@ Dentro del directorio del paso anterior, tenemos el scrip `Action.sh` el cual si
 <details>
   <summary>Action.sh Options:</summary>
 
+  + `bash Action.sh --up`         ***Realiza todas las acciones necesarias para iniciar el servicio web del proyecto***.
   + `bash Action.sh --migrate`    Realiza la migración de todos los modelos.
   + `bash Action.sh --shell`      Open Shell iterativo con los modelos ORM disponibles.
   + `bash Action.sh --load_data`  Carga dato a la base desde un archivo `dataset` con items del tipo objetos **json**, uno por cada linea, del archivo.
   + `bash Action.sh --run`        Inicia el server, con la aplicación, poner en marcha el proyecto.
   + `bash Action.sh --unittest`   Ejecuta él unittest/test.
   + `bash Action.sh --coverage`   Realiza él test y genera el reporte **coverage** del código.
-  + `bash Action.sh --up`         Realiza todas las acciones necesarias para iniciar el servicio web del proyecto.
 
   + `bash Action.sh --clean`      Realiza el clean (limpieza) de los directorios y archivos auto generados.
     - generados por `--coverage` `htmlcov/` y `.coverage`.
@@ -336,12 +336,12 @@ bash devops.sh --coverage
 ```
 </details>
 
-11. `--clean` Realiza el clean (limpieza, borrado) de archivos, contenedores e imágenes generado. Este también ejecuta la purga de las imágenes de docker (elimina las imágenes y contenedores intermediarios).
+11. `--clean`, Detiene los contenedores y realiza el clean (limpieza, borrado) de archivos, contenedores e imágenes generadas. Este también ejecuta la purga de las imágenes de docker (elimina las imágenes y contenedores intermediarios).
 
 <details>
   <summary>Example:</summary>
 ```bash
-bash devops.sh --coverage
+bash devops.sh --clean
 ```
 </details>
 <!-- END -->

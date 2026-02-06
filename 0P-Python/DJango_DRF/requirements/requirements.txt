@@ -45,6 +45,7 @@ django-nose
 # tool
 # toolz
 # uWSGI
+pylint
 
 
 

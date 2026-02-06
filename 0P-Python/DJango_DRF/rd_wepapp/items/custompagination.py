@@ -1,4 +1,4 @@
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination # type: ignore pylint: disable=import-error, disable=unused-import
 
 # class CustomLimitOffsetPagination(LimitOffsetPagination):
 #     page_size = 4

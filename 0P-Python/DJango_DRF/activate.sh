@@ -60,8 +60,8 @@ function venv::create(){
   fi 
   ## en este punto se creo el archivo bash '${VENV_FOLDER}/bin/activate'
   ## en este concatenamos todos los alias y setting actuales
-  venv::log "unset PS1" >> ${VENV_FOLDER}/bin/activate
-  venv::log "PS1='(.venv):\[\033[01;32m\]\u@\h\[\033[00m\]:[\[\033[01;34m\]\W\[\033[00m\]]\$ '" >> ${VENV_FOLDER}/bin/activate  
+  echo "unset PS1" >> ${VENV_FOLDER}/bin/activate
+  echo "PS1='(.venv):\[\033[01;32m\]\u@\h\[\033[00m\]:[\[\033[01;34m\]\W\[\033[00m\]]\$ '" >> ${VENV_FOLDER}/bin/activate  
   return 0
 }
 
