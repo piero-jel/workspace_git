@@ -206,11 +206,15 @@ tail -f -n0 logs/Flask_Apis.log
 ```bash
 bash devops.sh --terminal
 ```
+Para desatachar la terminal del contenedor solo demos ingresar la conbinacion de teclas `Ctrl + d` o simplemente ingresar el comando `exit`.
 
 4. Ejecutamos el test
 ```bash
 python3 0T-TestScripts/UnitTest_Comicios/test_ApisRestComicios.py
 ```
+Podemos verificar los log del test y del servicio:
+  - Servicio: `logs/Flask_Apis.log`
+  - Tests: `0T-TestScripts/UnitTest_Comicios/logs/test_$(date +%Y%m%d).log`
 
 5. Stop y delete de contenedores, imagens y archivos generados de forma automatica:
 ```bash
