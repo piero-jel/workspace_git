@@ -719,6 +719,11 @@ function main(){
             docker compose --file "$PWD/${CFG_COMPOSE_FILE}" down
             # removemos las imagenes desde host
             docker rmi ${images}
+
+            ## Borramos los directorios autogenerados
+            sudo rm -fR instance/
+            sudo find . -name __pycache__ -type d -exec rm -rf {} +
+            sudo find . -name *.log -type f -exec rm -rf {} +
             return 0
         ;;
         

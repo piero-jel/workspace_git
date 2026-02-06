@@ -212,6 +212,11 @@ bash devops.sh --terminal
 python3 0T-TestScripts/UnitTest_Comicios/test_ApisRestComicios.py
 ```
 
+5. Stop y delete de contenedores, imagens y archivos generados de forma automatica:
+```bash
+bash devops.sh --rm
+```
+
 
 # Ejecución sin docker
 Para la ejecución sin el uso de contenedor debemos tener instalada en el host los siguientes comandos:

@@ -74,6 +74,7 @@ ENV GUNICORN_TIMEOUT=120
 ENV GUNICORN_APP_IP='0.0.0.0'
 ENV GUNICORN_APP_PORT='8080'
 
-CMD ["gunicorn","--config", "cfg_wsgi.py", "main:app"]
+#CMD ["gunicorn","--config", "cfg_wsgi.py", "main:app"]
+CMD ["python3","main.py"]
 #### END   config deploy
 ### END   config daemon
