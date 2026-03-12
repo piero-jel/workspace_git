@@ -1,5 +1,6 @@
 # Contenido
   + [Financial Transaction, Descripción del Proyecto](#financial-transaction)
+  + [Entorno virtual](#entorno-virtual)
   
   + [Verificación Numero Tarjeta](#verificacion-numero-tarjeta)
     - [Archivo de Rangos](#archivo-de-rangos)
@@ -39,6 +40,22 @@
   
   6. Mostrar la respuesta en pantalla, en función del [response message](#response-message). Si el código de respuesta es **"00"** , indica que la transacción fue aprobada y deberá mostrar ***"APROBADA"*** en pantalla. Si el código de respuesta es cualquier otro valor, deberá mostrar ***"RECHAZADA"*** .
  
+# Entorno virtual
+Para la creacion del entorno virtual contamos con el script `activate.sh`, el cual realiza las tareas de crear el entorno si este no existe y habilitar el mismo. En caso que el entorno este creado, este solamente lo habilita.
+
+La creacion del entorno contempla la instalaccion de las librerias necesarias para el proyecto, como asi tambien de `python3` (para distribuciones debian y derivadas). 
+
+```bash
+bash activate.sh
+```
+
+Creado el entorno de forma sastifactoria podemos pasar a la ejecucion del proyecto [Ejecución del proyecto](#ejecucion-del-proyecto).
+
+En caso de no necesitar mas el entorno virtual, solo debemos eliminar el mismo de la siguente manera:
+```bash
+bash activate.sh --delete
+```
+
 # Verificacion Numero Tarjeta
 La verificación del numero de tarjeta se basa en el uso de dos archivos uno de rangos y el otro con las etiquetas de cada tarjeta (```Ranges.dat```, ```Cards.dat```). Cada uno de estos posee un formato de registros por cada linea que lo compone.
 

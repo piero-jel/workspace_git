@@ -25,6 +25,7 @@ https://httpbin.org/delay/:n Delays responding for n–10 seconds.
 -->
 # Contenido
   + [Observaciones](#observaciones)
+  + [Entorno virtual](#entorno-virtual)
   
   + [Armado del Contenedor](#armado-del-contenedor)
   + [Ejecuccion sin docker](#ejecuccion-sin-docker)
