@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Server",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "Server.py",
+            "args":[
+                "8080"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "FinancialTransaction",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "FinancialTransaction.py",
+            "args":[
+                "127.0.0.1", "8080"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "args":[ ],
+            "console": "integratedTerminal"
+        }
+    ]
+}

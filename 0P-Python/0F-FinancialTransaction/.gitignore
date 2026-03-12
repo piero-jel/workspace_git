@@ -12,3 +12,5 @@
 # discard log files
 *.log
 
+# discard virtual envirometn folder
+.venv/

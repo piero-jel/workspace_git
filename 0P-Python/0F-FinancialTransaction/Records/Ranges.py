@@ -1,72 +1,100 @@
-from Records import Records
+"""@package docstring
+Copyright 2022, Jesus Emanuel Luccioni
+All rights reserved.
 
-class RangesRegister(Records.Record):  
-  ''' Defincion del objeto RangesRegister que modela los registros 
-      del archivo de rangos 
-      RANGE_LOW(8)~RANGE_HIGHT(8)~LEN(2BYTES)~ID(4BYTES)
-  '''
-  def __init__(self,v:str):
-    self.low:str = ''
-    self.high:str = ''
-    self.len:str = ''
-    self.id:str = ''
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-    mp:dict = {
-        'low':slice(0,8)
-      , 'high':slice(9,17)
-      , 'len':slice(18,20)
-      , 'id':slice(21,25)      
-    }
-    super().__init__(mp)
-    super().set(v)
-  #end def
+ 1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
 
-  def __repr__(self):
-    ''' representacion formal del objeto mediante un string'''
-    return f"{type(self).__name__}(low={self.low:8},high={self.high:8},len={self.len:02},id={self.id:04})"
-  #end if
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
 
-  def __str__(self):
-    ''' representacion informal del objeto mediante un string'''
-    return f"{self.low:8} {self.high:8} {self.len:02} {self.id:04}"
-  #end if
+ 3. Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived from this
+    software without specific prior written permission.
 
-  @classmethod
-  def Predicate(cls,v:str):
-    return RangePredicate(v)
-# end class
+THIS SCRIPT IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SCRIPT, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+\b file Records/Ranges.py
+\b brief parsing range registers file
+\b author Jesus Emanuel Luccioni - piero.jel@gmail.com.
+\b date Lunes 05 de Mayo de 2022.
+\b version 0.0.1.
+  
+\b Change History:
+
+Author         Date                 Version     Brief
+JEL            2022.05.05           0.0.1       Version Inicial
+
+"""
+from Records.Records import Record
+
+class RangesRegister(Record):
+    ''' Defincion del objeto RangesRegister que modela los registros 
+        del archivo de rangos 
+        RANGE_LOW(8)~RANGE_HIGHT(8)~LEN(2BYTES)~ID(4BYTES)
+    '''
+    def __init__(self,v:str):
+        """
+        Inicializacion para un objeto del tipo RangesRegister
+
+        :param v: argument descripcion 
+        :type v: str
+        """
+        self.low:str = ''
+        self.high:str = ''
+        self.len:str = ''
+        self.id:str = ''
+        mp:dict = {
+            'low':slice(0,8)
+          , 'high':slice(9,17)
+          , 'len':slice(18,20)
+          , 'id':slice(21,25)
+        }
+        super().__init__(mp)
+        super().set(v)
+
+    def __repr__(self):
+        ''' representacion formal del objeto mediante un string'''
+        return f"{type(self).__name__}(low={self.low:8},high={self.high:8},"\
+            f"len={self.len:02},id={self.id:04})"
+
+    def __str__(self):
+        ''' representacion informal del objeto mediante un string'''
+        return f"{self.low:8} {self.high:8} {self.len:02} {self.id:04}"
+
+    @classmethod
+    def Predicate(cls,v:str):
+        return RangePredicate(v)
+
 
 class RangePredicate:
-  def __init__(self,v:str):
-    ''' Inicializa el objeto para poder ser usado luego como
-        predicado
-    '''
-    if(not isinstance(v,str)):
-      raise TypeError(f'type {type(v)} no permitido')
-    # endif
-    self.cardnum = v[0:8]
-  # end def
+    '''Definicion del Objeto predicado, que contiene el metodo principal call'''
 
-  def __call__(self, item:'RangesRegister')-> bool:
-    ''' Method para el uso como predicado
-    '''
-    if( item.low <= self.cardnum <= item.high):
-      return True
-    return False
-  #end def
-#end class
+    def __init__(self,v:str):
+        ''' Inicializa el objeto para poder ser usado luego como
+            predicado
+        '''
+        if not isinstance(v,str):
+            raise TypeError(f'type {type(v)} no permitido')
 
+        self.cardnum = v[0:8]
 
-
-
-
-
-
-
-
-
-
-
-
-
-  
+    def __call__(self, item:'RangesRegister')-> bool:
+        ''' Method para el uso como predicado'''
+        if item.low <= self.cardnum <= item.high:
+            return True
+        return False

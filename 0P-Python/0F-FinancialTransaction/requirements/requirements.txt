@@ -1,0 +1,7 @@
+#numpy
+#pandas
+#tabulate
+#coverage
+#collections# from collections import namedtuple
+pylint
+mypy

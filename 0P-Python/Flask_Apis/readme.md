@@ -40,7 +40,6 @@
   + [Test mediante request](#test-mediante-request)
   + [Unit Test con request](#unit-test-con-request)
 
-
   + [static code analyzers with pylint](#static-code-analyzers-with-pylint)
 
   + [Autor](#autor)

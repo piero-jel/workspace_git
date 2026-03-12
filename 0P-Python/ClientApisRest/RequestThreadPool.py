@@ -42,101 +42,88 @@ Author         Date                 Version     Brief
 JEL            2024.04.20           0.0.1       Version Inicial no release
 
 """
+from collections import namedtuple
+# from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures.thread import ThreadPoolExecutor
+from concurrent.futures import as_completed
+
 import requests
+from constants import URLS
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from collections import namedtuple  
-
+Response = namedtuple('Response', ['url','status_code', 'resp'])
 ''' Definimos una namedtuple para majear response como estructuras 
     mediante la tupla:
       + url          str 
       + status_code  int
       + resp         JSON
 '''
-Response = namedtuple('Response', ['url','status_code', 'resp'])
 
-def vTask(url:str,timeout:int=60) :
-  ''' Prototipo de tarea para ser ejecutada en un thread. Esta se encarga 
-      de la peticion GET para un url/endpoint 
-        - url : url/endpoint donde se realizar la peticion
+def vTask(url:str,timeout:int=60) ->Response:
+    ''' Prototipo de tarea para ser ejecutada en un thread. Esta se encarga 
+        de la peticion GET para un url/endpoint 
+          - url : url/endpoint donde se realizar la peticion
+  
+        Return un Response relacionado al request para el cual el 
+        code status es 200 (respuesta ok), y -1 con mensaje string
+    '''
+    if not isinstance(url,str):
+        raise TypeError(f'urls type <{type(url)} no string>')
 
-      Return un Response relacionado al request para el cual el 
-      code status es 200 (respuesta ok), y -1 con mensaje string
-  '''
-  if(not isinstance(url,str)):
-    raise TypeError(f'urls type <{type(urls)} no string>')
-  # end if
+    if not isinstance(timeout,int):
+        raise TypeError(f'timeout type <{type(timeout)} no int>')
 
-  if(not isinstance(timeout,int)):
-    raise TypeError(f'timeout type <{type(timeout)} no int>')
-  # end if  
-  try:
-    response = requests.get(url,timeout=5)
-    return Response(url,response.status_code,response.json())    
-  except requests.exceptions.RequestException as e:
-    return Response(url,-1,f'Exception: {e}')
-  # end try    
-  return None
-# end def
+    resp:str = None
+    try:
+        response = requests.get(url,timeout=5)
+        resp = response.json()
+        return Response(url,response.status_code,resp)
+    except requests.exceptions.RequestException as e:
+        resp = f'Exception<{type(e).__name__}>: {e}'
+
+    return Response(url,-1,resp)
 
 
 def download_data(urls:list | tuple) -> list:
-  ''' Funcion para obtener los response relacionada a la peticion GET para 
-      cada url/endpoint contenido dentro de las lista de urls.
-        - urls : lista o tupla de url 
-      
-      Return el listado de response json de cada request para el cual el 
-      code status es 200 (respuesta ok)
-  '''
-  if(not isinstance(urls,list) and not isinstance(urls,tuple)):
-    raise TypeError(f'urls type <{type(urls)} no soportado>')
-  # end if
+    ''' Funcion para obtener los response relacionada a la peticion GET para 
+        cada url/endpoint contenido dentro de las lista de urls.
+          - urls : lista o tupla de url 
+        
+        Return el listado de response json de cada request para el cual el 
+        code status es 200 (respuesta ok)
+    '''
+    if not isinstance(urls,list) and not isinstance(urls,tuple):
+        raise TypeError(f'urls type <{type(urls)} no soportado>')
 
-  data = []
-  with ThreadPoolExecutor(max_workers=len(urls)) as executor:
-    futures = []
-    for url in urls:        
-      futures.append(executor.submit(vTask, url=url, timeout=5))
-    # end for
-    # waiting for the threads to finish and maybe print a result :
-    for future in as_completed(futures):      
-      if(future.result().status_code == 200):
-        data.append(future.result().resp)
-      elif(future.result().status_code == -1):
-        print(f'Error: url <{future.result().url}> Message {future.result().resp}')  
-      else:
-        print(f'Error: url <{future.result().url}> Code {future.result().status_code}')  
-      # end if      
-    # end for
-  return data
-# end def
+    data:list = []
+    with ThreadPoolExecutor(max_workers=len(urls)) as executor:
+        futures = []
+        for url in urls:
+            futures.append(executor.submit(vTask, url=url, timeout=5))
 
-''' implementacion '''
+        # waiting for the threads to finish and maybe print a result :
+        for future in as_completed(futures):
+            if future.result().status_code == 200:
+                data.append(future.result().resp)
+            elif future.result().status_code == -1:
+                print(f'Error: url <{future.result().url}> Message {future.result().resp}')
+            else:
+                print(f'Error: url <{future.result().url}> Code {future.result().status_code}')
+
+    return data
+
+
+def main():
+    ''' implementacion '''
+    try:
+        data = download_data(URLS)
+        print("\n\n")
+        for i,it in enumerate(data):
+            print(f'[{i}]: {it}')
+
+    except Exception as e: #pylint: disable=broad-exception-caught
+        print(f'Exception {type(e)}: {e}')
+
+
+
 if __name__ == '__main__':
-  try:
-    url_base:str = 'https://jsonplaceholder.typicode.com/posts/{}'
-    urls:list = [url_base.format(post) for post in range(1, 100)]
-    urls.append('https://not-found-url/1')
-    urls.append('http://not-found-url/2')
-    urls.append('https://api.coindesk.com/v1/bpi/currentprice.json')
-    #urls.append(float(1))
-    '''
-    urls =  ( "https://httpbin.org/ip"
-            , "https://httpbin.org/get"
-            , "https://httpbin.org/user-agent"
-            , "https://jsonplaceholder.typicode.com/posts'"
-            , 'http://0.0.0.0:5000/countries'
-            )
-    '''
-
-    data = download_data(urls)
-    
-    # print(data)
-    print("\n\n")    
-    for i,it in enumerate(data):
-      print(f'[{i}]: {it}')
-    # end for
-  except Exception as e:
-    print(f'Exception {type(e)}: {e}')
-  # end try
-# end fi
+    main()

@@ -47,10 +47,10 @@ La verificación del numero de tarjeta se basa en el uso de dos archivos uno de 
   - [Proceso de Verificación](#proceso-de-verificacion)
   
 ## Archivo de Rangos
-~~~ bash
+``` bash
 # RANGE_LOW(8)~RANGE_HIGHT(8)~LEN(2BYTES)~ID(4BYTES)
 45176501 45176600 16 0010
-~~~
+```
   - **RANGE_LOW** : low value del rango, 8 dígitos.
   - **RANGE_HIGHT** : hight value del rango, 8 dígitos.
   - **LEN** : longitud del numero de tarjeta, 2 dígitos.
@@ -60,10 +60,10 @@ Tenemos un carácter de separación entre cada item, este puede ser cualquier in
   
   
 ## Archivo de Etiquetas de Tarjetas
-~~~ bash
+``` bash
 # LABEL(12)~ID(4BYTES)
 BNC Nro111-1 0100
-~~~
+```
   - **LABEL** : Etiqueta de la entidad financiera a la cual pertenece la tarjeta, 12 dígitos
   - **ID** : identificador único de Tarjeta, 4 dígitos.
   
@@ -80,9 +80,6 @@ Con la longitud del registro comparamos la longitud del numero de tarjeta aporta
 En este punto tenemos el ID de tarjeta, tomado del registro desde el archivo de rangos, con este podemos buscar los datos dentro del [Archivo de etiquetas de tarjetas](#archivo-de-etiquetas-de-tarjetas) y así obtenemos el label de la misma para proceder con la operación.
 
 
-  
-
-
 
 # Message
   - [Request Message](#request-message)
@@ -91,12 +88,12 @@ En este punto tenemos el ID de tarjeta, tomado del registro desde el archivo de 
 ## Request Message
 Formato del mensaje request para el servidor, todos los campos para este caso deben ser ASCII.
 
-~~~ 
+``` 
 Request:
  -------------------------------------
 |  MTID  | Nro Tarjeta | Monto | Code |
  -------------------------------------
-~~~
+```
 
   + **MTID** : Message Type Identificator, longitud fija hasta 4 dígitos. Para el Request este debe ser **0200**.
   
@@ -115,17 +112,15 @@ Ejemplo:
   
 <!--
 4817650654628311
-~~~ 
+``` 
 Request:
  -------------------------------------------------
 | MTID |    Nro Tarjeta     |     Monto    | Code | 
  -------------------------------------------------
 | 0200 | 164517650654628311 | 000000012454 | 123  |
  -------------------------------------------------
-~~~
+```
 -->
- 
-
 
 | **MTID** | **Nro Tarjeta**    | **Monto**    | **Code** | 
 |:--------:|:------------------:|:------------:|:--------:|
@@ -136,12 +131,12 @@ Request:
 ## Response Message
 Formato del mensaje Response devuelto por el servidor, todos los campos para este caso deben ser **ASCII**.
 
-~~~ 
+``` 
 Request:
  -------------------
 |  MTID  | RespCode |
  -------------------
-~~~
+```
 
   + **MTID** : Message Type Identificator, longitud fija hasta 4 dígitos. Para el Response este debe ser **0210**.
   
@@ -149,8 +144,8 @@ Request:
     
 
 Ejemplos:
-  - Code : 00, succes
-  - Code : 47, no succes
+  - Code : **00**, succes
+  - Code : **47**, no succes
   
 | **MTID** | **RespCode** | **Status**  |
 |:--------:|:------------:|:------------|
@@ -161,7 +156,6 @@ Ejemplos:
 
 
 <!-- 
-~~~ 
 Request:
  -----------------
 | MTID | RespCode |
@@ -170,7 +164,6 @@ Request:
  -----------------  
 | 0210 |    47    | FAILURE
  -----------------
-~~
 -->
  
 
@@ -186,36 +179,36 @@ Para la ejecución de los script debemos tener instalada en el host los siguient
   + **pip3** (gestor de paquetes python, solo es necesario en caso de usar **mypy** para análisis estático de código)
 
 ## Instacion python linux
-~~~ bash  
-  sudo apt update && sudo apt upgrade -y  
-  sudo apt install -y python3  
-~~~
+``` bash  
+sudo apt update && sudo apt upgrade -y  
+sudo apt install -y python3  
+```
 
 ## Instacion pip linux
-~~~ bash  
-  sudo apt-get install -y python3-pip
-~~~
+``` bash  
+sudo apt-get install -y python3-pip
+```
 
 
 ## Instalaccion dependencias del proyecto
-~~~ bash
-  # sobre el directorio root del proyecto
-  pip3 install --no-cache-dir -r requerimientos.txt
-~~~
+``` bash
+# sobre el directorio root del proyecto
+python3 -m pip install --no-cache-dir -r requirements/requirements.txt
+```
 
 # Esquema de directorios de la Aplicacion
   
-  + **FinancialTransaction.py** : Script principal del proyecto.
-  + **files** : Directorio donde se localizan los archivos de Rango y Tarjetas.
-  + **PSocket** : Directorio con el modulo para la conexion Host To Host, Stream Socket Client/Server.
-  + **Records** : Directorio con el modulo para el parsing de los archivos de Rango y Tarjetas.
-  + **readme.md** : este documento 
-  + **requerimientos.txt** : Archivo con los package requeridos para el proyecto (para este caso solo **mypy** y si es requerido realizar el análisis con el mismo)
+  + **`FinancialTransaction.py`** : Script principal del proyecto.
+  + **`files`** : Directorio donde se localizan los archivos de Rango y Tarjetas.
+  + **`PSocket`** : Directorio con el modulo para la conexion Host To Host, Stream Socket Client/Server.
+  + **`Records`** : Directorio con el modulo para el parsing de los archivos de Rango y Tarjetas.
+  + **`readme.md`** : este documento 
+  + **`requirements/requirements.txt`** : Archivo con los package requeridos para el proyecto (para este caso solo **mypy** y si es requerido realizar el análisis con el mismo)
   
-  + **Server.py** : Script Python Con el Server, el cual debe ejecutarse previamente antes que el script del proyecto.
+  + **`Server.py`** : Script Python Con el Server, el cual debe ejecutarse previamente antes que el script del proyecto.
   
   
-~~~
+```
 .
 ├── files
 │   └── local
@@ -234,11 +227,12 @@ Para la ejecución de los script debemos tener instalada en el host los siguient
 │   ├── Ranges.py
 │   └── Records.py
 │
-├── requerimientos.txt
+├── requirements
+│   │
+│   └── requirements.txt
 │
 └── Server.py
-
-~~~
+```
     
 
 # Ejecucion del proyecto
@@ -251,26 +245,26 @@ Para la ejecución de los script debemos tener instalada en el host los siguient
 Para ejecutar este tenemos las siguientes opciones:
 
   1. Sin pasar parametros
-  ~~~ bash
+  ``` bash
   python3 Server.py
   Connect Success to Server(ip=0.0.0.0,port=8080,fmt_len=4)
-  ~~~
+  ```
 
   2. Pasando la Ip y el puerto para el server:
-  ~~~ bash
+  ``` bash
   python3 Server.py 127.0.0.1 3000
   Connect Success to Server(ip=127.0.0.1,port=3000,fmt_len=4)
-  ~~~
+  ```
   
   3. Solo pasando el Puerto:
-  ~~~ bash
+  ``` bash
   python3 Server.py 8080
   Connect Success to Server(ip=0.0.0.0,port=8080,fmt_len=4)
-  ~~~
+  ```
   
 Este queda esperando a que un cliente se conecte, al conectarse nos muestra por el prompt la direccion del mismo y cuando el cliente nos envié un mensaje. Imprimara el mismo por pantalla, seguido por el mensaje para el ingreso de una respuesta que se le enviara al cliente, ejemplo:
 
-~~~ bash
+``` bash
   python3 Server.py
 Connect Success to Server(ip=0.0.0.0,port=8080,fmt_len=4)
 Connect Address Client ('127.0.0.1', 39136)
@@ -281,19 +275,19 @@ Insert CODE (Ctrl+c to end) :00
 
 ## recepcion del ACK desde el cliente
 End
-~~~
+```
 
 
 
 
 ## Ejecuccion Cliente
-El cliente o el script del proyecto ```FinancialTransaction.py```, al ejecutar el mismo nos pedirá una serie de datos 
+El cliente o el script del proyecto **`FinancialTransaction.py`**, al ejecutar el mismo nos pedirá una serie de datos 
 
-  1. Ingresar el Saldo, solo hasta dos dígitos decimales (dos dígitos después del punto decimal), *ex ($124,54): 124.54* 
+  1. Ingresar el Saldo, solo hasta dos dígitos decimales (dos dígitos después del punto decimal), *`ex ($124,54): 124.54`* 
 
-  2. Ingreso NroTarjeta, *ex: 4517650654628311*
+  2. Ingreso NroTarjeta, *`ex: 4517650654628311`*
 
-  3. Ingreso de Clave de seguridad (solo 3-Digito), *ex: 123*
+  3. Ingreso de Clave de seguridad (solo 3-Digito), *`ex: 123`*
   
 Si no se insertan los datos correctamente nos debe visualizar por pantalla el error ocurrido y abortar la operación. Si todos los datos fueron cargados satisfactoriamente visualizara por pantalla y enviara la petición al server.
 
@@ -306,7 +300,7 @@ Del lado del servidor, al recibir el mensaje nos pedirá ingresar un código de 
 
 Side Client:
 
-~~~ bash
+``` bash
   python3 FinancialTransaction.py
 Ingrese el monto (hasta 2 decimales Implicitos): 124.54
 Ingrese el numero de Tarjeta: 4517650654628311
@@ -315,34 +309,34 @@ LABEL CARD: BAN Nro 0010
 Ingrese el Codigo de Seguridad (hasta 3 digitos): 123
 Connect Success to Client(ip=0.0.0.0,port=8080,fmt_len=4)
 APROBADA
-~~~
+```
 
 Side Server:
 
-~~~ bash
+``` bash
 python3 Server.py 8080
 Connect Success to Server(ip=0.0.0.0,port=8080,fmt_len=4)
 Connect Address Client ('127.0.0.1', 41500)
 Message receive: 0200164517650654628311000000012454123
 Insert CODE (Ctrl+c to end) :00
 End
-~~~
+```
 
 
 
 
 ## Side Client Server down
-~~~ bash
+``` bash
 python3 FinancialTransaction.py 
 Ingrese el monto (hasta 2 decimales Implicitos): 124.54
 Ingrese el numero de Tarjeta: 4517650654628311
 LABEL CARD: BAN Nro 0010
 Ingrese el Codigo de Seguridad (hasta 3 digitos): 123
 Error connect <Client(ip=0.0.0.0,port=8080,fmt_len=4)>: Connection refused
-~~~
+```
 
 ## Side Client Server Cancel
-~~~ bash
+``` bash
 python3 FinancialTransaction.py 
 Ingrese el monto (hasta 2 decimales Implicitos): 25669.45
 Ingrese el numero de Tarjeta: 4517650654628311
@@ -351,10 +345,10 @@ Ingrese el Codigo de Seguridad (hasta 3 digitos): 123
 Connect Success to Client(ip=0.0.0.0,port=8080,fmt_len=4)
 response: 
 ERROR DE COMUNICACION, SERVER CLOSE COMUNICATION
-~~~
+```
 
 ## Side Client Server timeout
-~~~ bash
+``` bash
 python3 FinancialTransaction.py
 Ingrese el monto (hasta 2 decimales Implicitos): 123.45678
 Ingrese el numero de Tarjeta: 4517650654628311
@@ -362,7 +356,7 @@ LABEL CARD: BAN Nro 0010
 Ingrese el Codigo de Seguridad (hasta 3 digitos): 321
 Connect Success to Client(ip=0.0.0.0,port=8080,fmt_len=4)
 ERROR DE COMUNICACION TIME-OUT
-~~~
+```
 
 
 <!-- 
@@ -384,10 +378,6 @@ End
 | 0200 | 16 4517650654628311 | 000000012454 | 123
 
 -->
-
-
-
-
 
 
 

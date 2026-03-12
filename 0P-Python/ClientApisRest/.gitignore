@@ -11,3 +11,4 @@ __pycache__/
 # discard log files
 *.log
 
+.venv/
