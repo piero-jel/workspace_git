@@ -47,25 +47,38 @@ from collections import namedtuple
 from concurrent.futures.thread import ThreadPoolExecutor
 from concurrent.futures import as_completed
 
-import requests
+#import requests
+from requests import get,exceptions
 from constants import URLS
 
 Response = namedtuple('Response', ['url','status_code', 'resp'])
-''' Definimos una namedtuple para majear response como estructuras 
-    mediante la tupla:
-      + url          str 
-      + status_code  int
-      + resp         JSON
-'''
+""" Definimos una namedtuple para majear response como estructuras mediante la tupla:
+:param url: url direccion/endpoint
+:type url: str
 
-def vTask(url:str,timeout:int=60) ->Response:
-    ''' Prototipo de tarea para ser ejecutada en un thread. Esta se encarga 
-        de la peticion GET para un url/endpoint 
-          - url : url/endpoint donde se realizar la peticion
-  
-        Return un Response relacionado al request para el cual el 
-        code status es 200 (respuesta ok), y -1 con mensaje string
-    '''
+:param status_code: codigo de la respuesta
+:type status_code: int
+
+:param resp: string json con el response
+:type resp: str
+"""
+
+
+def vTask(url:str,timeout:int=60)->Response:
+    """
+    Prototipo de tarea para ser ejecutada en un thread. Esta se encarga de 
+     la peticion GET para un url/endpoint 
+
+    :param url: url/endpoint donde se realizar la peticion
+    :type url: str
+
+    :param timeout: Opcional, tiempo de espera maximo. 
+    :type timeout: int
+
+    :return: Objeto Response, con los datos de la respuesta y peticion (code status
+      es 200 (respuesta ok), y -1 con mensaje string )
+    :rtype: Response
+    """
     if not isinstance(url,str):
         raise TypeError(f'urls type <{type(url)} no string>')
 
@@ -74,25 +87,30 @@ def vTask(url:str,timeout:int=60) ->Response:
 
     resp:str = None
     try:
-        response = requests.get(url,timeout=5)
+        response = get(url,timeout=5)
         resp = response.json()
         return Response(url,response.status_code,resp)
-    except requests.exceptions.RequestException as e:
+
+    except exceptions.RequestException as e:
         resp = f'Exception<{type(e).__name__}>: {e}'
 
     return Response(url,-1,resp)
 
 
-def download_data(urls:list | tuple) -> list:
-    ''' Funcion para obtener los response relacionada a la peticion GET para 
-        cada url/endpoint contenido dentro de las lista de urls.
-          - urls : lista o tupla de url 
-        
-        Return el listado de response json de cada request para el cual el 
-        code status es 200 (respuesta ok)
-    '''
+def download_data(urls:list[str]|tuple[str])->list[str]:
+    """
+    Funcion para obtener los response relacionada a la peticion GET para
+     cada url/endpoint contenido dentro de las lista de urls.
+
+    :param urls: lista o tupla de url 
+    :type urls: list[str]|tuple[str]
+
+    :return: Return el listado de response json de cada request para el cual el
+     code status es 200 (respuesta ok)
+    :rtype: list[str]
+    """
     if not isinstance(urls,list) and not isinstance(urls,tuple):
-        raise TypeError(f'urls type <{type(urls)} no soportado>')
+        raise TypeError(f'urls type <{type(urls).__name__} no soportado>')
 
     data:list = []
     with ThreadPoolExecutor(max_workers=len(urls)) as executor:
@@ -102,12 +120,13 @@ def download_data(urls:list | tuple) -> list:
 
         # waiting for the threads to finish and maybe print a result :
         for future in as_completed(futures):
-            if future.result().status_code == 200:
-                data.append(future.result().resp)
-            elif future.result().status_code == -1:
-                print(f'Error: url <{future.result().url}> Message {future.result().resp}')
+            resp:Response = future.result()
+            if resp.status_code == 200:
+                data.append(resp.resp)
+            elif resp.status_code == -1:
+                print(f'Error: url <{resp.url}> Message {resp.resp}')
             else:
-                print(f'Error: url <{future.result().url}> Code {future.result().status_code}')
+                print(f'Error: url <{resp.url}> Code {resp.status_code}')
 
     return data
 

@@ -42,36 +42,40 @@ Author         Date                 Version     Brief
 JEL            2024.04.20           0.0.1       Version Inicial no release
 
 """
-import requests
+from requests import get,exceptions
 from constants import URLS
 
 
-def download_data(urls:list | tuple) -> list:
-    ''' Funcion para obtener los response relacionada a la peticion GET para 
-        cada url/endpoint contenido dentro de las lista de urls.
-          - urls : lista o tupla de url 
-        
-        Return el listado de response json de cada request para el cual el 
-        code status es 200 (respuesta ok)
-    '''
-    if not isinstance(urls,list) and not isinstance(urls,tuple):
-        raise TypeError(f'urls type <{type(urls)} no soportado>')
+def download_data(urls:list[str]|tuple[str])->list[str]:
+    """
+    Funcion para obtener los response relacionada a la peticion GET para
+     cada url/endpoint contenido dentro de las lista de urls.
 
-    data:list = []
+    :param urls: lista o tupla de url 
+    :type urls: list[str]|tuple[str]
+
+    :return: Return el listado de response json de cada request para el cual el 
+     code status es 200 (respuesta ok)
+    :rtype: list[str]
+    """
+    if not isinstance(urls,list) and not isinstance(urls,tuple):
+        raise TypeError(f'urls type <{type(urls).__name__} no soportado>')
+
+    data:list[str] = []
     for url in urls:
         # En este caso podemos tomar la opcion de reportar el mensaje, para
         # no cancelar todas las peticiones, o lanzar la excepcion
         if not isinstance(url,str):
-            raise TypeError(f'url type <{type(url)} no soportado, debe ser string>')
+            raise TypeError(f'url type <{type(url).__name__} no soportado, debe ser string>')
 
         try:
-            response = requests.get(url,timeout=5)
+            response = get(url,timeout=5)
             if response.status_code == 200:
                 data.append(response.json())
             else:
                 print(f'Error: {response.status_code}')
 
-        except requests.exceptions.RequestException as e:
+        except exceptions.RequestException as e:
             print(f'Exception: {e}')
 
 

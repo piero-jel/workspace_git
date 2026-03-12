@@ -46,50 +46,69 @@ JEL            2024.04.20           0.0.1       Version Inicial no release
 from collections import namedtuple
 from asyncio import (ensure_future,gather,new_event_loop,
                     set_event_loop)
-import aiohttp
+
+from aiohttp import (client_exceptions,ClientSession, # pylint:disable=import-error
+                    ClientTimeout)
+#import aiohttp
 
 from constants import URLS
 
 Response = namedtuple('Response', ['url','status_code', 'resp'])
 """ Definimos una namedtuple para majear response como estructuras mediante la tupla:
-  - url          str
-  - status_code  int
-  - resp         JSON
+:param url: url direccion/endpoint
+:type url: str
+
+:param status_code: codigo de la respuesta
+:type status_code: int
+
+:param resp: string json con el response
+:type resp: str
 """
 
 
-async def session_fetch_data(session,url: str):
-    ''' Function asynchronously Session fetches data from a given URL.
-        and session created.
-  
-        - session : la cual debe utilizar para ejecutar el get
-        - url     : string con la url sobre la cual realizara la peticion
-    '''
+async def session_fetch_data(session:ClientSession,url: str)->Response:
+    """
+    Function asynchronously Session fetches data from a given URL. 
+
+    :param session: session created, la cual debe utilizar para ejecutar el get
+    :type session: str
+
+    :param url: string con la url sobre la cual realizara la peticion
+    :type url: str
+
+    :return: request response
+    :rtype: Response
+    """
     try:
         async with session.get(url) as response:
             return Response(url,response.status, await response.json())
 
-    except aiohttp.client_exceptions.ClientConnectorError as e:
+    except client_exceptions.ClientConnectorError as e:
         return Response(url,-1, f'ClientConnectorError: {e}')
 
     except Exception as e:# pylint: disable=broad-exception-caught
         return Response(url,-1, f'Exception {type(e)} {e}')
 
 
-
-async def api_request(urls:list|tuple,timeout:int=60):
-    ''' Function asynchronously la cual se encarga de armar las tareas asincronicas
+async def api_request(urls:list|tuple,timeout:int=60)->list:
+    """
+        Function asynchronously la cual se encarga de armar las tareas asincronicas
         a ejecutarse, con el timeout requerido y crear la session para la ejecucion 
         del get request
-  
-        - urls    : lista o tuple de urls 
-        - timeout : opcional, tiempo de demora maximo por cada request a ejecutarse por session.
-        
-    '''
+
+        :param urls: lista o tuple de urls 
+        :type urls: list[str]|tuple[str]
+
+        :param timeout: opcional, tiempo de demora maximo por cada/request a ejecutarse por session.
+        :type timeout: int
+
+        :return: response list
+        :rtype: list
+    """
     ret:list = []
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
+    async with ClientSession(timeout=ClientTimeout(total=timeout)) as session:
         tasks = [ensure_future(session_fetch_data(session, url)) for url in urls]
-        #def asyncio.gather(*tasks)
+        # `def asyncio.gather(*tasks)`
         #    Return a future aggregating results from the given coroutines/futures.
         #    Coroutines will be wrapped in a future and scheduled in the event loop.
         #    They will not necessarily be scheduled in the same order as passed in.
@@ -105,20 +124,23 @@ async def api_request(urls:list|tuple,timeout:int=60):
     return ret
 
 
-
 def download_data(urls:list|tuple,timeout=5)-> list:
-    ''' Funcion de implementacion, punto de partida
-        - urls : tuple o list con las urls
-        - timeout : opcional para establecer el tiempo de demora maximo 
-          por cada reques por url
-    '''
-    #deprecate in new versions
-    #loop = asyncio.get_event_loop()
-    #resp = loop.run_until_complete(api_request(urls,timeout=timeout))
+    """
+        Funcion que se encarga de obtener los datos desde un listado de endpoints
 
+        :param urls: tuple o list con las urls
+        :type urls: str
+
+        :param timeout: opcional para establecer el tiempo de demora maximo 
+          por cada reques por url
+        :type timeout: int
+
+        :return: listado de respuestas, o en su defecto mensaje de error.
+        :rtype: list
+    """
     loop = new_event_loop()
     set_event_loop(loop)
-    resp:list = []
+    resp:list[Response] = []
     try:
         resp = loop.run_until_complete(api_request(urls,timeout=timeout))
     except KeyboardInterrupt:
