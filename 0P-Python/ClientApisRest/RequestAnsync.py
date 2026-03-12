@@ -44,7 +44,8 @@ JEL            2024.04.20           0.0.1       Version Inicial no release
 
 """
 from collections import namedtuple
-import asyncio
+from asyncio import (ensure_future,gather,new_event_loop,
+                    set_event_loop)
 import aiohttp
 
 from constants import URLS
@@ -87,7 +88,7 @@ async def api_request(urls:list|tuple,timeout:int=60):
     '''
     ret:list = []
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
-        tasks = [asyncio.ensure_future(session_fetch_data(session, url)) for url in urls]
+        tasks = [ensure_future(session_fetch_data(session, url)) for url in urls]
         #def asyncio.gather(*tasks)
         #    Return a future aggregating results from the given coroutines/futures.
         #    Coroutines will be wrapped in a future and scheduled in the event loop.
@@ -98,7 +99,7 @@ async def api_request(urls:list|tuple,timeout:int=60):
         #    sequence,
         #    not necessarily the order of results arrival).
         #
-        responses = await asyncio.gather(*tasks)
+        responses = await gather(*tasks)
         ret = responses
 
     return ret
@@ -115,8 +116,8 @@ def download_data(urls:list|tuple,timeout=5)-> list:
     #loop = asyncio.get_event_loop()
     #resp = loop.run_until_complete(api_request(urls,timeout=timeout))
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = new_event_loop()
+    set_event_loop(loop)
     resp:list = []
     try:
         resp = loop.run_until_complete(api_request(urls,timeout=timeout))
