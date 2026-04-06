@@ -3,3 +3,9 @@
 media/*
 staticfiles/*
 logs/*
+
+
+__pycache__/
+**/__pycache__/
+
+.venv/
