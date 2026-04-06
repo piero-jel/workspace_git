@@ -1,0 +1,258 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %} 
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+
+
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% block extra-sticky %} {% include 'Buttons/buttons_sticky.html' with button_list=listbtn %}{% endblock %}
+
+{% block content %}
+  <!-- Detalles del Ticket, register y Asistente Actual -->
+<div class="container">
+    <div class="row">{% include 'Ticket/ticket_header.html' with ticket=lticket %}</div>
+ </div>
+ <br>
+<div class="container">
+    <div class="row text-right">
+        <p>
+            {% if btn_new and not btn_cancel %}<a class="btn btn-primary btn-xs" href="new" role="button">{{btn_new}}</a>{% endif %}
+            {% if btn_cancel %}<a class="btn btn-outline-danger btn-xs" href="cancel" role="button">{{btn_cancel}}</a>{% endif %}
+            {% if btn_stedit %}<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#popup01">{{btn_stedit}}</button>{% endif %}
+            {% if btn_streopen %}<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#popup03">{{btn_streopen}}</button>{% endif %}
+        </p>
+    </div>
+</div>  
+
+<!-- Detalles del History  -->
+<div class="container">
+    <div class="row">      
+        {% include 'Login/messages.html' %}
+        <table id="tblhistory" class="table table-strip table-responsive table-responsive-sm table-responsive-md estilo1">
+            <thead>
+                <tr >
+                    <th style="width:200px"> "Modulo Id Fecha"</th> 
+                    <th style="width:800px"> Detalle </th>
+                    <th style="width:200px"> Archivos Adjuntos </th>
+                </tr>
+            </thead>
+            <tbody> 
+                {% if form_msg %}
+                <tr>
+                    <div class="container">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <br>
+                            <td>
+                                <div class="row" >
+                                    <div>{{ form_msg.modulo }}</div>
+                                    <div>{{ form_msg.modulo.help_text }}</div>
+                                    <div>{{ form_msg.modulo.errors }}</div>
+                                </div>
+                                <br>
+                                <div class="row" >
+                                    <div>{{ form_msg.tiempo }} </div>
+                                    <div>{{ form_msg.tiempo.help_text }}</div>
+                                    <div>{{ form_msg.tiempo.errors }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="row">
+                                    <div>{{ form_msg.msg }}</div>
+                                    <div>{{ form_msg.msg.help_text }}</div>
+                                    <div>{{ form_msg.msg.errors }}</div>
+                                </div> 
+                            </td>
+                            <td> 
+                                <div class="row">
+                                    <div>{{ form_msg.file1 }}</div>
+                                    <div>{{ form_msg.file1.help_text }}</div>
+                                    <div>{{ form_msg.file1.errors }}</div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div>{{ form_msg.file2 }}</div>
+                                    <div>{{ form_msg.file2.help_text }}</div>
+                                    <div>{{ form_msg.file2.errors }}</div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center">
+                                        <button class='form-button btn btn-success' type='submit' name='ok' value='ok' > Guardar</button> 
+                                        <button class='form-button btn btn-danger' type='submit' name='nok' value='nok' >{% if edit_form == True %} Cancelar {% else %} Clean {% endif %}</button> 
+                                    </div>
+                                </div>
+                            </td>      
+                        </form>
+                    </div>
+                </tr> 
+                {% endif %}
+                {% for it_th in registerWork_all %}
+                {% if forloop.first and it_th.programmer == True and not form_msg and lticket.register_estado %}
+                <tr class="rtbl-attend td-hover" >
+                    <td class="text-center" >
+                        <div><strong>{% firstof it_th.modulo "" %} </strong></div>
+                        <div><strong> id: </strong> {{it_th.id}}</div>
+                        <div>{% firstof it_th.date_update %}</div>
+                        <div>{% firstof it_th.register_work.username "not user name" %}</div>
+                        <div>{{it_th.tiempo}}</div>
+                    </td>
+                    {% if url_edit %}
+                    <td onclick="window.location='{{url_edit}}';" title='{{title_edit}}'> {% firstof it_th.msg "" %} </td>
+                    {% else %}
+                    <td> {% firstof it_th.msg "" %} </td>
+                    {% endif %}
+                    <td class="text-center">
+                        {% if it_th.file1 %}
+                        <div class = "center-block">
+                            <div>
+                                <a href="{{it_th.file1.url}}"><img src="{{it_th.file1.url}}" class="img-thumbnail" width="80px" height="45px"/></a>
+                            </div>
+                            <div><a href="{{it_th.file1.url}}">File 1</a></div>
+                        </div>
+                        {% endif %}
+                        {% if it_th.file2 %}
+                        <div class = "center-block">
+                            <div><a href="{{it_th.file2.url}}"><img src="{{tabla_it_th.file2.url}}" class="img-thumbnail" width="80px" height="45px"/></a></div>
+                            <div><a href="{{it_th.file2.url}}"> File 2</a></div>
+                        </div>
+                        {% endif %}
+                    </td>      
+                </tr>
+                {% elif not forloop.first or not edit_form %}
+                <tr  {%if it_th.programmer == True %} class="rtbl-attend" {% else %} class="rtbl-register" {% endif %} >
+                    <td class="text-center">
+                        <div><strong>{% firstof it_th.modulo "" %} </strong></div>
+                        <div><strong> id: </strong> {{it_th.id}}</div>
+                        <div>{% firstof it_th.date_update %}</div>
+                        <div>{% firstof it_th.register_work.username "not user name" %}</div>
+                        <div>{{it_th.tiempo}}</div>
+                    </td>    
+                    <td>{% firstof it_th.msg "" %}</td>
+                    <td class="text-center">
+                        {% if it_th.file1 %}
+                        <div class = "center-block">
+                            <div><a href="{{it_th.file1.url}}"><img src="{{it_th.file1.url}}" class="img-thumbnail" width="80px" height="45px" /></a></div>
+                            <div><a href="{{it_th.file1.url}}">File 1</a></div>
+                        </div>
+                        {% endif %}
+                        {% if it_th.file2 %}              
+                        <div class = "center-block">
+                            <div><a href="{{it_th.file2.url}}"><img src="{{tabla_it_th.file2.url}}" class="img-thumbnail" width="80px" height="45px" /></a></div>
+                            <div><a href="{{it_th.file2.url}}">File 2</a></div>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                <tr class="rtbl-register">
+                    <td class="text-center"> <strong>{{lticket.brief}}</strong></td>
+                    <td> {{lticket.detail}} </td>
+                    <td class="text-center">
+                        {% if lticket.file1 %}
+                        <div class="row ">
+                            <div class="col-md-12 center-block">
+                                <a href="{{lticket.file1.url}}"><img src="{{lticket.file1.url}}" class="img-thumbnail" width="80px" height="45px" /></a>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file1.url}}">File 1</a></div>
+                        </div>
+                        {% endif %}
+                        {% if lticket.file2 %}
+                        <div class="row">
+                            <div class="col-md-12 center-block">
+                                <a href="{{lticket.file2.url}}"><img src="{{lticket.file2.url}}" class="img-thumbnail" width="80px" height="45px" /></a>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file2.url}}"> File 2</a></div>
+                        </div>
+                    {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="popup01" tabindex="-1" role="dialog" aria-labelledby="popup03Label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="popup01Label">Cierre Pedido</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                El Cliente peticiono el cierre del Ticket. <br>
+                {% if newregisterTh == True %}
+                    Si desea registrar un trabajo realizado, debe rechazar este pedido. 
+                    Y hacer mención de esta situación en el cuerpo del mensaje. <br>
+                {% endif %}
+                ¿ Dese Rechazar este Pedido ?
+            </div>
+            <div class="modal-footer">
+            <form method="POST" id="contact-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <button type="button" class="btn  btn-outline-danger" data-dismiss="modal">No</button>
+                <button type="submit" name='popup01-yes' value='popup01-yes' id="contactSubmit" class="btn btn-outline-success">Si</button>
+            </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="popup03" tabindex="-1" role="dialog" aria-labelledby="popup03Label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="popup03Label"> Ticket Cerrado</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                El Ticket se encuentra Cerrado. <br>          
+                ¿ Dese Abrir Nuevamente el Mismo ?
+            </div>
+            <div class="modal-footer">
+                <form method="POST" id="contact-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <button type="button" class="btn  btn-outline-danger" data-dismiss="modal">No</button>
+                    <button type="submit" name='popup03-yes' value='popup03-yes' id="contactSubmit" class="btn btn-outline-success">Si</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script >
+    $(document).ready(function(){
+        $('#contact-form').on('submit', (event) => {
+            event.preventDefault();
+            $.ajax({
+                url: '/contact/',
+                type: 'POST',
+                // headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#contact-form').serialize(),
+                beforeSend: () => { $("#contactModal").modal("show"); },
+                success: (data) => { $('#contactModal .modal-body').html(data); }
+            });
+        });
+    });
+</script>
+{% endblock %}

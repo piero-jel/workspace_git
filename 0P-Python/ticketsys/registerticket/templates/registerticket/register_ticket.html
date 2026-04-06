@@ -1,0 +1,136 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %}
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+
+
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% block extra-sticky %} {% include 'Buttons/buttons_sticky.html' with button_list=listbtn %} {% endblock %}
+
+{% block content %}
+
+<!-- Incluimos el template de la tabla -->
+<div class="container">  
+  <div class="row flex-row flex-nowrap">    
+    <div class="row borde-datos-md collapse show">
+
+      <div class="col-6 borde-datos-right">
+        <table class="table-responsive table-responsive-sm table-responsive-md estilo-head" style="width:100%">
+          <tr>
+            <td> <b>Empresa</b>: {% firstof user.empresa "Falta Empresa Error" %} </td>            
+          </tr>
+          <tr>
+            <td> <b>Usuario</b>: {% firstof user.username "Usuario No Logeado" %}, {{user.get_full_name}} </td>
+            <td>  </td>
+          </tr>
+          <tr>            
+            <td>
+              <b>Filtro seleccionado:</b>
+              {% for it in button_radio %}
+                {% if idchoice == it.value  %}
+                  {{it.label}}
+                  <!-- forloop.counter inicia en '1' no en ceo '0' -->
+                {% elif forloop.counter == 1 and idchoice == None %}
+                  {{it.label}}          
+                {% endif %}        
+              {% endfor %} 
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="col-6">
+        <table class="table-responsive table-responsive-sm table-responsive-md estilo-head" style="width:100%">
+            <tr>
+              <td>
+                <div>
+                  <b>Filtro</b>
+                </div>
+                <div>
+                  <div class="container">
+                    <div class="row">
+                      <form action="/register_ticket/" method="post">
+                        {% csrf_token %}
+                        <fieldset>
+                          {% for it in button_radio %}
+                          <div class="radio">              
+                              {% if idchoice == it.value or forloop.counter == 1 and idchoice == None %}
+                                <input type="radio" name="{{it.groups}}" id="{{it.id}}" value="{{it.value}}" checked>
+                              {% else %}
+                                <input type="radio" name="{{it.groups}}" id="{{it.id}}" value="{{it.value}}">
+                              {% endif%}
+                              <label for="{{it.id}}"> {{it.label}}</label> <br>
+                          </div>
+                          {% endfor %}                    
+                        </fieldset>
+                        <div  class="row ">                          
+                          <div>
+                            <input class="btn btn-info" type="submit" value="Update">                            
+                          </div>          
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+        </table>
+      </div>
+    </div>  
+  </div>
+</div>
+<br>
+
+<!-- Incluimos el template p/visualizar mensajes desde el backed -->
+<div class="container">
+    <div class="row">{% include 'Login/messages.html' %}</div>
+</div>
+  
+
+
+<div class="container">
+  <div class="row">
+    <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">
+        <thead><tr>{% for key,val in table_head.items %}<th> <div class="sortoptions"> {{val}} </div></th>{% endfor %}</tr></thead>
+        <tbody>                   
+            {% for row in tabla_body %}            
+            <tr class="td-hover" onclick="window.location='{% url on_click_url row.id %}';" title="Click para ir al Ticket ID {{row.id}}">
+                {% if 'id' in table_head %} <td>{{ row.id }}</td> {% endif %}   
+                {% if 'empresa' in table_head %} <td> {%if row.empresa is not None %} {{ row.empresa }} {% endif %}</td>{% endif %}
+                {% if 'register' in table_head %} <td> {%if row.register is not None %} {{ row.register }} {% endif %}</td>{% endif %}
+                {% if 'attend' in table_head %} <td> {%if row.attend is not None %} {{ row.attend }} {% endif %}</td>{% endif %}
+                {% if 'brief' in table_head %} <td> {%if row.brief is not None %} {{ row.brief }} {% endif %}</td>{% endif %}
+                {% if 'detail' in table_head %} <td> {%if row.detail is not None %} {{ row.detail }} {% endif %}</td>{% endif %}
+                {% if 'email' in table_head %} 
+                    {# {{ row.email }} #}
+                    <td> {% if row.email is not None and row.email|length > 0 %}  {{ row.email|join:", " }} {% endif %}</td>
+                {% endif %}
+                {% if 'fecha_creacion' in table_head %} <td> {%if row.fecha_creacion is not None %} {{ row.fecha_creacion }} {% endif %}</td>{% endif %}
+                {% if 'fecha_cierre' in table_head %} <td> {%if row.fecha_cierre is not None %} {{ row.fecha_cierre }} {% endif %}</td>{% endif %}
+                {% if 'file1' in table_head %} <td> {%if row.file1 is not None %} {{ row.file1 }} {% endif %}</td>{% endif %}
+                {% if 'file2' in table_head %} <td> {%if row.file2 is not None %} {{ row.file2 }} {% endif %}</td>{% endif %}
+                {% if 'fecha_update' in table_head %} <td> {%if row.fecha_update is not None %} {{ row.fecha_update }} {% endif %}</td>{% endif %}
+                {% if 'register_estado' in table_head %} <td> {%if row.register_estado is not None %} {{ row.register_estado }} {% endif %}</td>{% endif %}
+                {% if 'estado' in table_head %} <td> {%if row.estado is not None %} {{ row.estado }} {% endif %}</td>{% endif %}
+                {% if 'edit_register' in table_head %} <td> {%if row.edit_register is not None %} {{ row.edit_register }} {% endif %}</td>{% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {# % include 'Table/table_with_updown_button.html' with tabla=tabla table_head=table_head % #}
+  </div>  
+</div>
+
+{% endblock %} 
+
+
+
+ 

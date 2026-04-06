@@ -1,0 +1,13 @@
+{# {% bootstrap_messages %} #}
+{% if messages %}
+    {% for message in messages %}
+    <div class="row alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <div class="col-1">
+            <button type="button" title="close messages" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="window.location.reload();"> X </button>
+        </div> 
+        <div class="col-9">
+            {{ message }}
+        </div>            
+    </div>
+    {% endfor %}
+{% endif %}    

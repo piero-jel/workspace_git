@@ -1,0 +1,66 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %} 
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+
+{% block extra-sticky %} 
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% include 'Buttons/buttons_sticky.html' with button_list=listbtn %}
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid" style="margin-top: 50px;">
+    <div class="container">{% include 'Login/messages.html' %}</div>
+    {# <div class="container admin-style">{% include 'Login/filtro.html' with title='Buscar:' button='Buscar' %}</div> #}
+</div> 
+
+<!-- Listado de Programadores -->
+<div class="container">
+    <div class="row">
+        {% if urlbtn_add %}
+        <div class="container">
+            <!-- urlbtn "url del button" and titlebtn "leyenda del buton, over button"  -->
+            <div class="row text-right">{% if urlbtn_add %}{% include 'Buttons/button_add.html' with urlbtn=urlbtn_add  titlebtn=titlebtn_add %}{% endif %}</div>
+        </div>
+        {% endif %}        
+        <table id="tblhistory" class="table table-hover table-strip table-responsive table-responsive-sm table-responsive-md estilo1">
+            <thead>
+                <tr >                    
+                    <th style="width:300px"> Nombre de Usuario </th>
+                    <th style="width:400px"> Nombre Completo </th>
+                    <th style="width:200px"> Fecha de Inicio </th>
+                    <th style="width:300px"> Telefono </th>
+                    <th style="width:300px"> Email </th>
+                    <th style="width:300px"> Other </th>
+                </tr>
+            </thead>
+            <tbody> 
+            {% for it in users_administrator %}        
+                <tr class="rtbl-attend td-hover" onclick="window.location='{% url urllink it.id %}';" title="{{urltitle}} '{{it}}'." >
+                    <td class="text-center"> {{it.username}} </td>
+                    <td class="text-center"><div>{% firstof it.first_name '' %}</div><div>{% firstof it.last_name '' %}</div></td>
+                    <td class="text-center"> {{it.date_joined}}</td>
+                    <td class="text-center"> {{it.telefono}}</td>
+                    <td class="text-center"> {{it.email}}</td>
+                    <td><div>User Id: {{it.id}}</div></td>
+                </tr>
+            {% endfor %}  
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+<tr class="rtbl-attend td-hover" onclick="window.location='{% url urllink it.id %}';" title="{{urltitle}} '{{it}}'." ></tr>
+
+

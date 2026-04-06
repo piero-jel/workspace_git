@@ -1,0 +1,74 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %} 
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {{formBrief}} {% endblock %}
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {{formBrief}} {% endblock %}
+
+
+{% block extra-sticky %} 
+
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% include 'registerticket/register_ticket_sticky.html' with buttonlist=listbtn %}
+
+
+{% endblock %}
+
+
+{% block content %}
+
+
+
+<!-- 
+        contexto = {'formBrief':formBrief,'formDetail':formDetail,\
+                  'formListemails':formListemails}
+
+ -->
+<div class="container">
+  <div class="row justify-content-center">
+    <p class="pad_top"> Descripcion Breve: {{formBrief}}</p>
+  </div>
+
+  <div class="row">
+    <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1" id="tabla1">
+      <thead>
+        <tr> <p> Descripcion detallada: {{formDetail}} </p>
+          
+        </tr>
+      </thead>
+      <tbody>
+          {{formListemails}}
+          {% for lista in formListemails %}
+          <tr>
+            <td>{{lista}} </td>
+          </tr>
+          {% endfor %}
+
+      </tbody>
+      <thead>
+        <p> Objeto: <b> {{usuario}} </b> </p>
+        <p> Usuario Id: <b> {{usuario.id}}</b> </p>
+        <p> Nombre de Usuario: <b>{{usuario.username}} </b></p>
+        <p> Primer Nombre: <b>{{usuario.first_name}} </b></p>
+        <p> Apellido: <b>{{usuario.last_name}} </b></p>
+        <p> email: <b>{{usuario.email}}</b> </p>
+        <p> Empresa: <b> {{usuario.empresa.nombre}} </b> </p>
+        <p> Empresa ID : <b> {{usuario.empresa.id}} </b> </p>
+
+        <p> Grupos: {{usuario.groups.all}} </b></p>
+        {% for it in usuario.groups.all %}
+        <tr>
+          <td>{{it.name}} </td>
+        </tr>
+        {% endfor %}
+      </thead>
+    </table>
+</div>
+
+
+{% endblock %}  

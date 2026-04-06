@@ -1,0 +1,272 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %} 
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+
+
+{% block extra-sticky %} 
+
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% include 'Buttons/buttons_sticky.html' with button_list=listbtn %}
+
+
+{% endblock %}
+
+
+{% block content %}
+<!-- para visualir los msg de messages.warning(request, f' ... ')
+    tag = 'active' tag = "success" tag = "warning" tag = "danger"
+  tag = "info"  -->
+{% include 'Table/msg_tag.html' with tag='warning' %}
+
+
+
+<div class="container">
+    <div class="row">
+        <table class="table table-strip table-hover table-responsive table-responsive-sm table-responsive-md">
+        <tbody>
+          <tr><th>Id Tickets</th><td> {{tabla_expand.id}}</td></tr>        
+          {% if tabla_expand.estado %}
+            <tr class="warning"><th>Estado Atual</th><td>Activo</td></tr>   
+          {% else %}
+            <tr class="success"><td>Estado Atual</td><td>Cerrado</td></tr>        
+          {% endif %}
+          <tr><th>Empresa</th><td> {{tabla_expand.empresa}} </td></tr>                   
+
+          <tr> 
+            <th> Quien Registro Issue : </th>
+            <td class="center-block">                         
+              <!-- col-xs- col-sm- col-md- col-lg- -->
+                <div class="row">              
+                  <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
+                    <strong> 
+                      {% firstof tabla_expand.register.username tabla_expand.register.email %} 
+                    </strong>
+                  </div>
+                </div>                         
+                <div class="row">              
+                  <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
+                    <strong> Nombre: </strong>
+                  </div>
+                  <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4"> 
+                    {% firstof tabla_expand.register.first_name %}
+                  </div>
+                </div>
+                <div class="row">              
+                  <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
+                    <strong> Apellido: </strong>
+                  </div>  
+                  <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4"> 
+                    {% firstof tabla_expand.register.last_name %}
+                  </div>                  
+                </div>     
+            </td>  
+          </tr>
+
+          {% if tabla_expand.attend %}
+          <tr class="info"> 
+          {% else %}
+          <tr class="warning"> 
+          {% endif %}        
+            <th> Quien Esta Atendindo Issue: </th>             
+            <td>
+              <div class="row">              
+                <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3"> 
+                  <strong> 
+                    {% firstof tabla_expand.attend.username "Sin Asignar" %} 
+                  </strong>
+                </div>
+              </div>                         
+              <div class="row">              
+                <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3"> <strong> Nombre: </strong> </div>  
+                <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3">{% firstof tabla_expand.attend.first_name %}</div>                  
+              </div>
+              <div class="row">              
+                <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3"> <strong> Apellido: </strong></div>  
+                <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3"> {% firstof tabla_expand.attend.last_name %} </div>                  
+              </div> 
+
+
+            </td>
+          </tr> 
+
+          <tr>        
+            <th>   Descripcion Breve        </th> <td> {{tabla_expand.brief}} </td>
+          </tr>          
+          <tr>        
+            <th>   Fecha de Creacion        </th> <td> {{tabla_expand.fecha_creacion}} </td>
+          </tr>       
+
+          {% if tabla_expand.last_update %}
+            <tr class="info">          
+              <th>   Fecha de Actualizacion   </th> <td> {{tabla_expand.last_update}} </td>
+            </tr>   
+          {% else %}
+            <tr class="warning">          
+              <th>   Fecha de Actualizacion   </th> <td> Sin Atender </td>
+            </tr>        
+          {% endif %}
+
+          <tr>        
+            <th>   Descripcion Detallada    </th> <td> {{tabla_expand.detail}} </td>     
+          </tr>     
+
+          <tr> 
+            <th> Lista de Meils:</th>
+            <td>
+              {% for it in tabla_expand.email %}
+              <div class="row">              
+                <div class="col-md-1">{{it}}</div>              
+              </div>
+              {% endfor %}
+            </td>
+          </tr>         
+
+          <tr>                
+            <th>   Fecha de Cierre       </th> <td> {{tabla_expand.fecha_cierre}} </td>
+          </tr>
+
+          {% if tabla_expand.file1 %}
+            <tr> 
+              <th> Archivo Adjunto 1 :</th>
+              <td>
+                <a href="{{tabla_expand.file1.url}}">
+                  <div class="row">              
+                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6"> 
+                      <img src="{{tabla_expand.file1.url}}" class="img-thumbnail" width="160px%" height="90px%" /> 
+                    </div>                  
+                  </div>
+                  <div class="row">              
+                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                      {{tabla_expand.file1}}
+                    </div>                                 
+                  </div> 
+                </a>
+              </td>
+            </tr>
+          {% endif %}
+          {% if tabla_expand.file2 %}
+          <tr> 
+            <th> Archivo Adjunto 2 :</th>
+            <td>
+              <a href="{{tabla_expand.file2.url}}">
+                <div class="row">              
+                  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6"> 
+                    <img src="{{tabla_expand.file2.url}}" class="img-thumbnail" width="160px%" height="90px%" /> 
+                  </div>                  
+                </div>
+                <div class="row">              
+                  <div class="col-xs-6 col-sm-3 col-md-2 col-lg-2">
+                    {{tabla_expand.file2}}
+                  </div>                                 
+                </div> 
+              </a>
+            </td>
+          </tr>
+          {% endif %}
+
+
+        </tbody>
+      </table>
+    </div>
+    
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <table class="table table-strip table-hover table-responsive-sm table-responsive-md">
+      <!-- <table style="width:100%"> -->
+      <!-- <table class="table table-hover">     -->
+        <tbody>
+          <tr>       
+            {% if tabla_expand.ticket_history.ticket.id %}
+              <!-- devemos enlazar a la tabla con history  -->            
+              {% if tabla_expand.ticket_history.ticket.id != None and urlhticket %}
+                <th>  <a href="{% url urlhticket tabla_expand.ticket_history.ticket.id %}"> Ticket  History </a> </th>
+              {% else %}
+                <th>  Ticket  History </a> </th>
+                <th> {{tabla_expand.ticket_history.ticket.id}} </th>
+              {% endif %}
+        
+            <td>
+                {# {{tabla_expand.ticket_history}} #}
+              <table class="table table-strip table-hover table-responsive-sm table-responsive-md " id="tabla1">
+                {% for key ,val in tabla_expand.ticket_history.items %}
+                <tr>    
+                  {% if other %}              
+                  {% if key ==  'ticket' %}
+                    <th> <a href="#"> {{key}} </a>  </th>
+                    <td> <a href="#"> ID {{val.ticket}} </a> </td>
+                  {% else %}
+                    <th> {{key}} </th>
+                    <td> {{val}} </td>
+                  {% endif %}
+                  {% else %}
+                  <!-- sacamos el link, ya que en el detalle tenemos la info  -->
+                  {% if key ==  'ticket' %}
+                    <th>  {{key}} </th>
+                    <td> ID {{val.ticket}} </td>
+                  {% else %}
+                    <th> {{key}} </th>
+                    <td> {{val}} </td>
+                  {% endif %}
+                  {% endif %}
+                </tr>                
+                {% endfor %}
+              </table>               
+            </td>
+            {% else %}
+            <th>  Ticket  History </th> <td class="warning"> Sin Historial </td>
+            {% endif %}
+          </tr>
+
+
+        </tbody>
+      </table>
+      </div>  
+  </div>
+
+
+{% endblock %}  
+
+
+
+
+{% if other %}
+
+
+<tr>                
+  <th>  Ticket  History       </th> 
+    <td>
+      {# {{tabla_expand.ticket_history}} #}
+      <table>
+        {% for key ,val in tabla_expand.ticket_history.items %}
+        <tr>
+          <th> {{key}} </th> <td> {{val}} </td>
+        </tr>
+        
+        {% endfor %}
+      </table>
+      
+    </td>
+</tr>
+
+
+<div>
+  <table>
+    {% for key ,val in tabla_expand.items %}
+    <tr>
+      <td> {{key}} </td> <td> {{val}} </td>
+    </tr>
+    
+    {% endfor %}
+  </table>  
+</div>
+{% endif %}

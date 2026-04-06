@@ -1,0 +1,355 @@
+
+{% extends "Login/base.html" %}
+{% load static %}
+{% load bootstrap5 %}
+
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+{% block extra-sticky %} {% include 'Buttons/buttons_sticky.html' with button_list=listbtn %} {% endblock %}
+
+
+{% block content %}
+
+{% if popup_form_msg and ticket_access == True%}
+  <script>
+    window.onload = () => {
+    document.querySelector('[data-target="#popup02"]').click();
+  }
+  </script>
+
+<div class="container py-3">    
+    <div class="modal fade" id="popup02" tabindex="-1" role="dialog" aria-labelledby="popup02Label" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="popup02Label">Nuevo Mensaje</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" id="msg-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-header"> 
+                        <div>
+                            <div class="row" >
+                                <div>{{ popup_form_msg.modulo }}</div>
+                                <div>{{ popup_form_msg.modulo.help_text }}</div>
+                                <div>{{ popup_form_msg.modulo.errors }}</div>
+                            </div>
+                            <br>
+                            <div class="row">
+                                <div>{{ popup_form_msg.msg }}</div>                        
+                                <div>{{ popup_form_msg.msg.help_text }}</div>
+                                <div>{{ popup_form_msg.msg.errors }}</div>
+                            </div> 
+                            <br>
+                            <div class="row">
+                                <div>{{ popup_form_msg.file1 }}</div>
+                                <div>{{ popup_form_msg.file1.help_text }}</div>
+                                <div>{{ popup_form_msg.file1.errors }}</div>
+                            </div>                      
+                            <br>
+                            <div class="row">
+                                <div>{{ popup_form_msg.file2 }}</div>
+                                <div>{{ popup_form_msg.file2.help_text }}</div>
+                                <div>{{ popup_form_msg.file2.errors }}</div>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" name='ok' value='ok' id="msgSubmit" class="btn btn-outline-success">Guardar</button>
+                        <button type="submit" name='nok' value='nok' id="msgSubmit" data-dismiss="modal" class="btn btn-outline-danger">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="container"><div class="row">{% include 'Ticket/ticket_header.html' with ticket=lticket%}</div></div>
+<br>
+{% if lticket.register_estado == True and ticket_access == True %}
+<div class="container"><div class="row text-right"><p>        
+    {% if cancelamosPopUp %}
+        {% if popup_form_msg %}          
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#popup02" data-backdrop="static" data-keyboard="false">launch popup</button>
+        {% else %}
+        <a class="btn btn-primary btn-xs" href="newPopUp" role="button">+ </a>
+    {% endif %}
+{% endif %}        
+{% if form_msg %}
+    <a class="btn btn-outline-danger btn-xs" href="/register_ticket/expand_ticket/{{lticket.id}}" role="button" title="Click para Cancelar el Registro de un Nuevo Mensaje">Cancelar </a>
+{% else %}
+    <a class="btn btn-primary btn-xs" href="new" role="button" title="Click para Registrar un Nuevo Mensaje">Mensaje Nuevo </a>
+{% endif %}
+</p></div></div>    
+{% endif %}
+
+<!-- Detalles del History  -->
+<div class="container">
+    <div class="row">
+        {% bootstrap_messages %}
+        <table id="tblhistory" class="table table-strip table-responsive table-responsive-sm table-responsive-md estilo1">
+            <thead><tr>
+                <th style="width:200px"> "Modulo Id Fecha" </th> 
+                <th style="width:800px"> Detalle </th>
+                <th style="width:200px"> Archivos Adjuntos </th>
+            </tr></thead>
+            <tbody> 
+                {% if form_msg %}
+                <tr>
+                    <div class="container">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <br>
+                            <!-- register_brief -->
+                            <td><div class="row" >
+                                <div>{{ form_msg.modulo }}</div>
+                                <div>{{ form_msg.modulo.help_text }}</div>
+                                <div>{{ form_msg.modulo.errors }}</div>
+                            </div></td>
+                            <!-- register_msg -->
+                            <td><div class="row">
+                                <div>{{ form_msg.msg }}</div>                        
+                                <div>{{ form_msg.msg.help_text }}</div>
+                                <div>{{ form_msg.msg.errors }}</div>
+                            </div></td>
+                            <td>
+                                <div class="row">
+                                    <div>{{ form_msg.file1 }}</div>
+                                    <div>{{ form_msg.file1.help_text }}</div>
+                                    <div>{{ form_msg.file1.errors }}</div>                
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div>{{ form_msg.file2 }}</div>
+                                    <div>{{ form_msg.file2.help_text }}</div>
+                                    <div>{{ form_msg.file2.errors }}</div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center">
+                                    <button class='form-button btn btn-success' type='submit' name='ok' value='ok' > 
+                                        Guardar
+                                    </button> 
+                                    <button class='form-button btn btn-danger' type='submit' name='nok' value='nok' >
+                                        Clean
+                                    </button> 
+                                    </div>
+                                </div>
+                            </td>      
+                        </form>
+                    </div>
+                </tr> 
+                {% endif %}
+
+                {% for it_th in registerWork_all %}
+                <tr  {%if it_th.programmer == True %} class="rtbl-attend" {% else %} class="rtbl-register" {% endif %} >
+                    <td class="text-center">
+                        <div><strong>{% firstof it_th.modulo "" %} </strong></div>
+                        <div><strong> id: </strong> {{it_th.id}}</div>
+                        <div>{% firstof it_th.date_update %}</div>
+                        {% if it_th.programmer == True %}
+                            <div>{% firstof it_th.register_work.username "not user name" %}</div>              
+                            <div>{{it_th.tiempo}}</div>
+                        {% endif %}
+                    </td>
+                    <td> {% firstof it_th.msg "" %} </td>
+                    <td class="text-center">
+                        {% if it_th.file1 %}
+                        <div class = "center-block">
+                            <div><a href="{{it_th.file1.url}}"><img src="{{it_th.file1.url}}" class="img-thumbnail" width="80px" height="45px" /></a></div>
+                            <div><a href="{{it_th.file1.url}}">File 1</a></div>
+                        </div>
+                        {% endif %}                
+                        {% if it_th.file2 %}              
+                        <div class = "center-block">
+                            <div><a href="{{it_th.file2.url}}"><img src="{{tabla_it_th.file2.url}}" class="img-thumbnail" width="80px" height="45px" /></a></div>
+                            <div><a href="{{it_th.file2.url}}"> File 2</a></div>
+                        </div>
+                        {% endif %}       
+                    </td> 
+                </tr>
+                {% endfor %}
+
+                {% if registerWork_all %}
+                <tr class="rtbl-register">
+                    <td class="text-center"> <strong>{{lticket.brief}}</strong></td>
+                    <td> {{lticket.detail}} </td>
+                    <td class="text-center"> 
+                        {% if lticket.file1 %}
+                        <div class="row ">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file1.url}}"><img src="{{lticket.file1.url}}" class="img-thumbnail" width="80px" height="45px" /> </a></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file1.url}}">File 1</a></div>                
+                        </div>
+                        {% endif %}                
+                        {% if lticket.file2 %}                  
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file2.url}}"><img src="{{lticket.file2.url}}" class="img-thumbnail" width="80px" height="45px"/></a></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file2.url}}">File 2</a></div>
+                        </div>                    
+                        {% endif %}           
+                    </td>
+                </tr>        
+                {% else %}
+                <tr class="rtbl-register td-hover">
+                    <td class="text-center"> <strong>{{lticket.brief}}</strong></td>
+                    {% if urlticket and ticket_access == True %}
+                    <td onclick="window.location='{% url urlticket lticket.id %}';" title="Click Para editar el Ticket Registrado.">{{lticket.detail}}</td>
+                    {% else %}
+                    <td>{{lticket.detail}}</td>
+                    {% endif %}
+
+                    <td class="text-center"> 
+                        {% if lticket.file1 %}
+                        <div class="row ">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file1.url}}"><img src="{{lticket.file1.url}}" class="img-thumbnail" width="80px" height="45px" /></a></div>                
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file1.url}}"  target="_blank" rel="noopener noreferrer">File 1</a></div>                
+                        </div>
+                        {% endif %}
+                        {% if lticket.file2 %}                  
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file2.url}}"><img src="{{lticket.file2.url}}" class="img-thumbnail" width="80px" height="45px"/></a></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file2.url}}">File 2</a></div>                
+                        </div>                    
+                        {% endif %}   
+                        {% if lticket.file3 %}                  
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file3.url}}"><img src="{{lticket.file3.url}}" class="img-thumbnail" width="80px" height="45px"/></a></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 center-block"><a href="{{lticket.file3.url}}"> File 3</a></div></div>                    
+                        {% endif %}        
+                    </td>
+                </tr>
+                {% endif %}  
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- popup01 -->
+<div class="modal fade" id="popup01" tabindex="-1" role="dialog" aria-labelledby="popup01Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="popup01Label">Nuevo Mensaje</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <form method="POST" id="msg-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header"> 
+                    <div>
+                        <div class="row" >
+                            <div>{{ form_msg.modulo }}</div>
+                            <div>{{ form_msg.modulo.help_text }}</div>
+                            <div>{{ form_msg.modulo.errors }}</div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div>{{ form_msg.msg }}</div>                        
+                            <div>{{ form_msg.msg.help_text }}</div>
+                            <div>{{ form_msg.msg.errors }}</div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div>{{ form_msg.file1 }}</div>
+                            <div>{{ form_msg.file1.help_text }}</div>
+                            <div>{{ form_msg.file1.errors }}</div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div>{{ form_msg.file2 }}</div>
+                            <div>{{ form_msg.file2.help_text }}</div>
+                            <div>{{ form_msg.file2.errors }}</div>
+                        </div> 
+                    </div>
+                </div>
+                <div class="modal-footer">                
+                    <button type="submit" name='ok' value='ok' id="msgSubmit" class="btn btn-outline-success">Guardar</button>
+                    <button type="submit" name='nok' value='nok' id="msgSubmit" class="btn btn-outline-danger">Cancelar capo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+  </div>
+
+
+<script >
+    $(document).ready(function(){
+        $('#msg-form').on('submit', function(event){
+            event.preventDefault();
+            $.ajax({
+                url: '/msg/',
+                type: 'POST',          
+                data: $('#msg-form').serialize(),          
+                beforeSend: function (){
+                    $("#msgModal").modal("show");
+                },            
+                success: function(data){
+                    $('#msgModal .modal-body').html(data);
+                }
+            });
+        });
+    });
+</script>  
+{% endblock %}
+
+<div onclick="window.open('{{lticket.file1.url}}','_blank').focus();"></div>
+
+{% if registerWork_all %}
+<tr class="rtbl-register">
+    <td class="text-center"> <strong>{{lticket.brief}}</strong></td>
+    <td> {{lticket.detail}} </td>
+    <td class="text-center"> 
+        {% if lticket.file1 %}
+        <div class="row ">
+            <div class="col-md-12 center-block"><a href="{{lticket.file1.url}}"><img src="{{lticket.file1.url}}" class="img-thumbnail" width="80px" height="45px"/></a></div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 center-block"><a href="{{lticket.file1.url}}">File 1</a></div>                
+        </div>     
+        {% endif %}
+        {% if lticket.file2 %}                  
+        <div class="row">
+            <div class="col-md-12 center-block"><a href="{{lticket.file2.url}}"><img src="{{lticket.file2.url}}" class="img-thumbnail" width="80px" height="45px"/></a></div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 center-block"><a href="{{lticket.file2.url}}">File 2</a></div>
+        </div>
+        {% endif %}           
+    </td>
+</tr>
+{% elif urlticket %}
+<tr class="rtbl-register td-hover" onclick="window.location='{% url urlticket lticket.id %}';" title="Click Para editar el Ticket Registrado." >
+    <td class="text-center"> <strong>{{lticket.brief}}</strong></td>
+    <td> {{lticket.detail}} </td>
+    <td class="text-center"> 
+        {% if lticket.file1 %}
+        <div class="row ">
+            <div class="col-md-12 center-block"><a href="{{lticket.file1.url}}"><img src="{{lticket.file1.url}}" class="img-thumbnail" width="80px" height="45px"/></a></div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 center-block"><a href="{{lticket.file1.url}}">File 1</a></div>
+        </div>     
+        {% endif %}                
+        {% if lticket.file2 %}                  
+        <div class="row">
+            <div class="col-md-12 center-block"><a href="{{lticket.file2.url}}"><img src="{{lticket.file2.url}}" class="img-thumbnail" width="80px" height="45px"/></a></div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 center-block"><a href="{{lticket.file2.url}}">File 2</a></div>
+        </div>
+      {% endif %}
+    </td>
+</tr>  
+{% endif %}  

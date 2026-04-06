@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+{% load static %}
+<html lang="es"> 
+    
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link href={% static "/Login/other/bootstrap/css/bootstrap.min.css" %} rel="stylesheet">
+        <link href={% static "/Login/vendor/bootstrap/css/bootstrap-grid.css" %} rel="stylesheet">
+        <link href={% static "/Login/css/login.css" %} rel="stylesheet">        
+        {{ form.media }} <!-- ¡IMPORTANTE! Carga el JS de smart-selects -->
+        <script src="https://jquery.com"></script>
+        <script>
+            // Esto "engaña" a la librería si está buscando el jQuery de Django
+            if (typeof window.django === 'undefined') {
+                window.django = { jQuery: jQuery };
+            }
+        </script>
+        <style type="text/css">
+            body{
+                background-image: url({% static '/Login/img/fondo.jpg' %});
+                opacity:1.5;
+                background-position: center center;    
+                background-repeat: no-repeat;
+                background-attachment: fixed;        
+                background-size: cover;
+            }
+            #sticky_back{
+                width: 100%;
+                height: 100%;
+                background-position: center center;    
+                background-repeat: no-repeat;    
+                background-attachment: fixed;            
+                background-size: cover;        
+                background-color: #9bea8c2e;
+                padding-top: 0.5rem !important;
+                padding-bottom: 0.5rem !important;
+                padding-left: 2rem !important;
+                position: sticky;
+            }
+        </style>
+        {% if user %}    
+        <div class="sticky-top">
+            {# <div class="container-fluid">{% block extra-sticky %} {% endblock %}</div> #}
+            <div>{% block extra-sticky %} {% endblock %}</div>
+        </div>      
+        {% endif %}
+        <title> {% block pagetitle %} {% endblock %} </title>
+        <h5 class="site-heading text-center"><span class="site-heading-lower">{% block headtitle %} {% endblock %}</span></h5>
+        {% block headcontent %} {% endblock %}
+    </head>
+    <body>
+        {% block content %}   {% endblock %}  
+        <script src="{% static '/Login/vendor/jquery/jquery.min.js' %}"></script>
+        <script src="{% static '/Login/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    </body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+{% load static %}
+{% load bootstrap5 %}
+<html lang="es">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="j.e.l">
+  
+
+  <title> Login </title>
+
+
+  <!-- Bootstrap core CSS -->
+  <link href={% static "Login/other/bootstrap/css/bootstrap.min.css" %} rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href={% static "/Login/css/login.css" %} rel="stylesheet">
+  <style>
+    body
+      {
+        background-image: url({% static '/Login/img/fondo.jpg' %});        
+        /* Background image is centered vertically and horizontally at all times */
+        background-position: center center;    
+        /* Background image doesn't tile */
+        background-repeat: no-repeat;    
+        /* Background image is fixed in the viewport so that it doesn't move when the content's height is greater than the image's height */
+        background-attachment: fixed;    
+        /* This is what makes the background image rescale based on the container's size */
+        background-size: cover;            
+      }
+  </style>
+</head>
+<body>
+    <div class="container-fluid" style="margin-top: 100px;">
+        <div align="center">
+            <span style="color:rgb(3 22 255); font-size: xx-large;" class="site-heading-lower"><strong> Login Users</strong></span>
+        </div>
+        <div align="center">
+            <img src={% static 'Login/img/logo_login.png' %} alt="" height="200px" width="200px" >
+        </div>
+        <div align="center">
+            <div class="container">
+                <div class="col-sd-12 col-md-6 col-lg-6">
+                    <form method="POST">
+                        {% csrf_token %}
+                        {% bootstrap_form form layout="inline" size="small" label_class="form-label col-md-4" %}
+                        <button class= 'btn btn-login space-top' type="submit" name="button">Ingresar</button>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <button class= 'btn btn-logcancel space-top' type="reset" name="button">Clean</button>
+                        {% include 'Login/messages.html' %}
+                        <div><a href="/password_change_request/" class='linkpass' >Olvide mi contraseña</a></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>  
+</body>
+</html>
+

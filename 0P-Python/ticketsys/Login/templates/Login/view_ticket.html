@@ -1,0 +1,326 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %} 
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+
+
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% block extra-sticky %} {% include 'Buttons/buttons_sticky.html' with button_list=listbtn %} {% endblock %}
+
+{% block content %}
+
+<!-- launch Form PopUp3  -->
+{% if ticket_form %}
+<script>
+    window.onload = () => {
+        document.querySelector('[data-target="#popup03"]').click();
+    }
+</script>
+
+<div class="container">
+    <div class="row"> 
+        <div class="container">
+            <div class="row text-center">
+                <p>
+                    <button type="button" class="btn btn-outline-warning btn" data-toggle="modal" data-target="#popup03" data-backdrop="static" data-keyboard="false">
+                        <strong> Editando el Ticket {{lticket.id}} </strong>
+                    </button>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>   
+{% endif %}
+
+<div class="container">
+    <div class="row"> 
+        <div class="container">{% include 'Login/messages.html' %}</div>
+    </div>
+</div>
+{# <span class="admin-style">{% include 'Login/filtro.html' with title='Buscar:' button='Buscar' %}</span> #}
+
+
+{% if luser %}
+<div class="container">
+    <div class="row"> 
+        <div class="container">
+            <div class="row text-right">
+                <p>
+                    <button type="button" class="btn btn-outline-danger btn" data-toggle="modal" data-target="#popup02" title='¿ Eliminar el Usuario {{luser}} ?'>
+                        <strong> Eliminar </strong>
+                    </button>
+                    <button type="button" class="btn btn-outline-warning btn" data-toggle="modal" data-target="#popup03" title='¿ Editar la compania {{company}} ?'>
+                        <strong> Editar </strong>
+                    </button>
+                    {% if urlbtn_edit %}
+                    <a type="button" class="btn btn-outline-warning btn" href='{% url urlbtn_edit luser.id %}' title='{{titlebtn_edit}} {{luser}}'>
+                        <strong> Reset Pass </strong>
+                    </a>
+                    {% endif %} 
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container admin-style">
+    <div class="row flex-row flex-nowrap">
+        <div class="row borde-datos collapse show" style="border: solid 0.3em #ffffff;">
+            <div class="col-6 borde-datos-right" style="border-right: solid 0.3em #ffffff;">
+                <table class="table-responsive table-responsive-sm table-responsive-md estilo4" style="width:100%">
+                    <thead>
+                        <th style="width:200px">  </th> 
+                        <th style="width:800px">  </th> 
+                    </thead>
+                    <tbody> 
+                        <tr><td><b>Usuario          </b></td><td>{% firstof luser.username "Falta Nombre de Usuario" %}</td></tr>
+                        <tr><td><b>Nombres          </b></td><td>{% firstof luser.get_full_name "Falta Nombre de Usuario" %}</td></tr>
+                        <tr><td><b>Email:           </b></td><td>{% firstof luser.email %}</td></tr>
+                        <tr><td><b>Fecha de Inicio: </b></td><td>{{luser.date_joined}}</td></tr>
+                        <tr></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-6">
+                <table class="table-responsive table-responsive-sm table-responsive-md estilo4" style="width:100%">
+                    <thead>
+                        <th style="width:200px">  </th> 
+                        <th style="width:800px">  </th> 
+                    </thead>
+                    <tbody>
+                        <tr><td><b>Empresa:           </b> </td><td>{% firstof luser.empresa "Falta Empresa" %} </td> </tr>
+                        <tr><td><b>Telefonos:         </b></td><td>{% firstof luser.empresa.telefono1 %} {% firstof luser.empresa.telefono2 %})</td></tr>
+                        <tr><td><b>Fecha de Inicio:   </b></td><td>{{luser.empresa.date_creacion}}</td></tr>
+                        <tr><td><b>Email de Contacto: </b></td><td>{{luser.empresa.email}}</td></tr>
+                    </tbody>
+                </table>
+            </div>        
+        </div>
+    </div>
+</div>
+<br>
+{% endif %}
+
+<!-- Listado de Tickets -->  
+<div class="container-fluid" style="margin-top: 50px;">
+    <div class="container admin-style">
+        <table class="estilo3 table-hover table-strip table-responsive table-responsive-sm table-responsive-md">
+            <thead>
+                <tr>
+                    <th style="width:150px"> Ticket Id </th>
+                    <th style="width:150px"> Estado </th>
+                    <th style="width:200px"> Modulo </th>
+                    <th style="width:300px"> Cliente </th>
+                    <th style="width:300px"> Asistente Actual </th>
+                    <th style="width:400px"> 
+                        <div class="row"><div class="text-center">Fecha</div></div>
+                        <div class="row">
+                            <div class="col-md-4">Open</div>
+                            <div class="col-md-4">Update</div>
+                            <div class="col-md-4">Close</div>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody> 
+                {% for it in all_ticket %}        
+                <tr class="td-hover" onclick="window.location='{{urllink}}/{{it.id }}/edit';" title="{{urltitle}} '{{it.id}}'.">
+                    <td class="text-center"> {{it.id}} </td>
+                    <td class="text-center"> {{it.estado}} </td>
+                    <td class="text-center"> {{it.brief}} </td>
+                    <td class="text-center"> 
+                        <div>{{it.register.empresa}}</div>
+                        <div>{{it.register}}</div>
+                        <div>{{it.register.first_name}} {{it.register.last_name}}</div>
+                    </td>
+                    <td class="text-center">
+                        <div>{{it.attend.programador}}</div>
+                        <div>{{it.attend.programador.first_name}} {{it.attend.programador.last_name}}</div>
+                    </td>
+                    <td class="text-center"> 
+                        <div class="row">
+                            <div class="col-md-4">{{it.fecha_creacion}}</div>
+                            <div class="col-md-4">{{it.fecha_update}}</div>
+                            <div class="col-md-4">{{it.fecha_cierre}}</div>
+                        </div>               
+                    </td>
+                </tr>
+                {% endfor %}  
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if delete %}
+<!-- Form PopUp super user key  -->
+<div class="container py-3">  
+    <div class="modal fade" id="popup02" tabindex="-1" role="dialog" aria-labelledby="popup02Label" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="popup02Label">¿ Desea Eliminar el Usuario {{luser}} ?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>          
+                </div>
+                <div class="text-center"><p> Ingrese la Contraseña para "{{user}}" </p></div>
+                <div class="text-center">
+                    <form method="POST" id="msg-form" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="modal-header"> 
+                            <div>
+                                <div class="row">
+                                    <div>{{ auth_form.password }}</div>
+                                    <div>{{ auth_form.password.help_text }}</div>
+                                    <div>{{ auth_form.password.errors }}</div>
+                                </div> 
+                            </div>
+                        </div>            
+                        <div class="modal-footer">
+                            <button type="submit" name='ok' value='ok' id="msgSubmit" class="btn btn-outline-success">Si</button>
+                            <button type="button" class="btn  btn-outline-danger" data-dismiss="modal">No</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Form PopUp 03  -->
+<div class="container py-3">
+    <div class="modal" id="popup03" tabindex="-1" role="dialog" aria-labelledby="popup03Label" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="popup03Label">Editando Informacion del Ticket {{lticket.id}}</h5>
+                    <form method="POST" id="msg-form" enctype="multipart/form-data">
+                        {% csrf_token %}              
+                        <button type="submit" name='edit_nok' value='edit_nok' id="msgSubmit" class="close" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </form>          
+                </div>
+                <div class="text-left">
+                    <form method="POST" id="msg-form" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <div>
+                                <div class="row">
+                                    <div class="col-md-1"> </div>
+                                    <div class="col-md-3">
+                                        <div class="row">
+                                            <div>{{ ticket_form.register.label_tag }}</div>
+                                            <div>{{ ticket_form.register }}</div>
+                                            <div>{{ ticket_form.register.help_text }}</div>
+                                            <div>{{ ticket_form.register.errors }}</div>
+                                        </div> 
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="row">
+                                            <div>{{ ticket_form.attend.label_tag }}</div>                        
+                                            <div>{{ ticket_form.attend }}</div>
+                                            <div>{{ ticket_form.attend.help_text }}</div>
+                                            <div>{{ ticket_form.attend.errors }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="row">
+                                            <div>{{ ticket_form.brief.label_tag }}</div>
+                                            <div>{{ ticket_form.brief }}</div>
+                                            <div>{{ ticket_form.brief.help_text }}</div>
+                                            <div>{{ ticket_form.brief.errors }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2"> </div>
+                                </div>   
+                                <br>
+                                <div class="row">
+                                    <div class="col-md-1"> </div>
+                                    <div class="col-md-3">
+                                        <div class="row">
+                                            <div>{{ ticket_form.estado }} {{ ticket_form.estado.label_tag }} </div>
+                                            <div>{{ ticket_form.estado.help_text }}</div>
+                                            <div>{{ ticket_form.estado.errors }}</div>
+                                        </div> 
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="row">
+                                            <div>{{ ticket_form.register_estado }} {{ ticket_form.register_estado.label_tag }} </div>
+                                            <div>{{ ticket_form.register_estado.help_text }}</div>
+                                            <div>{{ ticket_form.register_estado.errors }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2"> </div>
+                                </div>
+                                <br>
+                                <br>
+                                <div class="row">
+                                    <div>{{ ticket_form.detail.label_tag }}</div>
+                                    <div>{{ ticket_form.detail }}</div>
+                                    <div>{{ ticket_form.detail.help_text }}</div>
+                                    <div>{{ ticket_form.detail.errors }}</div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div>{{ ticket_form.email.label_tag }}</div>                        
+                                    <div>{{ ticket_form.email }}</div>
+                                    <div>{{ ticket_form.email.help_text }}</div>
+                                    <div>{{ ticket_form.email.errors }}</div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div>{{ ticket_form.file1.label_tag }} {{ ticket_form.file1 }}</div>                        
+                                    <div>{{ ticket_form.file1.help_text }}</div>
+                                    <div>{{ ticket_form.file1.errors }}</div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div>{{ ticket_form.file2.label_tag }} {{ ticket_form.file2 }}</div>                        
+                                    <div>{{ ticket_form.file2.help_text }}</div>
+                                    <div>{{ ticket_form.file2.errors }}</div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div>{{ ticket_form.file3.label_tag }} {{ ticket_form.file3 }}</div>                        
+                                    <div>{{ ticket_form.file3.help_text }}</div>
+                                    <div>{{ ticket_form.file3.errors }}</div>
+                                </div>
+                            </div>
+                        </div>            
+                        <div class="modal-footer">
+                            <button type="submit" name='edit_ok' value='edit_ok' id="msgSubmit" class="btn btn-outline-success">Si</button>        
+                            <button type="submit" name='edit_nok' value='edit_nok' id="msgSubmit" class="btn btn-outline-danger">No</button>
+                        </div>  
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script >
+    $(document).ready( ()=> {
+        $('#msg-form').on('submit', (event) => {
+            event.preventDefault();
+            $.ajax({
+                url: '/msg/',
+                type: 'POST',
+                // headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#msg-form').serialize(),
+                beforeSend: () => { $("#msgModal").modal("show"); },
+                success: (data) => { $('#msgModal .modal-body').html(data); }
+            });
+        });
+    });
+</script>  
+{% endblock %}

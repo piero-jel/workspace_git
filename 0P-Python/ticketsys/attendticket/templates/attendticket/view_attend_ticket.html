@@ -1,0 +1,291 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %} 
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+
+
+{% block extra-sticky %} 
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% include 'Buttons/buttons_sticky.html' with button_list=listbtn %}
+{% endblock %}
+
+
+{% block content %}
+
+
+<!-- Mensajeria tipo popup, la tabla ya lo tiene incluido  -->
+<div class="container"> 
+   {# {% bootstrap_messages %} #} 
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="row alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <div class="col-1">
+            <button type="button" title="close messages" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="window.location.reload();"> X </button>
+        </div> 
+        <div class="col-9">
+            {{ message }}
+        </div>            
+    </div>
+    {% endfor %}
+{% endif %}
+
+</divdiv>
+<!-- Incluimos el template de la tabla -->
+<style type="text/css">
+/* The container must be positioned relative: */
+.custom-select {
+  position: relative;
+  font-family: Arial;
+}
+
+.custom-select select {
+  display: none; /*hide original SELECT element: */
+}
+
+.select-selected {
+  background-color: DodgerBlue;
+}
+
+/* Style the arrow inside the select element: */
+.select-selected:after {
+  position: absolute;
+  content: "";
+  top: 14px;
+  right: 10px;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-color: #fff transparent transparent transparent;
+}
+
+/* Point the arrow upwards when the select box is open (active): */
+.select-selected.select-arrow-active:after {
+  border-color: transparent transparent #fff transparent;
+  top: 7px;
+}
+
+/* style the items (options), including the selected item: */
+.select-items div,.select-selected {
+  color: #ffffff;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+  cursor: pointer;
+}
+
+/* Style items (options): */
+.select-items {
+  position: absolute;
+  background-color: DodgerBlue;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
+
+/* Hide the items when the select box is closed: */
+.select-hide {
+  display: none;
+}
+
+.select-items div:hover, .same-as-selected {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+</style>
+
+
+
+<div class="container">  
+    <div class="row flex-row flex-nowrap">    
+        <div class="row borde-datos-md collapse show">
+            <div class="col-6 borde-datos-right">
+                <table class="table-responsive table-responsive-sm table-responsive-md estilo-head" style="width:100%">
+                    <tr><td> <b>Usuario</b>: {% firstof user.username "Usuario No Logeado" %} </td></tr>
+                    <tr><td><table> 
+                        <thead>
+                            <th> </th>
+                            <th> Tickets</th>
+                            <th> Desarrollos</th>                  
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                <table>
+                                    <tbody>
+                                    <tr><td> <strong> Asignados </strong> </td></tr>
+                                    <tr><td> <strong> Abiertos </strong></td></tr>
+                                    <tr><td> <strong> Cerrados </strong></td></tr>
+                                    <tr><td> <strong> Pendientes </strong></td></tr>
+                                    </tbody>
+                                </table>
+                                </td>
+                                <td>
+                                <table>
+                                    <tbody>                        
+                                    <tr><td>{{statistics.nticke_asign}}</td></tr>
+                                    <tr><td>{{statistics.nticke_open}}</td></tr>
+                                    <tr><td>{{statistics.nticke_close}}</td></tr>                          
+                                    <tr><td>{{statistics.nticke_pending}}</td></tr>
+                                    </tbody>
+                                </table>
+                                </td>
+                                <td>
+                                <table>
+                                    <tbody>
+                                    <tr><td>{{statistics.ndesarr_asign}}</td></tr>
+                                    <tr><td>{{statistics.ndesarr_open}}</td></tr>
+                                    <tr><td>{{statistics.ndesarr_close}}</td></tr>
+                                    <tr><td>{{statistics.ndesarr_pending}}</td></tr>
+                                    </tbody>
+                                </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table></td></tr>
+                </table>
+            </div>
+            <div class="col-6 ">
+                <table class="table-responsive table-responsive-sm table-responsive-md estilo-head" style="width:100%">
+                    <tr><td><b>Seleccion :</b></td></tr>
+                    <tr><td>
+                        <form method="POST" id="filtroTicket" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="row">
+                                <!-- Asignacion de Ticket -->                      
+                                <div class="row">
+                                    <div class="col-md-4 col-xs-6 text-left">{{ search_form.ticketAsignacion.label_tag }}</div>
+                                    <div class="col-md-4 col-xs-4 text-left">{{ search_form.ticketAsignacion }}</div>
+                                </div>
+                                {% if search_form.ticketAsignacion.help_text %}
+                                <br>
+                                <div style="background-color:#eff2f5">{{ search_form.ticketAsignacion.help_text }}</div>
+                                {% endif %}
+                                {% if search_form.ticketAsignacion.errors %}
+                                <br>
+                                <div style="background-color:#eff2f5">{{ search_form.ticketAsignacion.errors }}</div>
+                                {% endif %}
+                                <br>
+                                <!-- Estado del Ticket -->
+                                <div class="row">
+                                    <div class="col-md-4 col-xs-6 text-left">{{ search_form.ticketStatus.label_tag }}</div>
+                                    <div class="col-md-4 col-xs-4 text-left">{{ search_form.ticketStatus }}</div>
+                                </div>
+                                {% if search_form.ticketStatus.help_text %}
+                                <br>
+                                <div style="background-color:#eff2f5">{{ search_form.ticketStatus.help_text }}</div>
+                                {% endif %}
+                                {% if search_form.ticketStatus.errors %}
+                                <br>
+                                <div style="background-color:#eff2f5">{{ search_form.ticketStatus.errors }}</div>
+                                {% endif %}
+                                <br>
+                                <!-- Modulos del Ticket -->
+                                <div class="row">
+                                    <div class="col-md-4 col-xs-6 text-left">{{ search_form.ticketModulo.label_tag }}</div>
+                                    <div class="col-md-4 col-xs-4 text-left">{{ search_form.ticketModulo }}</div>
+                                </div>
+                                {% if search_form.ticketModulo.help_text %}
+                                <br>
+                                <div style="background-color:#eff2f5">{{ search_form.ticketModulo.help_text }}</div>
+                                {% endif %}
+                                {% if search_form.ticketModulo.errors %}
+                                <br>
+                                <div style="background-color:#eff2f5">{{ search_form.ticketModulo.errors }}</div>
+                                {% endif %}
+                                <br>                    
+                            </div>
+                            <br>                
+                            <div class="row text-center">
+                                <div class="col-md-4 col-xs-3 text-center">
+                                    <button type="submit" name='nok' value='nok' id="FormSubmit" style="border: 2px solid; font-weight: bold; font-size: 16px;" class="btn btn-outline-danger">
+                                        Cancelar
+                                    </button>
+                                </div>
+                                <div class="col-md-4 col-xs-3 text-center">
+                                    <button type="submit" name='search' value='search' id="FormSubmit" style="border: 2px solid; font-weight: bold; font-size: 16px;" class="btn btn-outline-primary">
+                                        Buscar
+                                    </button>
+                                </div>                    
+                            </div>
+                        </form>
+                        <br>
+                    </td></tr>
+                </table>
+            </div>
+        </div>  
+    </div>
+</div>
+<br>
+
+
+
+<div class="container">
+  <div class="row">
+    {% if listDesarrollo|length == 0  and  listTicket|length == 0 %}
+      <div class="text-center" style="margin-top: 10px; margin-bottom: 20px; color: rgb(13, 26, 207); font-size: medium;">
+        <strong> Sin Resultados </strong>
+      </div>
+    {% endif %}
+
+    {% if listDesarrollo|length > 0  or  listTicket|length > 0 %}
+      <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">
+        <thead class="text-center">
+          <tr>
+            <th style="width:100px"> ID </th>
+            <th style="width:200px"> Company </th>
+            <th style="width:200px"> Register </th>
+            <th style="width:200px"> Estado </th>
+            <th style="width:200px"> Attend </th>
+            <th style="width:200px"> Modulo </th>
+            <th style="width:200px"> <div> Fecha </div> <div>Crecion </div> </th>
+            <th style="width:200px"> <div> Fecha </div> <div>Actualizacion </div></th>
+          </tr>
+        </thead>
+
+        <tbody class="text-center">
+          {% for it in listTicket %}
+            <tr class="td-hover" onclick="window.location='{% url urllink_ViewSelectedTicket it.id %}';" title='{{urltitle_ViewSelectedTicket}} {{it.id}}'>
+              <td> {{it.id}} </td>
+              <td> {{it.register.empresa}} </td>
+              <td> {{it.register.username}} </td>
+              <td> {{it.estado}} </td>
+              <td> {{it.attend.programador}} </td>
+              <td> {{it.brief}} </td>
+              <td> {{it.fecha_creacion}}</td>
+              <td> {{it.fecha_update}}</td>            
+            </tr>
+          {% endfor %}
+
+          {% if listDesarrollo|length > 0 %}
+            <tr>
+              <th colspan=8>Desarrollos</th>
+            </tr>
+            {% for it in listDesarrollo %}          
+            <tr class="rtbl-attend" onclick="window.location='{% url urllink_ViewDesarrolloWorks it.id %}';" title='{{urltitle_ViewDesarrolloWorks}} {{it.id}}'>
+              <td> {{it.id}} </td>
+              <td> {{it.empresa}} </td>
+              <td> {{it.registro}} </td>
+              <td> {{it.estado}} </td>
+              <td> {{it.asistente.programador}} </td>
+              <td> {{it.modulo}} </td>
+              <td> {{it.fecha_creacion}}</td>
+              <td> {{it.fecha_actualizacion}}</td>            
+            </tr>
+            {% endfor %}
+          {% endif %}
+
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

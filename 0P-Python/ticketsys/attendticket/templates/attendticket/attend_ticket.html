@@ -1,0 +1,113 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %} 
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+
+
+{% block extra-sticky %} 
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% include 'Buttons/buttons_sticky.html' with button_list=listbtn %}
+
+
+
+
+{% endblock %}
+
+
+{% block content %}
+
+<!-- Incluimos el template de mensajeria  -->
+{% include 'Table/msg_tag.html'%}
+
+<!-- Incluimos el template de la tabla -->
+
+{% if tabla1 %}
+<table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">
+  <thead>
+    <tr>
+      <th>
+        {% for it in button_radio %}
+          {% if idchoice == it.value  %}
+            Tickets, {{it.label}}
+            <!-- forloop.counter inicia en '1' no en ceo '0' -->
+          {% elif forloop.counter == 1 and idchoice == None %}
+            Tickets, {{it.label}}          
+          {% endif %}        
+        {% endfor %}        
+      </th>
+    </tr>
+
+  </thead>
+  <tbody>
+    <tr> 
+      <td>
+        {% include 'Table/table_with_updown_button.html' with tabla=tabla1 %}
+      </td>
+      <td>
+        <!-- <div  class="row ">
+          <div class="col-md-8 center-block">
+            <a class="btn btn-info" href="#" role="button">Asignados a Mi</a>
+          </div>          
+        </div> 
+
+        <div  class="row ">
+          <div class="col-md-8 center-block">
+            <a class="btn btn-info" href="#" role="button">Sin Asignar</a>
+          </div>          
+        </div>
+
+        <div  class="row ">
+          <div class="col-md-8 center-block">
+            <a class="btn btn-info" href="#" role="button">Otros</a>
+          </div>          
+        </div>       -->
+
+        <form action="/attend_ticket/" method="post">
+          {% csrf_token %}
+          <fieldset>
+            {% for it in button_radio %}
+            <div class="radio">              
+                {% if idchoice == it.value or forloop.counter == 1 and idchoice == None %}
+                  <input type="radio" name="{{it.groups}}" id="{{it.id}}" value="{{it.value}}" checked>
+                {% else %}
+                  <input type="radio" name="{{it.groups}}" id="{{it.id}}" value="{{it.value}}">
+                {% endif%}
+                <!-- for= id del input asociado, en caso de click sobre la etiqueta -->
+                <label for="{{it.id}}"> {{it.label}}</label> <br>
+            </div>
+            {% endfor %}
+          
+            
+          </fieldset>
+
+          <div  class="row ">
+            <div class="col-md-1 center-block">
+              <input class="btn btn-info" type="submit" value="Update">
+              <!-- <a class="btn btn-info" href="/attend_ticket/" role="button">Update</a> -->
+            </div>          
+          </div>
+        </form>
+      </td>
+    </tr>
+  </tbody>
+</table>
+{% endif %}
+
+<!-- Mensajeria tipo popup -->
+{% bootstrap_messages %}
+
+
+{% endblock %} 
+
+
+
+{% if other %}
+
+{% endif %}

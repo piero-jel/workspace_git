@@ -1,0 +1,324 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %} 
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+
+
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% block extra-sticky %} {% include 'Buttons/buttons_sticky.html' with button_list=listbtn %} {% endblock %}
+
+
+{% block content %}
+{% if ticket_form %}
+  <!-- launch Form PopUp3  -->
+<script>
+    window.onload = () => {
+        document.querySelector('[data-target="#popup03"]').click();
+    }
+</script>
+
+<div class="container">
+    <div class="row"> 
+        <div class="container">
+            <div class="row text-center">  
+                <p>
+                    <button type="button" class="btn btn-outline-warning btn" data-toggle="modal" data-target="#popup03" data-backdrop="static" data-keyboard="false">          
+                        <strong> Editando el Ticket {{lticket.id}} </strong>
+                    </button>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>   
+{% endif %}
+
+<style type="text/css">
+    .search-btn {
+        border: 2px solid; 
+        font-weight: bold; 
+        font-size: 16px;
+    }
+    .table-estilo {
+        width: 100%;
+        min-width: 1400px;
+        border-collapse: collapse;
+        margin-bottom: 50px;
+    }
+</style>
+
+<div class="container">
+    <div class="row"><div class="container">{% include 'Login/messages.html' %}</div></div>
+</div>
+{# <span class="admin-style">{% include 'Login/filtro.html' with title='Buscar:' button='Buscar' %}</span> #}
+
+{% if form_search %}
+<div class="container">  
+    <div class="row flex-row flex-nowrap">    
+        <form method="POST" id="search_ticket" enctype="multipart/form-data">            
+            {% csrf_token %}
+            <div class="row borde-datos-md collapse show">                
+                <div class="col-6 borde-datos-right">
+                    <table class="table-responsive table-responsive-sm table-responsive-md estilo-head" style="width:100%">
+                        <tr></tr>
+                        <tr><td>
+                            <div class="row">
+                                <div class="row">
+                                    <!-- status  -->
+                                    <div class="row">
+                                        <div class="col-md-4 col-xs-6 text-left">{{ form_search.status.label_tag }}</div>
+                                        <div class="col-md-4 col-xs-4 text-left">{{ form_search.status }}</div>
+                                    </div>                                                        
+                                    <br>                            
+                                    <!-- module -->
+                                    <div class="row">
+                                        <div class="col-md-4 col-xs-6 text-left">{{ form_search.module.label_tag }}</div>
+                                        <div class="col-md-4 col-xs-4 text-left">{{ form_search.module }}</div>
+                                    </div>                            
+                                    <br>
+                                    <!-- company -->
+                                    <div class="row">
+                                        <div class="col-md-4 col-xs-6 text-left">{{ form_search.company.label_tag }}</div>
+                                        {# <div class="col-md-4 col-xs-4 text-left">{{ form_search.company }}</div> #}
+                                        <div class="col-md-4 col-xs-4 text-left" name="item_seleccionado" onchange="this.form.submit()">
+                                            <select name="company" onchange="this.form.submit()">
+                                                {% for company in form_search.company %}
+                                                    {{ company }}
+                                                {% endfor %}
+                                            </select>                                            
+                                        </div>
+                                        {{form_search.company.errors}}
+                                    </div>                 
+                                </div>                            
+                            </div>
+                            <br>                                
+                        </td></tr>
+                    </table>
+                </div>
+                <div class="col-6">
+                    <table class="table-responsive table-responsive-sm table-responsive-md estilo-head" style="width:100%">
+                        <tr></tr>
+                        <tr><td>
+                            <div class="row">
+                                <div class="row">
+                                    <!-- cliente  -->
+                                    <div class="row">
+                                        <div class="col-md-4 col-xs-6 text-left">{{ form_search.cliente.label_tag }}</div>
+                                        <div class="col-md-4 col-xs-4 text-left">{{ form_search.cliente }}</div>
+                                    </div>                                                        
+                                    <br>                            
+                                    <!-- Asistente Actual  -->
+                                    <div class="row">
+                                        <div class="col-md-4 col-xs-6 text-left">{{ form_search.programador.label_tag }}</div>
+                                        <div class="col-md-4 col-xs-4 text-left">{{ form_search.programador }}</div>
+                                    </div>                            
+                                    <br>
+                                    <!-- Fechas Calendar idem to report-->        
+                                </div>                            
+                            </div>
+                            <br>                                
+                        </td></tr>
+                    </table>
+                </div>
+            </div>  
+        </form>
+    </div>
+</div>
+
+<div class="container">  
+    <div class="row flex-row flex-nowrap">    
+        <div class="row">            
+            <div>                
+                <button type="submit" name='tk_search' value='search' form="search_ticket" class="search-btn btn btn-outline-primary">Buscar</button>
+                &nbsp;&nbsp;&nbsp;
+                <button type="submit" name='tk_nsearch' value='clean' form="search_ticket" class="search-btn btn btn-outline-danger">Cancelar</button>;
+            </div>
+        </div>  
+    </div>
+</div>
+<br>
+{% endif %}
+
+
+<!-- Listado de Tickets -->  
+<div class="container-fluid" style="margin-top: 50px;">
+    <div class="container" style="overflow-x: auto;">
+        <table class="estilo3 table-hover table-strip table-estilo">
+            <thead>
+                <tr>
+                    <th style="width:150px"> Ticket Id </th>
+                    <th style="width:150px"> Estado </th>
+                    <th style="width:200px"> Modulo </th>
+                    <th style="width:200px"> Empresa </th>
+                    <th style="width:300px"> Cliente </th>
+                    <th style="width:300px"> Asistente Actual </th>
+                    <th style="width:600px"> 
+                        <div class="row">
+                            <div class="text-center">Fechas</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">Open</div>
+                            <div class="col-md-4">Update</div>
+                            <div class="col-md-4">Close</div>
+                        </div>               
+                    </th>
+                    <th style="width:600px"> 
+                        <div class="row">
+                            <div class="text-center">Archivos</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">File 1</div>
+                            <div class="col-md-4">File 2</div>
+                            <div class="col-md-4">File 3</div>
+                        </div>               
+                    </th>
+                </tr>
+            </thead>
+            <tbody> 
+                {% for it in all_ticket %}          
+                <tr class="td-hover" onclick="window.location='{% url urllink it.id %}';" title="{{urltitle}} '{{it.id}}'.">
+                    <td class="text-center"> {{it.id}} </td>
+                    <td class="text-center"> {{it.estado}} </td>
+                    <td class="text-center"> {{it.brief}} </td>
+                    <td class="text-center"> {{it.register.empresa}}</tdtd>
+                    <td class="text-center">                 
+                        <div>{{it.register}}</div>
+                        <div>{{it.register.first_name}} {{it.register.last_name}}</div>                
+                    </td>
+                    <td class="text-center">
+                        <div>{{it.attend.programador}}</div>
+                        <div>{{it.attend.programador.first_name}} {{it.attend.programador.last_name}}</div>
+                    </td>
+                    <td class="text-center"> 
+                        <div class="row">
+                            <div class="col-md-4">{{it.fecha_creacion}}</div>
+                            <div class="col-md-4">{{it.fecha_update}}</div>
+                            <div class="col-md-4">{{it.fecha_cierre}}</div>
+                        </div>
+                    </td>
+                    <td class="text-left"> 
+                        <div class="row">
+                            <div class="col-md-4">{{it.file1}}</div>
+                            <div class="col-md-4">{{it.file2}}</div>
+                            <div class="col-md-4">{{it.file3}}</div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}  
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Form PopUp 03  -->
+<div class="container py-3">    
+    <div class="modal" id="popup03" tabindex="-1" role="dialog" aria-labelledby="popup03Label" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" style="padding-left: 2rem;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="popup03Label">Editando Informacion del Ticket {{lticket.id}}</h5>          
+                    <form method="POST" id="msg-form" enctype="multipart/form-data">
+                        {% csrf_token %}              
+                        <button type="submit" name='edit_nok' value='edit_nok' id="msgSubmit" class="close" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </form>          
+                </div>
+                <div class="text-left">
+                    <form method="POST" id="msg-form" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="modal-header"> 
+                            <div>
+                                <div class="row">
+                                    <div class="col-md-4">{{ ticket_form.register.label_tag }}</div>
+                                    <div class="col-md-3">{{ ticket_form.register }}</div>
+                                    <div class="col-md-5" style="text-align: left;">{{ ticket_form.register.errors }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">{{ ticket_form.attend.label_tag }}</div>
+                                    <div class="col-md-3">{{ ticket_form.attend }}</div>                                    
+                                    <div class="col-md-5" style="text-align: left;"">{{ ticket_form.attend.errors }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">{{ ticket_form.brief.label_tag }}</div>
+                                    <div class="col-md-3">{{ ticket_form.brief }}</div>
+                                    <div class="col-md-5" style="text-align: left;">{{ ticket_form.brief.errors }}</div>                                    
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-md-3">{{ ticket_form.estado.label_tag }}</div>         <div class="col-md-1">{{ ticket_form.estado }}</div>
+                                    <div class="col-md-3">{{ ticket_form.register_estado.label_tag }}</div><div class="col-md-1">{{ ticket_form.register_estado }}</div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div>{{ ticket_form.detail.label_tag }}</div>                  
+                                    <div>{{ ticket_form.detail }}</div>                        
+                                    <div>{{ ticket_form.detail.help_text }}</div>
+                                    <div>{{ ticket_form.detail.errors }}</div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div>{{ ticket_form.email.label_tag }}</div>
+                                    <div>{{ ticket_form.email }}</div>
+                                    <div>{{ ticket_form.email.help_text }}</div>
+                                    <div>{{ ticket_form.email.errors }}</div>
+                                </div>
+                                {% comment %}
+                                <br>
+                                <div class="row">
+                                    <div class="col-md-2" style="text-align: right;"> {{ ticket_form.file1.label_tag }}</div>
+                                    <div class="col-md-4"> {{ ticket_form.file1 }} </div>
+                                    <div class="col-md-6"> {{ ticket_form.file1.errors }}</div>                                    
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-md-2" style="text-align: right;"> {{ ticket_form.file2.label_tag }}</div>
+                                    <div class="col-md-4"> {{ ticket_form.file2 }} </div>
+                                    <div class="col-md-6"> {{ ticket_form.file2.errors }}</div>                                    
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-md-2" style="text-align: right;"> {{ ticket_form.file3.label_tag }}</div>
+                                    <div class="col-md-4"> {{ ticket_form.file3 }} </div>
+                                    <div class="col-md-6"> {{ ticket_form.file3.errors }}</div>                                    
+                                </div>
+                                {% endcomment %}
+                            </div>
+                        </div>            
+                        <div class="modal-footer">
+                            <button type="submit" name='edit_ok' value='edit_ok' id="msgSubmit" class="btn btn-outline-success">Si</button>        
+                            <button type="submit" name='edit_nok' value='edit_nok' id="msgSubmit" class="btn btn-outline-danger">No</button>
+                        </div>  
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script >
+    $(document).ready( () => {
+        $('#msg-form').on('submit', (event)=>{
+            event.preventDefault();
+            $.ajax({
+                url: '/msg/',
+                type: 'POST',
+                // headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#msg-form').serialize(),                
+                beforeSend: () => { $("#msgModal").modal("show"); },
+                success: (data) => { $('#msgModal .modal-body').html(data); }
+            });
+        });
+    });
+</script>  
+{% endblock %}
+
+

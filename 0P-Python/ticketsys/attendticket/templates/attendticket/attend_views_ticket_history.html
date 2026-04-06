@@ -1,0 +1,575 @@
+<!-- incluimos el parent -->
+{% extends "Login/base.html" %} 
+
+<!-- Cargamso static donde tenemos Bootstrap -->
+{% load static %}
+{% load bootstrap5 %}
+
+<!-- Colocamos el titulo de la solapa -->
+{% block pagetitle %} {% firstof tab_title "tab_title" %} {% endblock %}
+<!-- Colocamos un titulo en cabecera -->
+{% block headtitle %} {% firstof head_title "head_title" %} {% endblock %}
+
+
+{% block extra-sticky %} 
+
+<!-- Incluimos el register_ticket_sticky.html pasandole listbtn -->
+{% include 'Buttons/buttons_sticky.html' with button_list=listbtn %}
+
+
+{% endblock %}
+
+
+{% block content %}
+<!-- para visualir los msg de messages.warning(request, f' ... ')
+    tag = 'active' tag = "success" tag = "warning" tag = "danger"
+  tag = "info"  -->
+  {% include 'Table/msg_tag.html' with tag='warning' %}
+
+{% if not form_edit %}
+
+<!-- 
+  resQuery: {
+      'id': 1, 
+      'register_work': None, 
+      'ticket': {
+          'id': 1,
+          'empresa': <Empresa: Ecofuturo>,
+          'register': {
+              'id': 3, 
+              'empresa': <Empresa: Ecofuturo>,
+              'email': '',
+              'username': 'cliente01',
+              'first_name': 'Cliente Uno', 
+              'last_name': 'ApellidoCliente Uno',
+              'register': 'cliente01'},
+
+          'attend': {
+              'id': 2,
+              'empresa': <Empresa: Main>, 
+              'email': '',
+              'username': 'programador02',
+              'first_name': '',
+              'last_name': '',
+              'fecha_inicio': datetime.date(2021, 7, 2), 
+              'telefono': '1167179888', 
+              'attend': 'programador02'},
+          'brief': 'emslog',
+          'detail': 'descripcion detallada del inconveniente',
+          'email': ['test01@company.net', 'test01@company.com', 'test02@company.net', 'test02@company.com'], 
+          'fecha_creacion': datetime.date(2021, 6, 30), 
+          'fecha_cierre': None,
+          'file1': <FieldFile: files/0100_6OiXrsN.png>, 
+          'file2': <FieldFile: files/0400_a1nPIlN.png>, 
+          'estado': True, 'ticket': 1}, 
+
+      'fecha_creacion': datetime.date(2021, 7, 4), 
+      'brief': 'auth',
+      'detail': 'se realizo cambios en el MIE',
+      'file': <FieldFile: None>,
+      'tiempo': '02:30:30' }
+
+ -->
+  <div class="container">
+    <div class="row">
+      <table class="table table-hover">
+        <tbody>
+
+          <!--  -->
+          <tr> 
+            <td>
+              <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">
+                <thead class="text-center">
+                  <tr>
+                    <th>
+                      <div  class="row ">
+                        <div class="col-md-8 center-block"> Id  </div>
+                      </div>
+                      <div  class="row"> 
+                        <div class="col-md-8 center-block"> Ticket </div>                                
+                      </div>
+                    </th> 
+                    <th>
+                      <div  class="row ">
+                        <div class="col-md-8 center-block"> Id  </div>
+                      </div>
+                      <div  class="row"> 
+                        <div class="col-md-8 center-block"> History </div>                                
+                      </div>
+                    </th> 
+                    <th> Estado </th> 
+                    <th> 
+                      <div  class="row ">
+                        <div class="col-md-8 center-block"> Fecha  </div>
+                      </div>
+                      <div  class="row"> 
+                        <div class="col-md-8 center-block"> Creacion </div>                                
+                      </div>                  
+                    </th>
+                    {% if tabla_body.ticket.fecha_cierre %}
+                      <th>
+                        <div  class="row ">
+                          <div class="col-md-8 center-block"> Fecha  </div>
+                        </div>
+                        <div  class="row"> 
+                          <div class="col-md-8 center-block"> Cierre </div>                                
+                        </div>                        
+                      </th>
+                    {% endif %}
+
+                    <th>
+                      <div  class="row ">
+                        <div class="col-md-8 center-block"> Fecha  </div>
+                      </div>
+                      <div  class="row"> 
+                        <div class="col-md-8 center-block"> Actualizacion </div>                                
+                      </div>
+                    </th>
+
+                    <th>                    
+                      <div  class="row ">
+                        <div class="col-md-8 center-block"> Asistente  </div>
+                      </div>
+                      <div  class="row"> 
+                        <div class="col-md-8 center-block"> Actual </div>                                
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="text-center">                
+                  <tr>
+                    <td> {{tabla_body.ticket.id}} </td> <td> {{tabla_body.id}} </td> 
+                    {% if tabla_body.ticket.estado %}
+                      <td class="info">Activo</td> 
+                    {% else %}
+                      <td class="success"> Cerrado </td>
+                    {% endif %}
+                      <td>{{tabla_body.ticket.fecha_creacion}} </td>
+
+                    {% if tabla_body.ticket.fecha_cierre %}
+                      <td>{{tabla_body.ticket.fecha_cierre}} </td>
+                    {% endif %}
+
+                    <td> {% firstof tabla_body.ticket.fecha_update %} </td>
+
+                    <td>
+                      <!-- Dividimos el campo en varias filas  -->
+                      <div  class="row ">
+                        
+                        <div class="col-md-8 center-block">
+                          {% if tabla_body.ticket.attend.attend != None %}
+                          {% firstof tabla_body.ticket.attend.email tabla_body.ticket.attend %} 
+                          {% endif %}
+                        </div>                                
+                        
+                      </div>
+                      <div  class="row"> 
+                        <div class="col-md-8 center-block">
+                          {% firstof tabla_body.ticket.attend.first_name %}
+                        </div>                                
+                      </div>
+                      <div  class="row"> 
+                        <div class="col-md-8 center-block">
+                          {% firstof  tabla_body.ticket.attend.last_name %}
+                        </div>                                
+                      </div>
+                    </td>            
+                  </tr>        
+                </tbody>
+              </table>
+            </td> 
+          </tr>
+
+          <!-- iNFO DEL ULTIMO TRABAJO REALIZADO -->
+          <tr> 
+            <td>
+              <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">
+                <thead class="text-center">
+                  <tr>
+                    <th> Detalle del Ultimo Trabajo Realizado </th> 
+                    <td>
+
+                    </td>
+                  </tr>
+                </thead>
+                <tbody class="text-center">                
+                  <tr>
+                    <td> {{tabla_body.detail}} </td>                                  
+                  </tr>      
+                  <tr>
+                    <td>
+                      <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">
+                        <thead class="text-center">
+                          <tr>
+                            <th>
+                              <div  class="row ">
+                                <div class="col-md-8 center-block"> Quien </div>
+                              </div>
+                              <div  class="row"> 
+                                <div class="col-md-8 center-block">  Registro </div>                                
+                              </div>
+
+                              <!-- Quien Registro -->
+                            </th>
+                            <th>
+                              <div  class="row ">
+                                <div class="col-md-8 center-block"> Modulo </div>
+                              </div>
+                              <div  class="row"> 
+                                <div class="col-md-8 center-block"> Editado </div>                                
+                              </div>  
+                                
+                            </th>
+                            <th>
+                              <div  class="row ">
+                                <div class="col-md-8 center-block"> Fecha </div>
+                              </div>
+                              <div  class="row"> 
+                                <div class="col-md-8 center-block"> Registro </div>                                
+                              </div>                                
+                            </th>
+                            <th> Tiempo</th> <th> Archivo </th> 
+                          </tr>
+                        </thead>
+                        <tbody class="text-center">                
+                          <tr>
+                              <td> 
+                                <!-- Dividimos el campo en varias filas  -->
+                                <div  class="row ">
+                                  <div class="col-md-8 center-block">{% firstof tabla_body.register_work.programador.email tabla_body.register_work %}  </div>                                
+                                </div>
+                                <div  class="row"> 
+                                  <div class="col-md-8 center-block">
+                                    {% firstof tabla_body.register_work.programador.username %}
+                                  </div>                                
+                                </div> 
+                                <div  class="row"> 
+                                  <div class="col-md-8 center-block">
+                                    {% firstof tabla_body.register_work.programador.first_name %}
+                                  </div>                                
+                                </div>
+                                <div  class="row"> 
+                                  <div class="col-md-8 center-block">
+                                    {% firstof tabla_body.register_work.programador.last_name %}
+                                  </div>                                
+                                </div>  
+
+                              </td>
+                              <td> {{tabla_body.brief}} </td> <td> {{tabla_body.fecha_creacion}} </td> <td>{{tabla_body.tiempo}}</td>
+                            <td> 
+                              {% if tabla_body.file %}
+                              <table>
+                                <tr> 
+                                  <td> <a href="{{tabla_body.file.url}}">
+                                    <img src="{{tabla_body.file.url}}" class="img-thumbnail" width="160px%" height="90px%" /> </a> 
+                                  </td> 
+                                </tr>
+                                <tr>
+                                  <td> 
+                                    <a href="{{tabla_body.file.url}}"> {{tabla_body.file}} </a>
+                                  </td>
+                                </tr>
+                              </table>
+                              {% endif %}
+                            </td>                                  
+                          </tr>        
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>  
+                </tbody>
+              </table>
+            </td> 
+          </tr>
+
+          <!-- iNFO DEL INSIDENTE ISSUE 
+            'ticket': {
+                'id': 1,
+                'empresa': <Empresa: Ecofuturo>, 
+                'register': {
+                    'id': 3,
+                    'empresa': <Empresa: Ecofuturo>, 
+                    'email': 'cliente01@test.com',
+                    'username': 'cliente01', 
+                    'first_name': 'Cliente Uno', 
+                    'last_name': 'ApellidoCliente Uno', 
+                    'register': 'cliente01'},
+
+                'attend': {
+                    'id': 2, 
+                    'empresa': <Empresa: Main>, 
+                    'email': 'test1-programador@test.com', 
+                    'username': 'programador02', 
+                    'first_name': 'pepito', 
+                    'last_name': 'chamba', 
+                    'fecha_inicio': datetime.date(2021, 7, 2), 
+                    'telefono': '1167179888', 
+                    'attend': 'programador02'}, 
+                  
+                  'brief': 'emslog', 
+                  'detail': 'descripcion detallada del inconveniente', 
+                  'email': ['test01@company.net', 'test01@company.com', 'test02@company.net', 'test02@company.com'],
+                  'fecha_creacion': datetime.date(2021, 6, 30), 
+                  'fecha_cierre': datetime.date(2021, 7, 8), 
+                  'file1': <FieldFile: files/0100_6OiXrsN.png>, 
+                  'file2': <FieldFile: files/0400_a1nPIlN.png>, 
+                  'estado': True, 'fecha_update': datetime.date(2021, 7, 8), 
+                  'ticket': 1 }
+          -->
+          <tr> 
+            <td>
+              <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">
+                <thead class="text-center">
+                  <tr>
+                    <th> Detalle del Incidente </th> 
+                  </tr>
+                </thead>
+                <tbody class="text-center">                
+                  <tr>
+                    <td> {{tabla_body.ticket.detail}} </td>                                  
+                  </tr>      
+                  <tr>
+                    <td>
+                      <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">
+                        <thead class="text-center">
+                          <tr>
+                            <th>
+                              <div  class="row ">
+                                <div class="col-md-8 center-block"> Quien </div>
+                              </div>
+                              <div  class="row"> 
+                                <div class="col-md-8 center-block">  Registro </div>                                
+                              </div>
+
+                              <!-- Quien Registro -->
+                            </th>
+                            <th>
+                              <div  class="row ">
+                                <div class="col-md-8 center-block"> Modulo </div>
+                              </div>
+                              <div  class="row"> 
+                                <div class="col-md-8 center-block"> Inconveniente </div>                                
+                              </div>  
+                                
+                            </th>
+                            <th>
+                              <div  class="row ">
+                                <div class="col-md-8 center-block"> Fecha </div>
+                              </div>
+                              <div  class="row"> 
+                                <div class="col-md-8 center-block"> Registro </div>                                
+                              </div>                                
+                            </th>
+
+                              <!-- Debemos consultar la existencia de los mismos -->
+                            <th> Archivo </th> <th> Archivo </th> 
+
+                          </tr>
+                        </thead>
+                        <tbody class="text-center">                
+                          <tr>
+                              <td> 
+                                <!-- Dividimos el campo en varias filas  -->
+                                <div  class="row ">
+                                  <div class="col-md-8 center-block">{% firstof tabla_body.ticket.register.email tabla_body.ticket.register.username %}  </div>
+                                </div>
+                                <div  class="row"> 
+                                  <div class="col-md-8 center-block">
+                                    {% firstof tabla_body.ticket.register.first_name %}
+                                  </div>                                
+                                </div>
+                                <div  class="row"> 
+                                  <div class="col-md-8 center-block">
+                                    {% firstof tabla_body.ticket.register.last_name %}
+                                  </div>                                
+                                </div>  
+
+                              </td>
+                              <td> {{tabla_body.ticket.brief}} </td>
+                              <td> {{tabla_body.ticket.fecha_creacion}} </td> 
+                              
+                              <td> 
+                                {% if tabla_body.ticket.file1 %}
+                                <div  class="row ">
+                                  <div class="col-md-8 center-block"> 
+                                    <a href="{{tabla_body.ticket.file1.url}}">
+                                      <img src="{{tabla_body.ticket.file1.url}}" class="img-thumbnail" width="160px%" height="90px%" /> 
+                                    </a> 
+                                  </div>
+                                </div>
+                                <div  class="row"> 
+                                  <div class="col-md-8 center-block"> 
+                                    <a href="{{tabla_body.ticket.file1.url}}"> {{tabla_body.ticket.file1}} </a>
+                                  </div>                                
+                                </div>  
+                                {% endif %}
+                              </td>
+                              <td> 
+                                {% if tabla_body.ticket.file2 %}
+                                <div  class="row ">
+                                  <div class="col-md-8 center-block"> 
+                                    <a href="{{tabla_body.ticket.file2.url}}">
+                                      <img src="{{tabla_body.ticket.file2.url}}" class="img-thumbnail" width="160px%" height="90px%" /> 
+                                    </a> 
+                                  </div>
+                                </div>
+                                <div  class="row"> 
+                                  <div class="col-md-8 center-block"> 
+                                    <a href="{{tabla_body.ticket.file2.url}}"> {{tabla_body.ticket.file2}} </a>
+                                  </div>                                
+                                </div>  
+                                {% endif %}
+                              </td>                                  
+                          </tr>        
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>  
+                </tbody>
+              </table>
+            </td> 
+          </tr>        
+
+          {% if example %}  
+          <!-- Example:  -->
+          <tr> 
+            <td>
+              <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">
+                <thead class="text-center">
+                  <tr>
+                    <th> Inconveniente </th> <th> Detalle del Inconveniente </th> 
+                  </tr>
+                </thead>
+                <tbody class="text-center">                
+                  <tr>
+                    <td> {{tabla_body.ticket.brief}} </td> <td> {{tabla_body.ticket.detail}} </td>                                  
+                  </tr>        
+                </tbody>
+              </table>
+            </td> 
+          </tr>
+          {% endif %}
+    
+
+
+
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+{% else %}
+
+ <!-- Datos del Incidente -->
+ <div class="container">
+  <div class="row">  
+    <table class="table table-strip table-hover table-responsive-sm table-responsive-md estilo1">    
+      <thead>
+        <tr> <th> Datos del Incidente </th> </tr>
+      </thead>
+      <tbody>        
+        <tr class="center-block">
+          <td class="center-block">
+            <div align="center"> 
+              <div class="row">
+                <div class="col-md-3 center-block"> <strong>Ticket Id</strong>  </div>
+                <div class="col-md-3 center-block"> <strong>Descripcion Breve</strong> </div>
+                <div class="col-md-3 center-block"> <strong>Archivo 1</strong>  </div>
+                <div class="col-md-3 center-block"> <strong>Archivo 2</strong> </div>
+              </div>
+            </div>
+          </td>          
+        </tr>
+        <tr>
+          <td>
+            <div align="center">
+              <div class="row">
+                <div class="col-md-3 center-block"> {{ticket_data.id}} </div>
+                <div class="col-md-3 center-block"> {{ticket_data.brief}} </div>              
+                <div class="col-md-3 center-block">
+                  {% if ticket_data.file1 %}
+                    <a href="{{ticket_data.file1.url}}"> 
+                      <img src="{{ticket_data.file1.url}}" class="img-thumbnail" width="160px%" height="90px%" /> 
+                    </a>
+                  {% endif %}
+                </div>
+                <div class="col-md-3 center-block">
+                  {% if ticket_data.file2 %}            
+                    <a href="{{ticket_data.file1.url}}"> 
+                      <img src="{{ticket_data.file1.url}}" class="img-thumbnail" width="160px%" height="90px%" /> 
+                    </a>  
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div align="center">
+              <div class="row">
+                <div class="col-md-3 center-block"> <strong>Descripcion Detallada</strong>  </div>
+                <div class="col-md-8 center-block"> <i>{{ticket_data.detail}}</i> </div>                  
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>  
+
+  </div>
+</div>
+
+<!-- Formulario para la Edicion del Registro del Trabajo Realizado -->
+<form method="post" >
+  <div class="row py-2 justify-content-center">
+    <div class="form-group py-2 col-9">
+      <div class="form-group py-2">  
+        {% csrf_token %}
+        {# {% bootstrap_form form layout="horizontal" size="small" label_class="form-label col-md-3" %} #}
+        {% bootstrap_form form layout="horizontal" size="small" label_class="form-label col-md-1" %}        
+      </div>
+    </div>
+  </div>
+  
+  {% if testbuttonlist %}
+  <div align="center">
+    <div class="form-group py-2 col-9">      
+      <div class="form-group py-2 justify-content-center">
+        {% for it in testbuttonlist %}          
+          <!-- <div class="justify-content-center col-sm-1 col-md-3 col-lg-1"> -->
+          <button class='{{it.css}}' type={{it.type}} name={{it.name}} value={{it.value}} > 
+            {% firstof it.label %}
+          </button>             
+          <!-- </div> -->
+        {% endfor %}
+      </div>
+    </div>  
+  </div>      
+  {% endif %} 
+
+</form>
+{% bootstrap_messages %}
+
+{% endif %}
+
+
+
+
+{% endblock %}  
+
+
+
+
+{% if other %}
+<div>
+  <table>
+    {% for key ,val in tabla_expand.items %}
+    <tr>
+      <td> {{key}} </td> <td> {{val}} </td>
+    </tr>
+    
+    {% endfor %}
+  </table>  
+</div>
+{% endif %}
