@@ -373,7 +373,8 @@ class FormSearchTicket(Form):
             )
         
     
-    def update_form(self,**kwargs)->FormSearchTicket:
+    #def update_form(self,**kwargs)->FormSearchTicket:
+    def update_form(self,**kwargs)->Form:
         """ Metodo para actualizar el formulario en funcion de un post lanzado por una seleccion
         en un despliegue list
         kwargs:

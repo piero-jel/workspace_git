@@ -42,7 +42,7 @@ Para esto contamos con el script [activate.sh](activate.sh), el cual solo depend
 Para ejecutar el mismo solo debemos ejecutar el script de la siguente forma:
 
 ```bash
-bash activate.sh
+bash activate.sh --create
 ```
 > Note: en caso de necesitar reinstalar el entorno virtual solo debemos ejecutar el comando **`bash activate.sh --clean`**, este eliminara el contexto actual para que luego pueda rearmar el mismo ejecutando **`bash activate.sh`**
 
