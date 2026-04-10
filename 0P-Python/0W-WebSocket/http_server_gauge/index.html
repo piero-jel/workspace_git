@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <!-- import hojas de stilos -->
+        <link href="gauge.css" rel="stylesheet">
+        <link href="WebSocket.css" rel="stylesheet">        
+    </head>
+    <body aria-sort="padding: 5% 5% 5% 5%;" style="padding: 5% 5% 5% 5%;">
+        <div class="gauge-panel">
+            <div class="row">
+                <div class="container-gaude">
+                    <div class="col-gauge">
+                        <div class="gauge card">
+                            <div class="gauge__body">
+                                <div class="gauge__fill" id="gauge-1-fill"></div>
+                                <div class="gauge__cover" id="gauge-1-text">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-gauge">
+                        <div class="gauge card">
+                            <div class="gauge__body">
+                                <div class="gauge__fill" id="gauge-2-fill"></div>
+                                <div class="gauge__cover" id="gauge-2-text">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="container-gaude">
+                    <div class="col-gauge">
+                        <div class="gauge card">
+                            <div class="gauge__body">
+                                <div class="gauge__fill" id="gauge-3-fill"></div>
+                                <div class="gauge__cover" id="gauge-3-text">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-gauge">
+                        <div class="gauge card">
+                            <div class="gauge__body">
+                                <div class="gauge__fill" id="gauge-4-fill"></div>
+                                <div class="gauge__cover" id="gauge-4-text">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="container-button">
+                    <div class="col-button">
+                        <button id="btn-clean" class="button">clean</button>
+                    </div>
+                    <div class="col-button">
+                        <button id="btn-start" class="button btn-start-nok" onclick="location.reload()">start</button>
+                    </div>
+                    <div class="col-button">
+                        <button id="btn-stop" class="button">stop</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import del script prinicipal -->        
+        <script src="main.js" type="module"></script>
+    </body>
+</html>

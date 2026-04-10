@@ -1,0 +1,77 @@
+.textBoxToReceive {
+    width: 600px;         /* Fixed width */
+    height: 125px;        /* Fixed height */
+    padding: 5px;         /* Internal spacing */
+    box-sizing: border-box; /* Includes padding in width/height */
+    text-align: left ;
+    vertical-align: top;
+}
+
+.textBoxToSend {
+    width: 300px;         /* Fixed width */
+    height: 80px;         /* Fixed height */
+    padding: 5px;        /* Internal spacing */
+    box-sizing: border-box; /* Includes padding in width/height */
+}
+
+
+.btn-start-ok {
+    background-color: rgb(22, 112, 6);            
+    color: #f9fffb;            
+}
+.btn-start-nok {            
+    background-color: #ff0000;            
+    color: #f9fffb;            
+}
+
+.btn .btn-start-ok .btn-start-nok {
+    border-radius: 0.75em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    padding-left: 3.5em;
+    padding-right: 3.5em;
+    font-size: large;
+}
+
+.btn-start-ok:hover,
+.btn:hover,
+.btn-start-nok:hover {
+    color:#fff;
+    background-color:#0b5ed7;
+    border-color:#0a58ca;
+    border-radius: 0.75em;
+}
+
+
+.column-container {
+    display: flex;
+    flex-direction: column; /* Alinea los hijos verticalmente */
+    gap: 15px;              /* Espacio uniforme entre los ítems */
+    width: 150px;           /* Opcional: ancho del contenedor */
+    padding: 5px;
+}
+
+.item {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.column-container {
+    display: flex;
+    flex-direction: column; /* Alinea los hijos verticalmente */
+    gap: 15px;              /* Espacio uniforme entre los ítems */
+    width: 150px;           /* Opcional: ancho del contenedor */
+    padding: 5px;
+}
+
+.item {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
