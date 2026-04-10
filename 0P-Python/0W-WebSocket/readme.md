@@ -1,13 +1,39 @@
-
 # WebSocket Gauge
-<!--  
-activate.sh --run 0W-WebSocket/gauge.py
--->
-Servidor WebSocket para ser consumido por clientes que dispongan de indicadores del tipo Gauges.
+Servidor WebSocket para ser consumido por clientes que dispongan de indicadores del tipo Gauges (FrontEnd).
 
-El proyecto consta de dos etapas unificadas en el script
-1. FronEnd en JavaScript contenido en el directorio ``
+Estructura del proyecto:
 
+```bash
+├── http_server_gauge
+│   ├── constants.js
+│   ├── gauge.css
+│   ├── index.html
+│   ├── main.js
+│   ├── settings.js
+│   └── WebSocket.css
+├── gauge.py
+├── activate.sh
+├── requirements
+│   └── requirements.txt
+├── readme
+│   └── img
+│       ├── consola_servers_close_01.png
+│       ├── consola_servers_ups_01.png
+│       └── gauge_01.png
+└── readme.md
+```
+1. Directorio `http_server_gauge`, representa el FronEnd en JavaScript.
+2. `gauge.py` es el backend en python todo en un solo script.
+3. `activate.sh` shell script con las seceuncias de comando para facilitar el despliegue del proyecto usando virtual Environment.
+4. `requirements` directorio con los archivos cons las dependencias del proyecto.
+5. `readme` directorio con los complementos (imagenes) para este readme `readme.md`.
+
+
++ [**Preparacion del entorno en linux**](#preparacion-del-entorno-en-linux)
++ [**Virtual Environment**](#virtual-environment)
++ [**Ejecucion del proyecto**](#ejecucion-del-proyecto)
++ [**Verificacion del servicio**](#verificacion-del-servicio)
++ [**Resumen**](#resumen)
 
 # Preparacion del entorno en linux
 Para la ejecución sin el uso de virtual envirement debemos tener instalada en el host los siguientes binarios:
@@ -118,7 +144,7 @@ Para bajar el proceso de forma ordenada:
 
 
 
-# Resumen 
+# Resumen
 ## Con virtual Environment
 ```bash
 # creamos el venv

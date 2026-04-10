@@ -1,4 +1,7 @@
-import { ARRAY_IdGauges, URL, PORT } from "./settings.js";
+import { ARRAY_IdGauges } from "./settings.js";
+import { URL, PORT } from "./constants.js";
+
+
 
 class WebSocketClient{
     /** constructor */
@@ -74,6 +77,8 @@ function clean_gauges(){
         console.log(`gauge_set_value(0,${item});`);
     }); 
 }
+
+
 
 function set_buttons(status){
     let btn_send = document.getElementById("btn-start");
