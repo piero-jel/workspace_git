@@ -15,7 +15,7 @@ from time import sleep
 from json import dumps as json_dumps
 from subprocess import check_output
 from http.server import SimpleHTTPRequestHandler
-from socketserver import TCPServer
+from socketserver import TCPServer,BaseRequestHandler
 import functools
 from multiprocessing import Process
 from websockets.sync.server import ServerConnection,serve
@@ -29,12 +29,6 @@ LOGGING:dict = {
     'filename' : 'logs/servers_gauge.log',
     'format'   : '%(asctime)s %(levelname)-5s: %(message)s'
 }
-#log_dir:str = os.path.dirname(LOGGING['filename'])
-#if not os.path.exists(log_dir):
-#    os.makedirs(log_dir)
-#
-#basicConfig(**LOGGING)
-
 
 class MultiProcess(ABC):
     """Clase para ejecutar una tarea baremetal sobre un proceso """    
@@ -188,6 +182,15 @@ class ServerWebSocket(MultiProcess):
         return f"{type(self).__name__} ws://{self.url}:{self.port}"
 
 
+class HandlerHttpServer(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        # Extraemos nuestro logger de los argumentos que envía partial        
+        self.logger:Logger = kwargs.pop('logger', getLogger("default"))
+        super().__init__(*args, **kwargs)
+
+    def log_message(self, format, *args):
+        # 3. Redirigimos el log automático de HTTP a nuestra instancia de logger
+        self.logger.info("%s - %s" % (self.address_string(), format % args))
 
 class HttpServer(MultiProcess):
     """Http Server para el frontend, con multiprocess """
@@ -211,9 +214,14 @@ class HttpServer(MultiProcess):
         self.folder:str = folder
         self.handler_cls = SimpleHTTPRequestHandler
         if folder is not None:
+            #HandlerHttpServer.directory_to_serve = self.exists_folder()
+            #HandlerHttpServer.logger = self.get_logger()
+            #self.handler = HandlerHttpServer
             self.handler = functools.partial(
-                SimpleHTTPRequestHandler, 
-                directory=self.exists_folder()
+                #SimpleHTTPRequestHandler, 
+                HandlerHttpServer,
+                logger = self.get_logger(),
+                directory=self.exists_folder(),
             )
 
         self.log.debug("%s folder<%s> | http://%s:%d",

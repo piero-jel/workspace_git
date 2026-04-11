@@ -4,7 +4,6 @@ __pycache__/
 **/__pycache__/
 **/*.log
 http_server_gauge/constants.js
-
-
+http_server_gauge/isa_image.*
 *_old.*
 **/*_old.*
