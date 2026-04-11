@@ -9,6 +9,9 @@
   - [Financial Transaction](0P-Python/0F-FinancialTransaction/readme.md#contenido)
   - [DJango And Rest Framework](0P-Python/DJango_DRF/readme.md#contenido)
   - [DJango App Web TicketSys](0P-Python/ticketsys/readme.md#contenido)
+  - [WebSocket Server And Js Client](0P-Python/0W-WebSocket/readme.md#webSocket-gauge)
+  
+  
   
 ## C plus plus
   - [Anagrama](0C-C++/c++_Anagrama/readme.md#contenido)
