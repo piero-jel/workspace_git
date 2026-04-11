@@ -6,25 +6,20 @@ python3 gauge.py
 # sin venv
 activate.sh --run gauge.py
 '''
+import os
 from typing import Callable,TypeAlias,Iterable
 from abc import ABC, abstractmethod
-import os
+from logging import Logger,getLogger,basicConfig,DEBUG
 from random import randrange
-from websockets.sync.server import ServerConnection,serve
-#from websockets.sync.server import serve
-#from websockets.asyncio.server import serve
-from websockets.exceptions import ConnectionClosedOK,ConnectionClosedError
-#import asyncio
 from time import sleep
 from json import dumps as json_dumps
 from subprocess import check_output
-#import http.server
-#import socketserver
 from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 import functools
 from multiprocessing import Process
-from logging import Logger,getLogger,basicConfig,DEBUG
+from websockets.sync.server import ServerConnection,serve
+from websockets.exceptions import ConnectionClosedOK,ConnectionClosedError
 
 Callback:TypeAlias = Callable[[None],str|bytes|Iterable]
 
@@ -34,48 +29,59 @@ LOGGING:dict = {
     'filename' : 'logs/servers_gauge.log',
     'format'   : '%(asctime)s %(levelname)-5s: %(message)s'
 }
-
-log_dir:str = os.path.dirname(LOGGING['filename'])
-if not os.path.exists(log_dir):
-    os.makedirs(log_dir)
-
-basicConfig(**LOGGING)
-log:Logger = getLogger('servers_gauges')
-
+#log_dir:str = os.path.dirname(LOGGING['filename'])
+#if not os.path.exists(log_dir):
+#    os.makedirs(log_dir)
+#
+#basicConfig(**LOGGING)
 
 
 class MultiProcess(ABC):
-    """Clase para ejecutar una tarea baremetal sobre un proceso """
+    """Clase para ejecutar una tarea baremetal sobre un proceso """    
     process:Process = None
-
+    log:Logger = None
+    
     def run(self):
         """Metodo que se encarga de armar los process para luego iniciarlos"""
-        log.debug(f"{type(self).__name__}::run() begin")
+        self.log.debug("%s::run() begin",type(self).__name__)
         self.process = Process(target=self.task,)
-        self.process.start()        
-        log.debug(f"{type(self).__name__}::run() end") 
+        self.process.start()
+        self.log.debug("%s::run() end",type(self).__name__)
     
     def join(self):
         """ metodo para atacharnos al proceso, para evitar que el proeceso principal termine antes
         que este """
-        log.debug(f"{type(self).__name__}::join()")
+        self.log.debug("%s::join()",type(self).__name__)
         self.process.join()
         
     def terminate(self):
         """ metodo para finalizar el proceso """
-        log.debug(f"{type(self).__name__}::terminate()")
+        self.log.debug("%s::terminate()",type(self).__name__)
         self.process.terminate()
 
     @abstractmethod
     def task(self)->None:
         """metodo abstracto que ejecuta la tarea sobre un nuevo proceso"""
 
+    def get_logger(self)->Logger:
+        dir_name:str = os.path.dirname(LOGGING['filename'])
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+        
+        params:dict = {
+            'level': LOGGING['level'],
+            'format' : LOGGING['format'],
+            'filename': f'{dir_name}/{type(self).__name__}.log'
+        }        
+        basicConfig(**params)
+        return getLogger(type(self).__name__)
+
 
 class ServerWebSocket(MultiProcess):
     """Server WebSocket con multiprocess """
     CONSTANTS_JS:str = 'constants.js'
 
-    def __init__(self,url:str,port:int,callback:Callback=None,folder:str = None):
+    def __init__(self,url:str,port:int,log:Logger,callback:Callback=None,folder:str = None):
         """
         Server WebSocket con multiprocess
 
@@ -86,6 +92,9 @@ class ServerWebSocket(MultiProcess):
         :param port: numero de puerto para el servicio
         :type port: int
 
+        :param log: logger 
+        :type log: Logger
+
         :param callback: funcion que se invocara para obtener los datos y enviar al cliente. 
         Sginature `def fn()->str:`
         :type callback: Callback  
@@ -94,19 +103,18 @@ class ServerWebSocket(MultiProcess):
         conexion al serivdor 
         :type folder: str      
         """
+        self.log:Logger = log
         self.url:str = url
         self.port:int = port
         self.callback:Callback = callback
-        self.count:int = 0
 
         if self.url is None:
-            self.url = type(self).hostname()
+            self.url = self.hostname()
 
         if folder is not None:
             self.dump_constants(folder,True)
-
-    @classmethod
-    def hostname(cls)->str:
+    
+    def hostname(self)->str:
         """
         Metodo de clase que nos permite obtener el host address
 
@@ -117,40 +125,44 @@ class ServerWebSocket(MultiProcess):
             cmd = check_output(['hostname','-I']).decode('utf-8')
             return cmd.split()[0]
         except Exception as e:
-            log.error(f'{cls.__name__}::hostname() Exception<{e.__name__}>. Detail {e}')
+            self.log.error(f'{type(self).__name__}::hostname() Exception<{e.__name__}>. Detail {e}')
 
         return '127.0.0.1'
 
     def __get(self):
-        self.count += 1
         if self.callback:
             return self.callback()
-        return f'{self.count} null'
+        return 'null'
 
     def __handler(self,websocket:ServerConnection):
-        log.debug(f'{type(self).__name__}::task() Begin')
+        self.log.debug(f'{type(self).__name__} handler Begin')
         while True:
-            message:str = self.__get()            
+            message:str = self.__get()
+            self.log.debug("%s message to send <%s>",type(self).__name__,message)
             try:
                 websocket.send(message)
-                websocket.recv()
+                message=websocket.recv()
+                self.log.debug("%s ack received <%s>",type(self).__name__,message)
 
             except ConnectionClosedOK as e:
-                log.info(f'\nPeticion de cierrer, {e}')
+                self.log.info(f'\nPeticion de cierrer, {e}')
                 break
 
             except ConnectionClosedError as e:
                 # intenta enviar un frame y la conexion esta cerrada
-                log.info(f'\nCierre inesperado del lado del cliente, detail {e}')
+                self.log.info('%s Cierre inesperado del lado del cliente, detail %s',
+                              type(self).__name__,e)
                 break
 
             except Exception as e:
-                log.info(f'\nException<{type(e).__name__}, detail: {e}')
+                self.log.info('%s Exception<%s, detail: %s',type(self).__name__,type(e).__name__,e)
                 break
-            
-        log.debug(f'{type(self).__name__}::task() End')
+
+        self.log.debug('%s handler end',type(self).__name__)
+        
     
-    def task(self):
+    def task(self):        
+        self.log = self.get_logger()
         with serve(self.__handler, self.url,self.port) as server:
             server.serve_forever()
 
@@ -171,10 +183,15 @@ class ServerWebSocket(MultiProcess):
                 f2w.write(line+'\n')
         
         return True
+    
+    def __str__(self)->str:
+        return f"{type(self).__name__} ws://{self.url}:{self.port}"
+
+
 
 class HttpServer(MultiProcess):
     """Http Server para el frontend, con multiprocess """
-    def __init__(self,url:str = None,port:int=8000,folder:str=None):
+    def __init__(self,url:str,port:int,log:Logger=None,folder:str=None):
         """
         Http Server para el frontend, con multiprocess
 
@@ -188,8 +205,9 @@ class HttpServer(MultiProcess):
         defecto toma el root de ejecucion.
         :type folder: str
         """
+        self.log:Logger = log
         self.url:str = "" if url is None else url
-        self.port:int=port
+        self.port:int = 8000 if port is None else port
         self.folder:str = folder
         self.handler_cls = SimpleHTTPRequestHandler
         if folder is not None:
@@ -198,23 +216,27 @@ class HttpServer(MultiProcess):
                 directory=self.exists_folder()
             )
 
-        log.debug(f"{type(self).__name__} folder<{self.folder}> | http://{self.url}:{self.port}")
+        self.log.debug("%s folder<%s> | http://%s:%d",
+                       type(self).__name__,self.folder,self.url,self.port)
 
     def exists_folder(self)->str:
         """ metodo que verifica si existe el direcotio """
         if not os.path.exists(self.folder):
-            raise ValueError(f"{type(self).__name__}::exits_folder() Path <{self.folder}> not found")
+            raise ValueError(f"{type(self).__name__}::exits_folder() Path<{self.folder}> not found")
         
         return self.folder
         
-    def task(self):
-        log.debug(f"{type(self).__name__}::task() http://{self.url}:{self.port}")
+    def task(self):        
+        self.log = self.get_logger()
+
+        self.log.debug("%s::task() http://%s:%d",type(self).__name__,self.url,self.port)
         with TCPServer((self.url, self.port), self.handler) as httpd:
-            #print(f"Http Server '{path_to_serve}' en http://localhost:{port}")
-            log.debug(f"Http Server en http://localhost:{self.port}")
+            #self.log.debug(f"Http Server '{path_to_serve}' en http://localhost:{port}")
+            self.log.debug("Http Server en http://localhost:%s",self.port)
             httpd.serve_forever()
 
-
+    def __str__(self)->str:
+        return f"{type(self).__name__} folder={self.folder}, http://{self.url}:{self.port}"
 
 
 def get_value()->str:
@@ -232,25 +254,30 @@ def get_value()->str:
 
 
 def main():    
-    #host:str = 'localhost'
-    host:str = ServerWebSocket.hostname()
+    log_dir:str = os.path.dirname(LOGGING['filename'])
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+    basicConfig(**LOGGING)
+    log:Logger = getLogger('servers_gauges')
+
+    host:str = None
     port:int = 8080
     http_serve_path:str = 'http_server_gauge' 
     http_serve_port:int = 8000
 
     servers:list[MultiProcess] = [
-        ServerWebSocket(host,port,get_value,http_serve_path),
-        HttpServer("",http_serve_port,http_serve_path)
+        ServerWebSocket(host,port,log,get_value,http_serve_path),
+        HttpServer("",http_serve_port,log,http_serve_path)
     ]    
-    try:   
+    try:
+        # LAnzamos cada uno de los servicios
         for server in servers:
             server.run()
+            ## print informacion
+            print(f"Sevicio: '{server}'")
 
-        ## print informacion
-        print(f"Http Server '{http_serve_path}' en http://{host}:{http_serve_port}")
-        print(f"SocketWeb Server  en ws://{host}:{port}")
-
-        # nos atachamos al servicio del http server
+        # nos atachamos a los servicio, a la espera por que todos finalicen
         for server in servers:
             server.join()
 

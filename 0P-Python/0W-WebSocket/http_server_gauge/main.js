@@ -124,7 +124,7 @@ window.addEventListener("DOMContentLoaded", () => {
             btn_clean.addEventListener("click",()=>{
                 //console.log('Boton clean presionado');
                 clean_gauges();
-                set_buttons(false);
+                //set_buttons(false);
                 
             });
         }

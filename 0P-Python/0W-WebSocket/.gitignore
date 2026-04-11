@@ -2,5 +2,9 @@
 .venv/
 __pycache__/
 **/__pycache__/
-
 **/*.log
+http_server_gauge/constants.js
+
+
+*_old.*
+**/*_old.*
