@@ -138,7 +138,32 @@ Para bajar el proceso de forma ordenada:
 
 > Nota: En caso de no ser ordenados nos quedara tomados los puertos (sobre todo el usado por el frontend  para la presentacion `HTTP Server`) y esto no nos permitira relanzar el proyecto. Al menos que cerremos la terminales y las volvamos a abrir o ejecutar la secuencia de comandos para verificar y forzar el cierre de los puertos (`8000` para el HTTP Server y el `8080` para el Server WebSocket)
 
+## logs
+Para revisar cada uno de los logs podemos recurrir a cada uno de los siguentes comandos, cada uno en una terminal o prompt diferente:
 
+```bash
+# Log general del Project
+tail -f -n0 logs/servers_gauge.log 
+
+# log del HTTP Server
+tail -f -n0 logs/HttpServer.log 
+
+# log del WebSocket Server
+tail -f -n0 logs/ServerWebSocket.log 
+```
+Para todos los casos el `n0` indica iniciar desde la ultima linea incertada, a la hora de iniciar el monitoreo. Si deseamos ver lineas anteriores o las que estan por defecto para el prompt podemos omitir la opcion para cada terminal dedicada:
+
+
+```bash
+# Log general del Project
+tail -f logs/servers_gauge.log 
+
+# log del HTTP Server
+tail -f logs/HttpServer.log 
+
+# log del WebSocket Server
+tail -f logs/ServerWebSocket.log 
+```
 
 
 
