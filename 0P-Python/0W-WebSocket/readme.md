@@ -25,7 +25,7 @@ Estructura del proyecto:
 1. Directorio `http_server_gauge`, representa el FronEnd en JavaScript.
 2. `gauge.py` es el backend en python todo en un solo script.
 3. `activate.sh` shell script con las seceuncias de comando para facilitar el despliegue del proyecto usando virtual Environment.
-4. `requirements` directorio con los archivos cons las dependencias del proyecto.
+4. `requirements` directorio con los archivos relacionado a las dependencias del proyecto.
 5. `readme` directorio con los complementos (imagenes) para este readme `readme.md`.
 
 
