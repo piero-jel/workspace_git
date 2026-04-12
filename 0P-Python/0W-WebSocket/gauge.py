@@ -179,7 +179,8 @@ class ServerWebSocket(MultiProcess):
         return True
     
     def __str__(self)->str:
-        return f"{type(self).__name__} ws://{self.url}:{self.port}"
+        url:str = '127.0.0.1' if self.url == '' else self.url
+        return f"{type(self).__name__} ws://{url}:{self.port}"
 
 
 class HandlerHttpServer(SimpleHTTPRequestHandler):
@@ -244,7 +245,8 @@ class HttpServer(MultiProcess):
             httpd.serve_forever()
 
     def __str__(self)->str:
-        return f"{type(self).__name__} folder={self.folder}, http://{self.url}:{self.port}"
+        url:str = '127.0.0.1' if self.url == '' else self.url
+        return f"{type(self).__name__} folder={self.folder}, http://{url}:{self.port}"
 
 
 def get_value()->str:

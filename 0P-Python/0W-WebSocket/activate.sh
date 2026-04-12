@@ -2,7 +2,7 @@
 THIS_FILE="${0##*/}"
 LOG_INFO='true'
 LOG_DEBUG='true'
-
+APP_MAIN_SCRIPT='gauge.py'
 
 ## list dirs/folder to find and delete from pattern or full name
 CLEAN_PATTERN_FOLDERS=(
@@ -264,9 +264,20 @@ function run_funtion(){
             main::activate
             return $?
         ;;
+        '--up')
+            # 1 - Create
+            main::activate 0
+            # 2 - up services
+            if [[ ! -f ${APP_MAIN_SCRIPT} ]];then
+                log::error "File <${APP_MAIN_SCRIPT}> not found"
+                return 1
+            fi
+            main::__exec_venv ${APP_MAIN_SCRIPT}
+            return 0
+        ;;
         '--help'|'-h')
             shift
-            main::help '-h' '--all'
+            main::help $@
             return 0
         ;;
         *)
@@ -298,17 +309,24 @@ function main(){
 function main::help(){
   local app arg1
   app=${0##*/}
-  if [ "$#" -eq "2" ];then
-    arg1=$2
-  else
-    arg1="-h"
-  fi
+  arg1=${1:-'-h'}
 
   arrHelp=( '--clean' '--delete'
             '--run' '--create' '--activate'
+            '--up'
   )
 
   case "$arg1" in
+  --up)
+    cat << EOH >&2
+${THIS_FILE} --up
+
+  Realiza todos los pasos previo para iniciar luego el servicio.
+  Este toma el archivo <${APP_MAIN_SCRIPT}> como script principal del servicio.
+
+EOH
+  return 0
+  ;;
   --clean)
     cat << EOH >&2
 ${THIS_FILE} --clean
@@ -380,7 +398,7 @@ EOH
     for it in ${arrHelp[@]}
     do
       #echo "msg_help -h $it"
-      main::help "-h" "$it"
+      main::help "$it"
       echo
     done
     return 0
