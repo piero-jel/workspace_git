@@ -12,6 +12,7 @@ class WebSocketClient{
 
         if (this.wssocket == undefined || this.wssocket == null){
             this.status = false;
+            return; /* no tenemos objeto */
         }
         
         if(receive_callback != null){

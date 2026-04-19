@@ -15,7 +15,7 @@ from time import sleep
 from json import dumps as json_dumps
 from subprocess import check_output
 from http.server import SimpleHTTPRequestHandler
-from socketserver import TCPServer,BaseRequestHandler
+from socketserver import TCPServer#,BaseRequestHandler
 import functools
 from multiprocessing import Process
 from websockets.sync.server import ServerConnection,serve
@@ -66,7 +66,11 @@ class MultiProcess(ABC):
             'level': LOGGING['level'],
             'format' : LOGGING['format'],
             'filename': f'{dir_name}/{type(self).__name__}.log'
-        }        
+        }
+        #print(f'{type(self).__name__}::get_logger() params: {params}',flush=True)
+        #log:Logger = getLogger(type(self).__name__)
+        #log.debug('%s::get_logger() params: %s',type(self).__name__,params)
+        #return log
         basicConfig(**params)
         return getLogger(type(self).__name__)
 
@@ -194,7 +198,8 @@ class HandlerHttpServer(SimpleHTTPRequestHandler):
         self.logger.info("%s - %s" % (self.address_string(), format % args))
 
 class HttpServer(MultiProcess):
-    """Http Server para el frontend, con multiprocess """
+    """Http Server para el frontend, con multiprocess """    
+
     def __init__(self,url:str,port:int,log:Logger=None,folder:str=None):
         """
         Http Server para el frontend, con multiprocess
