@@ -1,13 +1,59 @@
 # Document Processing
-Aplicacion de Microservicio y Arquitectura Hexagonal para procesamiento de documentos.
+Aplicación de Microservicio y Arquitectura Hexagonal para Pipeline de Procesamiento de documentos.
 
-Contenido
+**Contenido**:
 
+  - [**Document Processing Gateway**](#document-processing-gateway)
+  - [**Preparación del entorno**](#preparación-del-entorno)
+  - [**Despliegue con docker compose**](#despliegue-con-docker-compose)
+  - [**Swagger Docs**](#swagger-docs)
+  - [**unittest**](#unittest)
+  - [**Resumen de Pasos para el Despliegue**](#resumen-de-pasos-para-el-despliegue)
+  
 # Document Processing Gateway
-- job : Abreviatrua para representar el trabajo que realizar el 'Document Processing'
+- job : Abreviatura para representar el trabajo que realizar el 'Document Processing'
 
+Estructura de la aplicación:
+
+```bash
+app
+├── application
+│   ├── __init__.py
+│   ├── providermocks.py # Mock/Simulacion de Provedores externos
+│   └── services.py      # Casos de uso que implementan los puertos y worker
+│
+├── domain     # Entidades con reglas de negocio
+│   ├── __init__.py
+│   ├── ports.py       # Interfaces abstractas p/repositorios o eventos
+│   └── worker.py      # Base Class/Interfaces abstractas p/el modelar la Lógica de negocio
+│
+├── infrastructure # Adaptadores (entrada y salida)
+│   ├── adapters
+│   │   ├── __init__.py
+│   │   ├── adapters.py      # modelo que implementa la interfaces de worker
+│   │   ├── settings.py      # Configuraciones
+│   │   ├── tasks_celery.py  # Implementación concreta de los puertos
+│   │   └── worker_redis.py  # Implementacion concreta p/modelar de Lógica de negocio
+│   │
+│   ├── apis          # Adaptador HTTP (FastAPI/Flask)
+│   │   ├── __init__.py
+│   │   └── fastapi.py 
+│   │
+│   └── __init__.py
+│
+└── __init__.py
+
+```
+  - **domain** (Dominio): Contiene entidades con reglas de negocio puras, excepciones y interfaces abstractas (**ports**) para repositorios o eventos. 
+  
+  - **application** (Aplicación): Orquesta casos de uso, validaciones de entrada y servicios que implementan las interfaces definidas en el **domain** (dominio). 
+  
+  - **infrastructure** (Infraestructura): Implementa los **adapters** (entrada y salida) que conectan con el mundo exterior, como bases de datos, APIs REST o colas de mensajes. 
+  
+  - **tests** (Pruebas unitarias): Verifica la lógica del **domain** y la correcta integración de los **adapters**. 
+  
 ## Contexto
-Microservicio para la orquestacion del procesamiento de documentos a través de un pipeline de proveedores externos. Se recibe JSON con la informacion (como la metadata del archivo) y string del documentos (`"content"` como un string), dicha informacion es procesada por distintos stages de procesamiento (extracción, análisis y enriquecimiento), y al finalizar la misma es publicada en un servicios Event Streaming para que sea luego consumida por servicio de downstream de eventos.
+**Microservicio** para la orquestación del procesamiento de documentos a través de un pipeline de proveedores externos. Se recibe JSON con la información (como la **metadata** del archivo) y string del documentos (`"content"` como un string), dicha información es procesada por distintos **stages** de procesamiento (extracción, análisis y enriquecimiento), y al finalizar la misma es publicada en un servicios **Event Streaming** para que sea luego consumida por servicio de **downstream** de eventos.
 
 
 ## Arquitectura General
@@ -40,23 +86,23 @@ Desde el punto de vista de las APIs (Entrada) tenemos :
 
   - Enviar documento a procesar `[POST] url/pipeline_process/`
   - Consultar estado de un job  `[GET]  url/pipeline_process/<job_id>`
-  - Cancelar o ELiminar un job  `[PUT]  url/pipeline_process/<job_id> {"status": "'cancel|delete'"}`
+  - Cancelar o Eliminar un job  `[PUT]  url/pipeline_process/<job_id> {"status": "'cancel|delete'"}`
   - Listar jobs                 `[GET]  url/pipeline_process/list/[<status>]`
 
 
-## Peticion de procesamiento
-Para la peticion (`[POST] pipeline_process/`) de la creacion de un job tenemos el siguente Body:
+## Petición de procesamiento
+Para la petición (`[POST] pipeline_process/`) de la creación de un job tenemos el siguiente Body:
 
 ``` json
 {
     "name"        : "Nombre de archivo",
     "topic"       : "Topico/tema en el cual se publicara al finalizar",
-    "compression" : "Opcional, compresion puede ser: gzip, snappy, lz4, zstd",
+    "compression" : "Opcional, compresión puede ser: gzip, snappy, lz4, zstd",
     "content"     : "string con el contenido del archivo",
     "pipeline_config" : "Opcional nombre de los stage del Provider"
 }
 ```
-Y el response debera tener la siguente Forma:
+Y el response deberá tener la siguiente Forma:
 
 ``` json
 {
@@ -69,11 +115,11 @@ Y el response debera tener la siguente Forma:
 }
 ```
   > En caso de error tendremos los tabulados para API Rest relacionados al servicio. 
-  > Debemos onsiderar que los errores relacionados a la sintaxis de un campo en particular no se capturan, ya que es un sistema asincronico y estos son validados para cada etapa y capa en particular. Los mismos se reflejaran en los llamados posteriores para obtener el estado en funcion del ID generado.
+  > Debemos considerar que los errores relacionados a la sintaxis de un campo en particular no se capturan, ya que es un sistema asincronía y estos son validados para cada etapa y capa en particular. Los mismos se reflejaran en los llamados posteriores para obtener el estado en función del **ID** generado.
 
 Ejemplos para el lanzamiento de un nuevo Job:
 
-1. Opcion por defecto:
+1. Opción por defecto:
 
 ``` bash
 url='http://127.0.0.1:8000/pipeline_process/';\
@@ -105,14 +151,14 @@ curl -X 'POST' ${url} "${header[@]}" -d "${body}" -w '\n'
 ## Status de un Job
 Consultar estado de un job mediante su ID, `[GET]  pipeline_process/<job_id>`
 
-1. Get de estado, con info detallada del servicio 
+1. Obtener estado de un Job, con información detallada del servicio 
 ```bash
 job_id="XXXXXXXX";\
 uri="http://127.0.0.1:8000/pipeline_process/${job_id}" ;\
 curl -sS "${uri}" -i -X GET -w '\n'
 ```
 
-2. Get corriente, solo informacion del job
+2. Obtener estado de un Job,, solo información del Job
 ```bash
 job_id="XXXXXXXX";\
 uri="http://127.0.0.1:8000/pipeline_process/${job_id}" ;\
@@ -143,12 +189,12 @@ curl -sS "${uri}" -X GET -w '\n'
 }
 ```
 ## Cancel Eliminar un Job
-Cancelar o Eliminar un job, `[PUT]  pipeline_process/<job_id> {"status": "'cancel|delete'"}`. Podemos eliminar el mismo en cualquier ciclo de vida. Debemso considerar que la eliminacion se realiza en dos etapas, primero se cancela el job (si el mismo esta siendo ejecutado) y luego se elimina del sistema persistente. 
+Cancelar o Eliminar un job, `[PUT]  pipeline_process/<job_id> {"status": "'cancel|delete'"}`. Podemos eliminar el mismo en cualquier ciclo de vida. Debemos considerar que la eliminación se realiza en dos etapas, primero se cancela el job (si el mismo esta siendo ejecutado) y luego se elimina del sistema persistente. 
 
-> Nota el sistema persistente solo mantiene la minima informacion posible sobre un job. Esta no preserva informacion relacionada al archivo, solo los estados y demas data relacionada al procesamiento (pipeline, stage, status). Dichos datos son encapsualdos en un mecanismo de contexto el cual tiene una vida limitada en cuanto a persitencia (hasta 7 dias, segun configuracion).
+> Nota el sistema persistente solo mantiene la mínima información posible sobre un Job. Esta no preserva información relacionada al archivo, solo los estados y demás data relacionada al procesamiento (**pipeline**, **stage**, **status**). Dichos datos son encapsulados en un mecanismo de contexto el cual tiene una vida limitada en cuanto a persistencia (hasta 7 días, según configuración).
 
 
-1. Cancelacion de Job
+1. Cancelación de Job
 
 ```bash
 job_id="XXXXXXXX";\
@@ -178,7 +224,7 @@ curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
 }
 ```
 ## Listado de Jobs
-Retorna el listado de Job que se encuentran en un estado en particualar. `[GET]  pipeline_process/list/[<status>]`. En caso de no aportar el `<status>` retornara el listado para cada uno de los estados.
+Retorna el listado de Job que se encuentran en un estado en particular. `[GET]  pipeline_process/list/[<status>]`. En caso de no aportar el `<status>` retornara el listado para cada uno de los estados.
 
 Los estados posibles en los que puede estar el Proccess
 
@@ -228,59 +274,15 @@ curl -sS "${url}" -i -X GET -w '\n'
 ```
 
 
-# Preparacion del entorno
+# Preparación del entorno
 ## Dependencias
-La principal dependencia es la instalaccion de docker en la version V2, la cual incluye el subcomando `compose`. Instalada esta podemos ejecutar los comandos para el despliegue independientemente del sistema operativo.
+La principal dependencia es la instalación de docker en la versión V2, la cual incluye el sub-comando `compose`. Instalada esta podemos ejecutar los comandos para el despliegue independientemente del sistema operativo.
 
 Para el caso de usar distribuciones de linux como Fedora o RedHat debemos habilitar los permisos de acceso al directorio principal del proyecto. Ya que este se montara como un volumen a los diferentes contenedores. 
 
 ```bash
 curr=${PWD};cd .. && chcon -R -t svirt_sandbox_file_t "${curr}/" && cd -
 ```
-
-<!--  
-Resumen de Pasos para el Despliegue 
-
-1. build and up
-```bash
-docker compose up -d
-```
-
-2. Verificamos que todos los services este Creados y Up
-```bash
-docker compose ps
-```
-> Debemos considerar que el Service tests o Contenedor Tests no debe quedar en estado Up, ya que el mismo solo se preparo para realizar los test unitarios e incluye todas las librerias necesarias (combinacion de todos los servicios)
-
-3. Verificamos los logs
-```bash
-docker compose logs -f
-```
-
-Podemos reccorrer uno por uno para verificar que no existen errores de despliegue
-
-```bash
-docker compose logs -f celery
-docker compose logs -f fastapi
-docker compose logs -f kafka
-docker compose logs -f redis
-```
-
-
-
-4. Ingreso a la pagina FastAPI Swagger UI `http://0.0.0.0:8000/docs`
-
-5. Ejecucion de los unittest
-```bash
-services='tests'; \
-flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
-docker compose run ${flags} ${services} bash -c "python3 -m unittest -v"
-```
-FIXME Revisar los unittest, 
- - no se estan pasando en topic en los create jobs
- - algunos quedaron con el print() en lugar del log.info()
--->
-
 
 ## Creacion de los .env Kafka
 Debemos crear el archivo `deploy/kafka/environment/.env` con la siguente configuracion:
@@ -301,11 +303,11 @@ KAFKA_LISTENER_SECURITY_PROTOCOL_MAP='PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT'
 KAFKA_INTER_BROKER_LISTENER_NAME='PLAINTEXT'
 CLUSTER_ID='MkU3OEVBNTcwNTJENDM2Qk'
 ```
-  > Para este caso `CLUSTER_ID` es opcional, se utiliza en caso que escalemos. En tal caso se deberan generar varios `CLUSTER_ID` uno por cada services (al igual que las Variables). Para generar el valor de esta solo debemos ejecutar en una terminal `uuidgen --time | tr -d '-' | base64 | cut -b 1-22`.
+  > Para este caso `CLUSTER_ID` es opcional, se utiliza en caso que escalemos. En tal caso se deberán generar varios `CLUSTER_ID` uno por cada services (al igual que las Variables). Para generar el valor de esta solo debemos ejecutar en una terminal `uuidgen --time | tr -d '-' | base64 | cut -b 1-22`.
 
 
-## Creacion de los .env del proyecto
-Para este caso debemos generar el archivo `.env` (dentro del root del proyecto) con la siguente secuencia:
+## Creación de los .env del proyecto
+Para este caso debemos generar el archivo `.env` (dentro del root del proyecto) con la siguiente secuencia:
 
 ```bash
 # enviroment con las claves
@@ -319,8 +321,8 @@ KAFKA_PORT=9092
 ```
   
 # Despliegue con docker compose
-## Verificacion
-Paso previo debemos verificar la configuracion del archivo `docker-compose.yml`, esto nos servira para verificar si los `.env` fueron creados de forma sastifactoria.
+## Verificación
+Paso previo debemos verificar la configuración del archivo `docker-compose.yml`, esto nos servirá para verificar si los `.env` fueron creados de forma satisfactoria.
 
 ```bash
 docker compose config
@@ -492,7 +494,7 @@ volumes:
     
 </details>
 
-## Creacion
+## Creación
 ```bash
 # build and start containers
 docker compose up --build -d 
@@ -546,7 +548,7 @@ docker compose down -v
 docker compose logs -f
 docker compose logs -tf
 ```
-Para una mejor comoodidad podemos atacharnos a un log en particular:
+Para una mejor comodidad podemos atacharnos a un log de un services en particular:
 
 ```bash
 docker compose logs -f kafka 
@@ -555,7 +557,7 @@ docker compose logs -f celery
 docker compose logs -f tests 
 ```
 
-## Attach terminal a un contenedor
+## Conexión a una terminal dentro del contenedor
 ```bash
 docker exec -it Kafka '/bin/bash'
 docker exec -it Redis '/bin/bash'
@@ -563,19 +565,42 @@ docker exec -it Celery '/bin/bash'
 docker exec -it Tests '/bin/bash'
 ```
 
-# Swager Docs 
-Aprovechando la ventaja de la generacion de documentacion automatica de `FastAPIs` con los servicios iniciados podemos acceder a ella, para visualizar y ejecutar peticiones desde la web. Sin necesidad de ejecutar comandos que involucren `curl` o ejecutar script con finalidades similares.
+# Swagger Docs
+Aprovechando la ventaja de la generación de documentación automática de `FastAPIs` con los servicios iniciados podemos acceder a ella, para visualizar y ejecutar peticiones desde la web. Sin necesidad de ejecutar comandos que involucren `curl` o ejecutar script con finalidades similares.
 
 Dentro de nuestro ambiente en el cual desplegamos debemos acceder a la pagina ` http://127.0.0.1:8000/docs`:
 
+![swagger ui 1](img/readme/swagger_ui_01.png)
+
+Expandimos la documentación para `[POST] url/pipeline_process/`:
+
+![swagger ui 2](img/readme/swagger_ui_02.png)
+Al final de este detalle del lado derecho tendremos el botón **`Try it out`**, el cual habilita la prueba del **endpoint** desde **`Swagger UI`**, aqui un ejemplo para el test del **endpoint** en cuestión:
+
+![swagger ui 3](img/readme/swagger_ui_03.png)
+
+Armamos el body en función de los datos requeridos:
+
+![swagger ui 4](img/readme/swagger_ui_04.png)
+
+``` json
+{
+    "name"        : "Nombre de archivo",
+    "topic"       : "dato-comprimidos-v1",
+    "compression" : "gzip",
+    "content"     : "string con el contenido del archivo",
+    "pipeline_config" : ["Extraction "," Analysis ", "Enrichment"]
+}
+```
+
+Luego de ejecutar se visualizara la respuesta desde el servicio:
+
+![swagger ui 5](img/readme/swagger_ui_05.png)
 
 
 
 
 # unittest
-<!--  
-docker compose -f docker-compose-dev.yml run --rm -e TZ=America/Argentina/Buenos_Aires rd_django bash -c "bash Action.sh --coverage"
--->
 ## Para el test completo 
 ```bash
 services='tests'; \
@@ -592,4 +617,62 @@ module="tests.test_process_gateway.Test_ProcessGatewayV1.test_create"; \
 docker compose run ${flags} ${services} bash -c "python3 -m unittest -v ${module}" 
 ```
 
+# Resumen de Pasos para el Despliegue
+1. build and up
+```bash
+docker compose up -d
+```
 
+2. Verificamos que todos los services este Creados y Up
+```bash
+docker compose ps
+```
+> Debemos considerar que el Service tests o Contenedor Tests no debe quedar en estado Up, ya que el mismo solo se preparo para realizar los test unitarios e incluye todas las librerías necesarias (combinación de todos los servicios)
+
+3. Verificamos los logs
+```bash
+docker compose logs -f
+```
+
+Podemos recorrer uno por uno para verificar que no existen errores de despliegue
+
+```bash
+docker compose logs -f celery
+docker compose logs -f fastapi
+docker compose logs -f kafka
+docker compose logs -f redis
+```
+
+4. Ingresamos a la pagina [**FastAPI Swagger UI**](#swagger-docs) `http://0.0.0.0:8000/docs`, de la cual podemos lanzar una petición desde `[POST] url/pipeline_process/`:
+
+``` json
+{
+    "name"        : "Nombre de archivo",
+    "topic"       : "dato-comprimidos-v1",
+    "compression" : "gzip",
+    "content"     : "string con el contenido del archivo",
+    "pipeline_config" : ["Extraction ","Enrichment"]
+}
+```
+
+Para consumir el **downstream**, podemos ejecutar:
+
+```bash
+services='celery'; \
+flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-downstream.py"
+```
+
+
+5. Ejecucion de los unittest
+```bash
+services='tests'; \
+flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+docker compose run ${flags} ${services} bash -c "python3 -m unittest -v"
+```
+
+<!--  
+FIXME Revisar los unittest, 
+ - no se estan pasando en topic en los create jobs
+ - algunos quedaron con el print() en lugar del log.info()
+-->

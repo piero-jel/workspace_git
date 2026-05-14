@@ -3,11 +3,6 @@
 from abc import ABC, abstractmethod
 
 
-#class TaskProcessor(ABC):
-#    @abstractmethod
-#    def process(self, task: Task) -> dict:
-#        pass
-
 
 
 class ProviderInterfaces(ABC):

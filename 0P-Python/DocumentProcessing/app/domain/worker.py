@@ -205,6 +205,7 @@ class WorkerId(ABC):
         :rtype: bool            
         """
 
+
 class WorkerResult(ABC):
 
     @abstractmethod
