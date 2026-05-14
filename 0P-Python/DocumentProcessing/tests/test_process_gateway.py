@@ -350,12 +350,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         for i in range(0,10):
             body_data:dict = { k:v for k,v in data.items()}
             body_data['name'] = data['name'] + f' {i:4d}'
-            #body_data:dict = {
-            #    'name' : data['name'] + f' {i:4d}',
-            #    "topic": "dato-comprimidos-v1",
-            #    'content' : data['content']
-            #}            
-
+            
             jid:str = pr_gateway.create(TaskProcessingGateway.launch(body_data))
             log.info('job_ids: %s',jid)
             self.assertIsInstance(jid,str)
@@ -385,11 +380,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         job_id:list[str] = []
         for i in range(0,10):
             body_data:dict = { k:v for k,v in data.items()}
-            body_data['name'] = data['name'] + f' {i:4d}'
-            #body_data:dict = {
-            #    'name' : data['name'] + f' {i:4d}',
-            #    'content' : data['content']
-            #}            
+            body_data['name'] = data['name'] + f' {i:4d}'            
             jid:str = pr_gateway.create(TaskProcessingGateway.launch(body_data))
             log.info('job_ids: %s',jid)
             self.assertIsInstance(jid,str)
@@ -415,16 +406,10 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         self.log.info(f'\n:Jobs Staus: {json.dumps(st,indent=2)}')
        
     def test_get_v1(self):
-        ''' Test case 
+        ''' Test case get job no creado
            
         python3 -m unittest -v tests.test_process_gateway.Test_ProcessGatewayV1.test_get_v1
-        '''
-        #job_id:str = '3497ded6-b63b-40de-9ce8-610529c3ead7'
-        #job_id:str = 'ca10a8c4-0717-4b4f-b195-bba63d718dbe'
-        #job_id:str = '525d40f4-5560-4552-ac68-2da5ed1d63f1'
-        #job_id:str = '87c02ee8-e417-4805-8bf9-1816f5f2a3e2'
-        #job_id:str = '500ddc94-7696-4a91-979d-8bd3daabeedf'
-        #job_id:str = 'c2fe0ef2-a7b9-4f7a-88bb-376f8ff75334'
+        '''        
         job_id:str = str(uuid4())
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         st:dict = pr_gateway.get(job_id)
@@ -432,7 +417,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         self.log.info(f'\n:Job<{job_id}> Staus: {st}')
 
     def test_multithread_v1(self):
-        ''' Test case 
+        ''' Test case aplicacion multithread de job, con random para cancelar/eliminar/completar
            
         python3 -m unittest -v tests.test_process_gateway.Test_ProcessGatewayV1.test_multithread_v1
         '''
@@ -451,3 +436,11 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         mt_test.join()
         print(f'End   Test MultiThread')
         
+    def test_get_v1(self):
+        ''' Test case get job no creado
+           
+        python3 -m unittest -v tests.test_process_gateway.Test_ProcessGatewayV1.test_get_v1
+        '''        
+        st:dict = ProcessGateway(WorkerRedis()).get_providers()
+        self.assertIsInstance(st,dict)
+        self.log.info(f'\n:Providers <{st}>')

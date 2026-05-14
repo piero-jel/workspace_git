@@ -66,11 +66,11 @@ PROVIDERS_CLS:dict = {
 
 class ProcessGateway:
     ''' Process Gateway Interfaces Clase '''
-    retry:int = 10
-    time:float = 0.1
-    resp:dict = None
-
-    worker_id:WorkerId = None
+    retry:int = 10    # reintentos para obtener el worker id
+    time:float = 0.1  # segundos entre reintentos
+    resp:dict = None  # atributo en el cual almacenaremos un response temporal
+    expire:int = 604800 # expire time en segundos, vida del context
+    worker_id:WorkerId = None # atributo para el manejo del worker id entre worker y backend
 
     def __init__(self,worker:Worker):
         """ 
@@ -79,7 +79,7 @@ class ProcessGateway:
         :type worker: Worker
         """        
         self.worker:Worker = worker
-        self.work_context:WorkerContext = self.worker.make_workercontext(expire=604800)        
+        self.work_context:WorkerContext = self.worker.make_workercontext(expire=self.expire)        
 
     def _status(self,worker_id:str)->bool:
         """ """
@@ -109,7 +109,7 @@ class ProcessGateway:
         return True
     
     def _get_result(self)->dict:
-        result:WorkerResult = None
+        #result:WorkerResult = None
         tsk_status = self.work_context.load(self.worker_id.job_id)
         
         ret:dict = { 
@@ -120,7 +120,7 @@ class ProcessGateway:
             ret.update(**tsk_status)
         
         
-        result = self.worker.make_workerresult(self.worker_id.job_id)
+        #result:WorkerResult = self.worker.make_workerresult(self.worker_id.job_id)
         return {
             **ret,
             #"ready"     : result.ready(),
@@ -128,7 +128,7 @@ class ProcessGateway:
             #"status"    : result.status(), 
             #"stages"    : self.worker_id.get_status(), # lo toma del context
             "status"    : self.worker_id.get_status(), 
-            "result"    : result.get()
+            #"result"    : result.get()
         }
 
     def create(self,job_id:str)->str:
@@ -270,3 +270,12 @@ class ProcessGateway:
                 }
         
         return self.worker.get_workers()
+    
+    def get_providers(self)->dict:
+        """ 
+        Metodo para obtener el listado de Provedores disponibles para armar el `"pipeline_config"`
+        
+        :return: dict con el listado de provedores
+        :rtype: dict
+        """        
+        return {'providers' : [x for x in PROVIDERS_CLS.keys()] }

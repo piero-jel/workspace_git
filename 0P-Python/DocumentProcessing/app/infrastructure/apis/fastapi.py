@@ -237,6 +237,23 @@ async def process_list(status:Optional[str] = None):
     return pr_gateway.get_list(status)
 
 
+@fastapi.get("/pipeline_process/providers/")
+async def process_providers():
+    '''
+    Retorna el listado de Provedores disponibles, utili para armar correctamente el campo 
+    `"pipeline_config"` del endpoint `[POST] url/pipeline_process/`.
+    
+    [GET]  pipeline_process/providers/
+    
+    Get Example
+    ```    
+    url="http://127.0.0.1:8000/pipeline_process/providers/" ;\\
+    curl -sS "${url}" -i -X GET -w '\\n'
+    ```    
+    '''
+    return ProcessGateway(WorkerRedis()).get_providers()
+
+
 ## Run 
 # fastapi dev app/infrastructure/apis/fastapi.py
 

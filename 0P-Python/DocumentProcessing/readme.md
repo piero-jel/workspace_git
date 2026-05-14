@@ -19,7 +19,7 @@ Estructura de la aplicación:
 app
 ├── application
 │   ├── __init__.py
-│   ├── providermocks.py # Mock/Simulacion de Provedores externos
+│   ├── providermocks.py # Mock/Simulación de Proveedores externos
 │   └── services.py      # Casos de uso que implementan los puertos y worker
 │
 ├── domain     # Entidades con reglas de negocio
@@ -53,7 +53,7 @@ app
   - **tests** (Pruebas unitarias): Verifica la lógica del **domain** y la correcta integración de los **adapters**. 
   
 ## Contexto
-**Microservicio** para la orquestación del procesamiento de documentos a través de un ++ de proveedores externos. Se recibe JSON con la información (como la **metadata** del archivo) y ++ del documentos (`"content"` como un string), dicha información es procesada por distintos **stages** de procesamiento (extracción, análisis y enriquecimiento), y al finalizar la misma es publicada en un servicios **Event Streaming** para que sea luego consumida por servicio de **downstream** de eventos.
+**Microservicio** para la orquestación del procesamiento de documentos a través de un ++ de proveedores externos. Se recibe **JSON** con la información (como la **metadata** del archivo) y ++ del documentos (`"content"` como un string), dicha información es procesada por distintos **stages** de procesamiento (extracción, análisis y enriquecimiento), y al finalizar la misma es publicada en un servicios **Event Streaming** para que sea luego consumida por servicio de **downstream** de eventos.
 
 
 ## Arquitectura General
@@ -88,7 +88,26 @@ Desde el punto de vista de las APIs (Entrada) tenemos :
   - Consultar estado de un **Job**  `[GET]  url/pipeline_process/<job_id>`
   - Cancelar o Eliminar un **Job**  `[PUT]  url/pipeline_process/<job_id> {"status": "'cancel|delete'"}`
   - Listar **Job**s                 `[GET]  url/pipeline_process/list/[<status>]`
+  - Listado de Proveedores          `[GET]  url/pipeline_process/providers/`
 
+## Obtener el listado de Proveedores
+Para esta acción contamos con endpoint `[GET]  url/pipeline_process/providers/`, el cual podemos consultar de la siguente manera:
+
+``` bash
+url="http://127.0.0.1:8000/pipeline_process/providers/" ;\
+curl -sS "${url}" -i -X GET -w '\n'
+```
+El response deberá ser del siguiente tipo:
+
+``` json
+{
+  "providers": [
+    "extraction",
+    "analysis",
+    "enrichment"
+  ]
+}
+```
 
 ## Petición de procesamiento
 Para la petición (`[POST] pipeline_process/`) de la creación de un **Job** tenemos el siguiente **Body**:
@@ -99,9 +118,14 @@ Para la petición (`[POST] pipeline_process/`) de la creación de un **Job** ten
     "topic"       : "Tópico/tema en el cual se publicara al finalizar",
     "compression" : "Opcional, compresión puede ser: gzip, snappy, lz4, zstd",
     "content"     : "string con el contenido del archivo",
-    "pipeline_config" : "Opcional nombre de los stage del Provider"
+    "pipeline_config" : "Opcional nombre de los stage del Provider que se ejecutaran"
 }
 ```
+  > **`"topic"`** : Este campo representa el TOPIC con el cual se publicaran los resultados, es importante ya que el consumidor del **servicios downstream** debera usar este para acceder al resultado.
+
+  > **"pipeline_config"** Para el caso particular de este campo, esté puede ser una cadena de string con cada proveedor separado por comas (con o sin espacio entre ellos). O un array con los mismo. Se respeta el orden y si se repite uns stage el mismo se repetirá en la ejecución y orden.
+  Para obtener el listado actual de proveedores disponibles contamos con el endpoint **`[GET]  url/pipeline_process/providers/`**.
+
 Y el response deberá tener la siguiente Forma:
 
 ``` json
@@ -111,11 +135,13 @@ Y el response deberá tener la siguiente Forma:
     "topic"       : " ... ",
     "compression" : " ... ",
     "content"     : " ... ",
-    "pipeline_config" : ""
+    "pipeline_config" : "..."
 }
 ```
-  > En caso de error tendremos los tabulados para **API Rest** relacionados al servicio. 
+  > En caso de error tendremos los tabulados para **API Rest** relacionados al servicio.
   > Debemos considerar que los errores relacionados a la sintaxis de un campo en particular no se capturan, ya que es un sistema asincronía y estos son validados para cada etapa y capa en particular. Los mismos se reflejaran en los llamados posteriores para obtener el estado en función del **ID** generado.
+
+Como podemos Observar la respuesta contiene request mas el campo `"job_id"`, él cual se deberá utilizar para realizar cualquier acción sobre el Job creado.
 
 Ejemplos para el lanzamiento de un nuevo **Job**:
 
@@ -562,7 +588,6 @@ docker compose logs -f tests
 docker exec -it Kafka '/bin/bash'
 docker exec -it Redis '/bin/bash'
 docker exec -it Celery '/bin/bash'
-docker exec -it Tests '/bin/bash'
 ```
 
 # Swagger Docs
@@ -619,7 +644,7 @@ docker compose run ${flags} ${services} bash -c "python3 -m unittest -v ${module
 
 ## Consumo de los job creados por los unittest
 ```bash
-services='celery'; \
+services='tests'; \
 flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
 docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-downstream.py"
 ```
