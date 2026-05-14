@@ -1,0 +1,6 @@
+python-dotenv
+coverage
+pylint
+celery[redis]
+redis
+confluent-kafka

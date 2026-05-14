@@ -1,0 +1,100 @@
+services:
+    kafka:
+        image: apache/kafka:latest
+        container_name: Kafka
+        environment:
+            - TZ=America/Argentina/Buenos_Aires
+        env_file:
+            - deploy/kafka/environment/.env
+
+        ports:
+            - "9092:9092"
+            - "9093:9093"
+
+        volumes:
+            - kafka-data:/var/lib/kafka/data
+
+    redis:
+        image: redis:8-alpine
+        container_name: Redis
+        environment:
+            - TZ=America/Argentina/Buenos_Aires
+        ports:
+            - "6379:6379"
+
+        volumes:
+            - redis-data:/data
+            
+        command: redis-server --requirepass ${REDISCLI_AUTH} --appendonly yes
+        restart: unless-stopped
+
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    celery:
+        build:
+            context: ./deploy/
+            dockerfile: ./celery/Dockerfile
+
+        container_name: Celery
+        command: celery -A app.infrastructure.adapters.tasks_celery worker --loglevel=info --concurrency=4
+
+        depends_on:
+            redis:
+                condition: service_healthy 
+        
+        environment:
+            - TZ=America/Argentina/Buenos_Aires
+
+        volumes:
+            - "./:/application"
+        
+        healthcheck:
+            test: ["CMD-SHELL", "celery -A app.infrastructure.adapters.tasks_celery inspect ping --destination celery@$$HOSTNAME"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 5s
+
+    fastapi:
+        build:
+            context: ./deploy/
+            dockerfile: ./fastapi/Dockerfile
+
+        container_name: FastApi
+        command: uvicorn app.infrastructure.apis.fastapi:fastapi --host 0.0.0.0 --port 8000
+        ports:
+            - "8000:8000" # Swager DOC in http://127.0.0.1:8000/docs
+
+        depends_on:
+            celery:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+
+        environment:
+            - TZ=America/Argentina/Buenos_Aires
+
+        volumes:
+            - "./:/application"
+    
+    tests: # services for unittest, solo se crea la imagen
+        build:
+            context: ./deploy/
+            dockerfile: ./tests/Dockerfile
+        container_name: Tests
+        environment:
+            - TZ=America/Argentina/Buenos_Aires
+
+        volumes:
+            - "./:/application"
+
+# creamos los volumenes, para el delete debemos usar el flags `-v|--volumes`
+## docker compose down -v
+## docker compose down --volumes
+volumes:
+    redis-data:
+    kafka-data:
