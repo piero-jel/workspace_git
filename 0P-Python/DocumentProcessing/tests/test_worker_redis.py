@@ -1,4 +1,50 @@
-# build module
+"""
+Copyright 2026, Jesus Emanuel Luccioni0
+All rights reserved.
+
+This file is part of devops for Open Container (in this case docker )
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+    3. Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived from this
+    software without specific prior written permission.
+
+THIS SCRIPT IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SCRIPT, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+@file test_worker_redis.py
+@author Jesus Emanuel Luccioni - jeluccioni@gmail.com.
+@brief   ...
+@details ...
+@version 0.0.3.
+@date Jueves 14 de Mayo de 2026.
+@pre condiciones que deben cuplirse antes del llamado,
+@bug depuracion example: Not all memory is freed when deleting an object of this class.
+@warning
+@note
+@Change History:
+Author         Date           Version     Brief
+JEL            2026.04.14     0.0.3       Version Inicial no release
+"""
+# build-in module
 import unittest   
 from time import sleep
 import json
@@ -21,12 +67,9 @@ from app.infrastructure.adapters.worker_redis import (
     WorkerContextRedis,
     WorkerIdRedis,
     WorkerRedis,
-    WorkerResultCelery
-    
+    WorkerResultCelery    
 )
 #from app.infrastructure.adapters.tasks_celery import TaskProcessingGateway
-
-
 from tests.config import get_log,unittest_log,Logger
 
 
@@ -48,40 +91,6 @@ class Test_WorkerIdRedis(unittest.TestCase):
         self.job.delete()
         return super().tearDown()
 
-    #def test_(self):
-    #    ''' Test case 
-    #       
-    #    python3 -m unittest -v tests.test_worker_redis.Test_CelerysTask.test_
-    #    ''' 
-    #    print('\n')
-    #    for _ in range(10):
-    #        print(f'random_bool: {bool(random.getrandbits(1))}')
-    #
-    #    #lst_bool:list[bool] = [ bool(random.getrandbits(random.randint(1,3))) for _ in range(10) ]
-    #    lst_bool:list[bool] = [ bool(random.getrandbits(1)) for _ in range(10) ]
-    #    print(f'Nro True: {sum(lst_bool)}')
-
-
-
-    #def test_check_task(self):
-    #    ''' Test case 
-    #       
-    #    python3 -m unittest -v tests.test_worker_redis.Test_WorkerIdRedis.test_check_task
-    #    '''
-    #    log:Logger = unittest_log(self)
-    #    for it in WorkerStatus:
-    #        task_ids:list[str] = WorkerIdRedis.gets(it)
-    #        self.assertIsInstance(task_ids,list)
-    #        log.info(f'{it.name.lower():10s} task_ids: {task_ids}')
-    #    
-    #    #task_ids:list[str] = WorkerIdRedis.gets(WorkerStatus.COMPLETED)
-    #    #print(f'COMPLETED task_ids: {task_ids}')
-    #    #
-    #    #task_ids = WorkerIdRedis.gets(WorkerStatus.CANCELLED)
-    #    #print(f'CANCELLED task_ids: {task_ids}')
-    #    #
-    #    #task_ids = WorkerIdRedis.gets(WorkerStatus.PROCESSING)
-    #    #print(f'PROCESSING task_ids: {task_ids}')
 
     def test_gets_v1(self):
         ''' Test case gets class method, default params
@@ -275,39 +284,6 @@ class Test_WorkerIdRedis(unittest.TestCase):
         log.info(f'After delete_mark_deletion() job_load: {job_load}')
         self.assertIsNone(job_load)
 
-        
-        
-    #def test_check_task_v1(self):
-    #    ''' Test case 
-    #       
-    #    python3 -m unittest -v tests.test_worker_redis.Test_WorkerIdRedis.test_check_task_v1
-    #    '''
-    #    #celery.control.inspect()
-    #    inspector = celery.control.inspect()
-    #
-    #
-    #    # Get currently executing tasks
-    #    active = inspector.active()
-    #
-    #    # Get tasks scheduled for later
-    #    scheduled = inspector.scheduled()
-    #
-    #    # Get tasks reserved by workers
-    #    reserved = inspector.reserved()
-    #
-    #    # nombre de los Task no Task-ID
-    #    ## Get all registered task names
-    #    #all_task_names = celery.tasks.keys()
-    #    # Get registered tasks (task names, not IDs)
-    #    #registered = inspector.registered()
-    #
-    #    # Combine active, scheduled, and reserved IDs
-    #    all_ids = [task['id'] for worker_tasks in active.values() for task in worker_tasks]
-    #    all_ids += [task['id'] for worker_tasks in scheduled.values() for task in worker_tasks]
-    #    all_ids += [task['id'] for worker_tasks in reserved.values() for task in worker_tasks]
-    #    print(f'All Task Ids: {all_ids}')
-    #    
-
 
 class Test_WorkerContextRedis(unittest.TestCase):
     ''' Test Case For Test_WorkerId
@@ -344,7 +320,6 @@ class Test_WorkerContextRedis(unittest.TestCase):
 
         # load
         load_data:dict = work_ctx.load(self.job_id)
-        #print(f'id: {id} | {load} | name: {load["name"]}')
         self.log.info(f'job_id: {self.job_id} | {load_data}')
         self.assertIsInstance(load_data,dict)
         for k,v in load_data.items():
@@ -376,7 +351,7 @@ class Test_WorkerContextRedis(unittest.TestCase):
         st:bool = work_ctx.store(contex['job_id'],contex)
         self.assertTrue(st)
         load:dict = work_ctx.load(contex['job_id'])
-        #print(f'Load : {load}')
+
         # recupera todos los campos como string
         load['code']  = int(load['code'])
         load['ready'] = bool(int(load['ready']))
@@ -433,7 +408,7 @@ class Test_WorkerContextRedis(unittest.TestCase):
         work_ctx.store(self.job_id,contex)
         for i in range(ticks*2):
             val = work_ctx.load(self.job_id)
-            print(f'load <{i:3d}> value: {val}')
+            self.log.info(f'load <{i:3d}> value: {val}')
             self.assertIsInstance(val,dict)
             if i >= ticks:
                 self.assertFalse(val)

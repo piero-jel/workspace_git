@@ -1,5 +1,5 @@
 # Document Processing
-Aplicación de Microservicio y Arquitectura Hexagonal para Pipeline de Procesamiento de documentos.
+Aplicación de **Microservicio** y Arquitectura Hexagonal para **Pipeline** de Procesamiento de documentos.
 
 **Contenido**:
 
@@ -11,7 +11,7 @@ Aplicación de Microservicio y Arquitectura Hexagonal para Pipeline de Procesami
   - [**Resumen de Pasos para el Despliegue**](#resumen-de-pasos-para-el-despliegue)
   
 # Document Processing Gateway
-- job : Abreviatura para representar el trabajo que realizar el 'Document Processing'
+- **Job** : Abreviatura para representar el trabajo que realizara el '**Document Processing**'.
 
 Estructura de la aplicación:
 
@@ -53,7 +53,7 @@ app
   - **tests** (Pruebas unitarias): Verifica la lógica del **domain** y la correcta integración de los **adapters**. 
   
 ## Contexto
-**Microservicio** para la orquestación del procesamiento de documentos a través de un pipeline de proveedores externos. Se recibe JSON con la información (como la **metadata** del archivo) y string del documentos (`"content"` como un string), dicha información es procesada por distintos **stages** de procesamiento (extracción, análisis y enriquecimiento), y al finalizar la misma es publicada en un servicios **Event Streaming** para que sea luego consumida por servicio de **downstream** de eventos.
+**Microservicio** para la orquestación del procesamiento de documentos a través de un ++ de proveedores externos. Se recibe JSON con la información (como la **metadata** del archivo) y ++ del documentos (`"content"` como un string), dicha información es procesada por distintos **stages** de procesamiento (extracción, análisis y enriquecimiento), y al finalizar la misma es publicada en un servicios **Event Streaming** para que sea luego consumida por servicio de **downstream** de eventos.
 
 
 ## Arquitectura General
@@ -85,18 +85,18 @@ app
 Desde el punto de vista de las APIs (Entrada) tenemos :
 
   - Enviar documento a procesar `[POST] url/pipeline_process/`
-  - Consultar estado de un job  `[GET]  url/pipeline_process/<job_id>`
-  - Cancelar o Eliminar un job  `[PUT]  url/pipeline_process/<job_id> {"status": "'cancel|delete'"}`
-  - Listar jobs                 `[GET]  url/pipeline_process/list/[<status>]`
+  - Consultar estado de un **Job**  `[GET]  url/pipeline_process/<job_id>`
+  - Cancelar o Eliminar un **Job**  `[PUT]  url/pipeline_process/<job_id> {"status": "'cancel|delete'"}`
+  - Listar **Job**s                 `[GET]  url/pipeline_process/list/[<status>]`
 
 
 ## Petición de procesamiento
-Para la petición (`[POST] pipeline_process/`) de la creación de un job tenemos el siguiente Body:
+Para la petición (`[POST] pipeline_process/`) de la creación de un **Job** tenemos el siguiente **Body**:
 
 ``` json
 {
     "name"        : "Nombre de archivo",
-    "topic"       : "Topico/tema en el cual se publicara al finalizar",
+    "topic"       : "Tópico/tema en el cual se publicara al finalizar",
     "compression" : "Opcional, compresión puede ser: gzip, snappy, lz4, zstd",
     "content"     : "string con el contenido del archivo",
     "pipeline_config" : "Opcional nombre de los stage del Provider"
@@ -114,10 +114,10 @@ Y el response deberá tener la siguiente Forma:
     "pipeline_config" : ""
 }
 ```
-  > En caso de error tendremos los tabulados para API Rest relacionados al servicio. 
+  > En caso de error tendremos los tabulados para **API Rest** relacionados al servicio. 
   > Debemos considerar que los errores relacionados a la sintaxis de un campo en particular no se capturan, ya que es un sistema asincronía y estos son validados para cada etapa y capa en particular. Los mismos se reflejaran en los llamados posteriores para obtener el estado en función del **ID** generado.
 
-Ejemplos para el lanzamiento de un nuevo Job:
+Ejemplos para el lanzamiento de un nuevo **Job**:
 
 1. Opción por defecto:
 
@@ -149,16 +149,16 @@ curl -X 'POST' ${url} "${header[@]}" -d "${body}" -w '\n'
 
 
 ## Status de un Job
-Consultar estado de un job mediante su ID, `[GET]  pipeline_process/<job_id>`
+Consultar estado de un **Job** mediante su **ID**, `[GET]  pipeline_process/<job_id>`
 
-1. Obtener estado de un Job, con información detallada del servicio 
+1. Obtener estado de un **Job**, con información detallada del servicio 
 ```bash
 job_id="XXXXXXXX";\
 uri="http://127.0.0.1:8000/pipeline_process/${job_id}" ;\
 curl -sS "${uri}" -i -X GET -w '\n'
 ```
 
-2. Obtener estado de un Job,, solo información del Job
+2. Obtener estado de un **Job**,, solo información del **Job**
 ```bash
 job_id="XXXXXXXX";\
 uri="http://127.0.0.1:8000/pipeline_process/${job_id}" ;\
@@ -189,12 +189,12 @@ curl -sS "${uri}" -X GET -w '\n'
 }
 ```
 ## Cancel Eliminar un Job
-Cancelar o Eliminar un job, `[PUT]  pipeline_process/<job_id> {"status": "'cancel|delete'"}`. Podemos eliminar el mismo en cualquier ciclo de vida. Debemos considerar que la eliminación se realiza en dos etapas, primero se cancela el job (si el mismo esta siendo ejecutado) y luego se elimina del sistema persistente. 
+Cancelar o Eliminar un job, `[PUT]  pipeline_process/<job_id> {"status": "'cancel|delete'"}`. Podemos eliminar el mismo en cualquier ciclo de vida. Debemos considerar que la eliminación se realiza en dos etapas, primero se cancela el **Job** (si el mismo esta siendo ejecutado) y luego se elimina del sistema persistente. 
 
 > Nota el sistema persistente solo mantiene la mínima información posible sobre un Job. Esta no preserva información relacionada al archivo, solo los estados y demás data relacionada al procesamiento (**pipeline**, **stage**, **status**). Dichos datos son encapsulados en un mecanismo de contexto el cual tiene una vida limitada en cuanto a persistencia (hasta 7 días, según configuración).
 
 
-1. Cancelación de Job
+1. Cancelación de **Job**
 
 ```bash
 job_id="XXXXXXXX";\
@@ -204,7 +204,7 @@ body='{"status": "cancel"}';\
 curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
 ```
 
-2. Delete Job
+2. Delete **Job**
 
 ```bash 
 job_id="XXXXXXXX";\
@@ -214,7 +214,7 @@ body='{"status": "delete"}';\
 curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
 ```
 
-3. Response de un Job Completado
+3. Response de un **Job** Completado
 ``` json
 {
   "code": 0,
@@ -224,15 +224,15 @@ curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
 }
 ```
 ## Listado de Jobs
-Retorna el listado de Job que se encuentran en un estado en particular. `[GET]  pipeline_process/list/[<status>]`. En caso de no aportar el `<status>` retornara el listado para cada uno de los estados.
+Retorna el listado de Job que se encuentran en un estado en particular. `[GET]  pipeline_process/list/[<status>]`. En caso de no aportar el **`<status>`** retornara el listado para cada uno de los estados.
 
-Los estados posibles en los que puede estar el Proccess
+Los estados posibles en los que puede estar el **Proccess**
 
-- `pending`
-- `processing`
-- `completed`
-- `failed`
-- `cancelled`
+- **`pending`**
+- **`processing`**
+- **`completed`**
+- **`failed`**
+- **`cancelled`**
 
 1. Get, `status=cancelled`
 
@@ -249,7 +249,7 @@ url="http://127.0.0.1:8000/pipeline_process/list/";\
 curl -sS "${url}" -i -X GET -w '\n'
 ```
 
-3. Response para el Status processing:
+3. Response para el Status Processing:
 ``` json
 {
   "processing": [
@@ -276,16 +276,16 @@ curl -sS "${url}" -i -X GET -w '\n'
 
 # Preparación del entorno
 ## Dependencias
-La principal dependencia es la instalación de docker en la versión V2, la cual incluye el sub-comando `compose`. Instalada esta podemos ejecutar los comandos para el despliegue independientemente del sistema operativo.
+La principal dependencia es la instalación de [**docker**](https://docs.docker.com/engine/install/) en la versión V2, la cual incluye el sub-comando `compose`. Instalada esta podemos ejecutar los comandos para el despliegue independientemente del sistema operativo.
 
-Para el caso de usar distribuciones de linux como Fedora o RedHat debemos habilitar los permisos de acceso al directorio principal del proyecto. Ya que este se montara como un volumen a los diferentes contenedores. 
+Para el caso de usar distribuciones de **linux** como **Fedora** o **RedHat** debemos habilitar los permisos de acceso al directorio principal del proyecto. Ya que este se montara como un volumen a los diferentes contenedores. 
 
 ```bash
 curr=${PWD};cd .. && chcon -R -t svirt_sandbox_file_t "${curr}/" && cd -
 ```
 
-## Creacion de los .env Kafka
-Debemos crear el archivo `deploy/kafka/environment/.env` con la siguente configuracion:
+## Creación de los .env Kafka
+Debemos crear el archivo **`deploy/kafka/environment/.env`** con la siguiente configuración:
 
 ```bash
 KAFKA_NODE_ID=1
@@ -307,7 +307,7 @@ CLUSTER_ID='MkU3OEVBNTcwNTJENDM2Qk'
 
 
 ## Creación de los .env del proyecto
-Para este caso debemos generar el archivo `.env` (dentro del root del proyecto) con la siguiente secuencia:
+Para este caso debemos generar el archivo **`.env`** (dentro del **root** del proyecto) con la siguiente secuencia:
 
 ```bash
 # enviroment con las claves
@@ -322,7 +322,7 @@ KAFKA_PORT=9092
   
 # Despliegue con docker compose
 ## Verificación
-Paso previo debemos verificar la configuración del archivo `docker-compose.yml`, esto nos servirá para verificar si los `.env` fueron creados de forma satisfactoria.
+Paso previo debemos verificar la configuración del archivo **`docker-compose.yml`**, esto nos servirá para verificar si los **`.env`** fueron creados de forma satisfactoria.
 
 ```bash
 docker compose config
@@ -548,7 +548,7 @@ docker compose down -v
 docker compose logs -f
 docker compose logs -tf
 ```
-Para una mejor comodidad podemos atacharnos a un log de un services en particular:
+Para una mejor comodidad podemos adjuntar (**attached terminal**) una terminal a un log de un services en particular:
 
 ```bash
 docker compose logs -f kafka 
@@ -617,17 +617,97 @@ module="tests.test_process_gateway.Test_ProcessGatewayV1.test_create"; \
 docker compose run ${flags} ${services} bash -c "python3 -m unittest -v ${module}" 
 ```
 
+## Consumo de los job creados por los unittest
+```bash
+services='celery'; \
+flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-downstream.py"
+```
+
+
+<details>
+  <summary>Mensaje JSON Publicado en service downstream </summary>
+
+Para los Provider establecidos deberíamos ver mensajes JSON del siguiente Tipo:
+
+``` json
+{
+    "name": "Test_ProcessGatewayV1-idx08",
+    "topic": "dato-comprimidos-v1",
+    "content": "Datos Originales-id 08",
+    "Extraction": {
+        "name": "ProviderExtraction",
+        "data": {
+            "name": "Test_ProcessGatewayV1-idx08",
+            "topic": "dato-comprimidos-v1",
+            "content": "Datos Originales-id 08"
+        }
+    },
+    "Analysis": {
+        "name": "ProviderAnalysis",
+        "data": {
+            "name": "Test_ProcessGatewayV1-idx08",
+            "topic": "dato-comprimidos-v1",
+            "content": "Datos Originales-id 08",
+            "Extraction": {
+                "name": "ProviderExtraction",
+                "data": {
+                    "name": "Test_ProcessGatewayV1-idx08",
+                    "topic": "dato-comprimidos-v1",
+                    "content": "Datos Originales-id 08"
+                }
+            }
+        }
+    },
+    "Enrichment": {
+        "name": "ProviderEnrichment",
+        "data": {
+            "name": "Test_ProcessGatewayV1-idx08",
+            "topic": "dato-comprimidos-v1",
+            "content": "Datos Originales-id 08",
+            "Extraction": {
+                "name": "ProviderExtraction",
+                "data": {
+                    "name": "Test_ProcessGatewayV1-idx08",
+                    "topic": "dato-comprimidos-v1",
+                    "content": "Datos Originales-id 08"
+                }
+            },
+            "Analysis": {
+                "name": "ProviderAnalysis",
+                "data": {
+                    "name": "Test_ProcessGatewayV1-idx08",
+                    "topic": "dato-comprimidos-v1",
+                    "content": "Datos Originales-id 08",
+                    "Extraction": {
+                        "name": "ProviderExtraction",
+                        "data": {
+                            "name": "Test_ProcessGatewayV1-idx08",
+                            "topic": "dato-comprimidos-v1",
+                            "content": "Datos Originales-id 08"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+ 
+</details>
+
+
 # Resumen de Pasos para el Despliegue
 1. build and up
 ```bash
 docker compose up -d
 ```
 
-2. Verificamos que todos los services este Creados y Up
+2. Verificamos que todos los **services** este Creados y Up
 ```bash
 docker compose ps
 ```
-> Debemos considerar que el Service tests o Contenedor Tests no debe quedar en estado Up, ya que el mismo solo se preparo para realizar los test unitarios e incluye todas las librerías necesarias (combinación de todos los servicios)
+> Debemos considerar que el **Services** tests o Contenedor Tests no debe quedar en estado Up, ya que el mismo solo se preparo para realizar los test unitarios e incluye todas las librerías necesarias (combinación de todos los servicios)
 
 3. Verificamos los logs
 ```bash
@@ -664,7 +744,7 @@ docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-d
 ```
 
 
-5. Ejecucion de los unittest
+5. Ejecución de los unittest
 ```bash
 services='tests'; \
 flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
@@ -672,7 +752,8 @@ docker compose run ${flags} ${services} bash -c "python3 -m unittest -v"
 ```
 
 <!--  
-FIXME Revisar los unittest, 
- - no se estan pasando en topic en los create jobs
- - algunos quedaron con el print() en lugar del log.info()
+FIXME Pendientes:
+ - add los unittest para FastAPI
+ - add input adapter gRPC, file content in bytearrays
 -->
+

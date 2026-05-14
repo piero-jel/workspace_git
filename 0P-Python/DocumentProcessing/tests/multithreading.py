@@ -1,14 +1,59 @@
+"""
+Copyright 2026, Jesus Emanuel Luccioni
+All rights reserved.
+
+This file is part of devops for Open Container (in this case docker )
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+    3. Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived from this
+    software without specific prior written permission.
+
+THIS SCRIPT IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SCRIPT, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+@file multithreading.py
+@author Jesus Emanuel Luccioni - jeluccioni@gmail.com.
+@brief   ...
+@details ...
+@version 0.0.0.
+@date Jueves 14 de Mayo de 2026.
+@pre condiciones que deben cuplirse antes del llamado,
+@bug depuracion example: Not all memory is freed when deleting an object of this class.
+@warning
+@note
+@Change History:
+Author         Date           Version             Brief
+JEL            2026.04.14     0.0.0               Version Inicial no release
+"""
+# build-in modules
 from threading import Thread,Event
 from queue import Queue
 from time import sleep
 from json import dumps as json_dumps
 from logging import Logger
-#from collections import namedtuple
 from dataclasses import dataclass,field
 import random
 
-
-#from modules import traceback
+# project modules
 from app.application.services import ProcessGateway
 from app.infrastructure.adapters.tasks_celery import TaskProcessingGateway
 from app.infrastructure.adapters.worker_redis import (
@@ -19,17 +64,12 @@ from app.infrastructure.adapters.worker_redis import (
 )
 
 
-#MTheadId = namedtuple('MTheadId',[ 'work_id','name','status'],
-#                      defaults=[WorkerStatus.PENDING.name.lower()])
 
 @dataclass
 class MTheadId:
     work_id:str
     name:str
-    #status:WorkerStatus = field(default_factory=WorkerStatus(0))  # Campo mutable seguro
     status:str = WorkerStatus.PENDING.name#
-
-
 
 
 class MThread_ProcessGateway:
@@ -37,11 +77,8 @@ class MThread_ProcessGateway:
     def __init__(self,params:list[str]|list[dict],log:Logger,*args,**kwargs):
         """ """
         self.log = log
-        # por cada item de params debemos crear un thread 
-        #self.pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         self.queue = Queue()
         self.monitor_threads:list[Thread] = []
-        #self.workers_id:list[MTheadId] = []
         self.workers_id:dict={}
         self.create_thread:list[Thread] = []
         self.th_finish:Thread = Thread(target=self.task_finish)
@@ -78,14 +115,12 @@ class MThread_ProcessGateway:
 
             self.th_finish.join()
         except KeyboardInterrupt:
-            self.log.error(f'{type(self).__name__}::join(), KeyboardInterrupt')
+            self.log.error('%s::join(), KeyboardInterrupt',type(self).__name__)
             self.key_event.set()
 
     def create(self,item):
         """ signature para el task que crea el recurso"""
         job_id:str = ProcessGateway(WorkerRedis()).create(TaskProcessingGateway.launch(item))
-        # 
-        #self.workers_id.append(MTheadId(job_id,item['name']))
         self.workers_id[job_id] = MTheadId(job_id,item['name'])
         self.queue.put(job_id)
 
@@ -97,10 +132,11 @@ class MThread_ProcessGateway:
             try:
                 data = self.queue.get(block=True,timeout=10)
             except Exception as e:
-                self.log.error(f'{type(self).__name__}::create_monitor(), exception {type(e).__name__}, detalle {e}')
+                self.log.error('%s::create_monitor(), exception {type(e).__name__}, detalle %s',
+                               type(self).__name__,e)
                 break
             
-            self.log.info(f'{type(self).__name__}::create_monitor(), data {data}')
+            self.log.info('%s::create_monitor(), data {data}',type(self).__name__)
             th_id = Thread(target=self.task_monitor,args=(data,))
             th_id.start()
             self.monitor_threads.append(th_id)
@@ -111,7 +147,7 @@ class MThread_ProcessGateway:
 
     def task_monitor(self,job_id:str,*args,**kwargs):
         """ """
-        self.log.info(f'{type(self).__name__}::task_monitor(), job_id {job_id}')
+        self.log.info('%s::task_monitor(), job_id %s',type(self).__name__,job_id)
         pr:ProcessGateway = ProcessGateway(WorkerRedis())
         retry:int = 0        
         while retry < 15 and not self.key_event.is_set():
@@ -120,7 +156,8 @@ class MThread_ProcessGateway:
                 #self.log.info(f"Response: {json_dumps(resp,indent=2)}")
                 self.log.info(f"Response: {resp}")
             except Exception as e:            
-                self.log.error(f'{type(self).__name__}::task_monitor({job_id}), exception {type(e).__name__}, detalle {e}')
+                self.log.error('%s::task_monitor(%s), exception %s, detalle %s',
+                               type(self).__name__,job_id,type(e).__name__,e)
 
             sleep(1)
             retry += 1
@@ -137,11 +174,11 @@ class MThread_ProcessGateway:
                     resp = pr.cancel(job_id)
                     self.workers_id[job_id].status = WorkerStatus.CANCELLED.name
                 
-                #self.log.info(f"Response: {json_dumps(resp,indent=2)}")
                 self.log.info(f"Response: {resp}")
 
             except Exception as e:            
-                    self.log.error(f'{type(self).__name__}::task_monitor({job_id}), exception {type(e).__name__}, detalle {e}')
+                    self.log.error('%s::task_monitor(%s), exception %s, detalle %s',
+                               type(self).__name__,job_id,type(e).__name__,e)
                 
             retry = 0
             while retry < 10 and not self.key_event.is_set():
@@ -150,7 +187,8 @@ class MThread_ProcessGateway:
                     #self.log.info(f"Response {retry:2d}: {json_dumps(resp,indent=2)}")
                     self.log.info(f"Response {retry:2d}: {resp}")
                 except Exception as e:
-                    self.log.error(f'{type(self).__name__}::task_monitor({job_id}), exception {type(e).__name__}, detalle {e}')
+                    self.log.error('%s::task_monitor(%s), exception %s, detalle %s',
+                               type(self).__name__,job_id,type(e).__name__,e)
 
                 sleep(1)
                 retry += 1

@@ -1,29 +1,65 @@
 """
-Definimos la interface de las tareas, que solo dependen de Celery, usando 
+Copyright 2026, Jesus Emanuel Luccioni
+All rights reserved.
+
+This file is part of devops for Open Container (in this case docker )
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+    3. Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived from this
+    software without specific prior written permission.
+
+THIS SCRIPT IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SCRIPT, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+@file adapters.py
+@author Jesus Emanuel Luccioni - jeluccioni@gmail.com.
+@brief adapter interfaces
+@details definimos la interface de las tareas, que solo dependen de Celery, usando
 interfaces para Worquer, el cual representa el backend o el sistema de Queue
-que usara Celery para la asincronia
+que usara Celery para la asincronia.
+
+@version 0.0.3.
+@date Jueves 14 de Mayo de 2026.
+@pre condiciones que deben cuplirse antes del llamado,
+@bug depuracion example: Not all memory is freed when deleting an object of this class.
+@warning
+@note
+@Change History:
+Author         Date           Version          Brief
+JEL            2026.04.14     0.0.3            Version Inicial no release
 """
+
 # build module
 from abc import ABC, abstractmethod
-#import time
-#from json import dumps as json_dumps
 from logging import Logger
-#from typing import Any
-#from collections import namedtuple
 
 # third-party modules
 from celery import Task
-#from celery.contrib.abortable import AbortableTask
-#from celery.result import AsyncResult
 from celery.utils.log import get_task_logger
 
 # project modules
 from app.infrastructure.adapters.settings import celery
 from app.domain.ports import ProviderInterfaces,EventPublisher
-from app.domain.worker import (
-    WorkerStatus, WorkerContext, WorkerId, Worker,
-    #WorkerResult,
-)
+from app.domain.worker import ( WorkerStatus, WorkerContext, WorkerId, Worker )
 
 
 

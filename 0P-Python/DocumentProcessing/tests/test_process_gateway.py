@@ -1,7 +1,55 @@
-# build module
+"""
+Copyright 2026, Jesus Emanuel Luccioni
+All rights reserved.
+
+This file is part of devops for Open Container (in this case docker )
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+    3. Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived from this
+    software without specific prior written permission.
+
+THIS SCRIPT IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SCRIPT, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+@file test_process_gateway.py
+@author Jesus Emanuel Luccioni - jeluccioni@gmail.com.
+@brief   ...
+@details ...
+@version 0.0.3.
+@date Jueves 14 de Mayo de 2026.
+@pre condiciones que deben cuplirse antes del llamado,
+@bug depuracion example: Not all memory is freed when deleting an object of this class.
+@warning
+@note
+@Change History:
+Author         Date           Version       Brief
+JEL            2026.04.14     0.0.3         Version Inicial no release
+"""
+
+# build-in module
 import unittest   
 from time import sleep
 import json
+from uuid import uuid4
 
 
 
@@ -36,13 +84,6 @@ class Test_ProcessGatewayV1(unittest.TestCase):
     def setUpClass(cls):
         cls.log = get_log(cls.__name__)        
         return super().setUpClass()
-
-    #def test_(self):
-    #    ''' Test case create new jobs
-    #       
-    #    python3 -m unittest -v tests.test_process_gateway.Test_ProcessGatewayV1.test_
-    #    '''
-    #    print(f'KAFKA_URL:{KAFKA_URL} KAFKA_PORT:{KAFKA_PORT}')
 
     def test_create(self):
         ''' Test case create new jobs
@@ -79,6 +120,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         log:Logger = unittest_log(self)
         data:dict = {
             'name' : f'{type(self).__name__}',
+            "topic": "dato-comprimidos-v1",
             'content' : "Datos Originales"
         }
 
@@ -107,6 +149,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         log:Logger = unittest_log(self)
         data:dict = {
             'name' : f'{type(self).__name__}',
+            "topic": "dato-comprimidos-v1",
             'content' : "Datos Originales"
         }
 
@@ -133,6 +176,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         log:Logger = unittest_log(self)
         data:dict = {
             'name' : f'{type(self).__name__}',
+            "topic": "dato-comprimidos-v1",
             'content' : "Datos Originales"
         }
 
@@ -158,7 +202,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         '''
         job_id:str = 'd248f073-7cb5-44fb-b711-95ea4a67cc99'
         st_delete = ProcessGateway(WorkerRedis()).delete(job_id)
-        print(f'st_delete: {st_delete}')
+        self.log.info(f'st_delete: {st_delete}')
 
     def test_delete_v1(self):
         ''' Test case delete job, intentamos eliminar en `'status': 'processing'`
@@ -168,6 +212,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         log:Logger = unittest_log(self)
         data:dict = {
             'name' : f'{type(self).__name__}',
+            "topic": "dato-comprimidos-v1",
             'content' : "Datos Originales"
         }
 
@@ -200,6 +245,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         log:Logger = unittest_log(self)
         data:dict = {
             'name' : f'{type(self).__name__}',
+            "topic": "dato-comprimidos-v1",
             'content' : "Datos Originales"
         }
 
@@ -230,6 +276,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         log:Logger = unittest_log(self)
         data:dict = {
             'name' : f'{type(self).__name__}',
+            "topic": "dato-comprimidos-v1",
             'content' : "Datos Originales"
         }
 
@@ -278,7 +325,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         for it in WorkerStatus:
             job_list:dict = pr_gateway.get_list(it.name)
-            print(f'job_list<{it.name}> : {json.dumps(job_list,indent=2)}')
+            self.log.info(f'job_list<{it.name}> : {json.dumps(job_list,indent=2)}')
             self.assertIsInstance(job_list,dict)
 
     def test_multi_jobs(self):
@@ -294,16 +341,21 @@ class Test_ProcessGatewayV1(unittest.TestCase):
 
         data:dict = {
             'name' : f'{type(self).__name__}',
+            "topic": "dato-comprimidos-v1",
             'content' : "Datos Originales"
         }
 
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         job_id:list[str] = []
         for i in range(0,10):
-            body_data:dict = {
-                'name' : data['name'] + f' {i:4d}',
-                'content' : data['content']
-            }            
+            body_data:dict = { k:v for k,v in data.items()}
+            body_data['name'] = data['name'] + f' {i:4d}'
+            #body_data:dict = {
+            #    'name' : data['name'] + f' {i:4d}',
+            #    "topic": "dato-comprimidos-v1",
+            #    'content' : data['content']
+            #}            
+
             jid:str = pr_gateway.create(TaskProcessingGateway.launch(body_data))
             log.info('job_ids: %s',jid)
             self.assertIsInstance(jid,str)
@@ -325,16 +377,19 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         log:Logger = unittest_log(self)
         data:dict = {
             'name' : f'{type(self).__name__}',
+            "topic": "dato-comprimidos-v1",
             'content' : "Datos Originales"
         }
 
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         job_id:list[str] = []
         for i in range(0,10):
-            body_data:dict = {
-                'name' : data['name'] + f' {i:4d}',
-                'content' : data['content']
-            }            
+            body_data:dict = { k:v for k,v in data.items()}
+            body_data['name'] = data['name'] + f' {i:4d}'
+            #body_data:dict = {
+            #    'name' : data['name'] + f' {i:4d}',
+            #    'content' : data['content']
+            #}            
             jid:str = pr_gateway.create(TaskProcessingGateway.launch(body_data))
             log.info('job_ids: %s',jid)
             self.assertIsInstance(jid,str)
@@ -357,7 +412,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         st:dict = pr_gateway.get()
         self.assertIsInstance(st,dict)
-        print(f'\n:Jobs Staus: {json.dumps(st,indent=2)}')
+        self.log.info(f'\n:Jobs Staus: {json.dumps(st,indent=2)}')
        
     def test_get_v1(self):
         ''' Test case 
@@ -369,35 +424,26 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         #job_id:str = '525d40f4-5560-4552-ac68-2da5ed1d63f1'
         #job_id:str = '87c02ee8-e417-4805-8bf9-1816f5f2a3e2'
         #job_id:str = '500ddc94-7696-4a91-979d-8bd3daabeedf'
-        job_id:str = 'c2fe0ef2-a7b9-4f7a-88bb-376f8ff75334'
-
+        #job_id:str = 'c2fe0ef2-a7b9-4f7a-88bb-376f8ff75334'
+        job_id:str = str(uuid4())
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         st:dict = pr_gateway.get(job_id)
         self.assertIsInstance(st,dict)
-        print(f'\n:Job<{job_id}> Staus: {st}')
+        self.log.info(f'\n:Job<{job_id}> Staus: {st}')
 
     def test_multithread_v1(self):
         ''' Test case 
            
         python3 -m unittest -v tests.test_process_gateway.Test_ProcessGatewayV1.test_multithread_v1
-
-        FIXME podemos agregar al igual que el cancel el delete en ambos stages
-         - en el procesado
-         - al finalizar
-         ambos con random
-
-         Tambien agragar los set
-          - task all
-          - task canceled
-          - task delete
         '''
         log:Logger = unittest_log(self)
 
         params:list[dict] = [
             {
                 'name' : f'{type(self).__name__}-idx{i:02d}',
-                'content' : f"Datos Originales-idx{i:02d}"  
-            } for i in range(0,100)
+                "topic": "dato-comprimidos-v1",
+                'content' : f"Datos Originales-id {i:02d}"  
+            } for i in range(0,10)
         ]
         mt_test = MThread_ProcessGateway(params,log)
         print(f'Begin Test MultiThread')

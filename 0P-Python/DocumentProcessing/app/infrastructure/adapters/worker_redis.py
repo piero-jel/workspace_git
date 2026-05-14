@@ -1,5 +1,51 @@
-""" Definicion concreta para los Workes que dependen de la infraestructura de Redis como backend
 """
+Copyright 2026, Jesus Emanuel Luccioni
+All rights reserved.
+
+This file is part of devops for Open Container (in this case docker )
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+    3. Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived from this
+    software without specific prior written permission.
+
+THIS SCRIPT IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SCRIPT, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+@file worker_redis.py
+@author Jesus Emanuel Luccioni - jeluccioni@gmail.com.
+@brief   redis workers
+@details Definicion concreta para los Workes que dependen de la infraestructura de Redis como Queue
+@version 0.0.3.
+@date Jueves 14 de Mayo de 2026.
+@pre condiciones que deben cuplirse antes del llamado,
+@bug depuracion example: Not all memory is freed when deleting an object of this class.
+@warning
+@note
+@Change History:
+Author         Date           Version      Brief
+JEL            2026.04.14     0.0.3        Version Inicial no release
+"""
+
+
 # build-in modules
 from time import sleep
 from json import loads as json_loads, dumps as json_dumps
@@ -91,16 +137,6 @@ class WorkerIdRedis(WorkerId):
         :return: el WorkerId localizado, de lo contrario WorkerId vacio `bool(WorkerId) == False`.
         :rtype: WorkerId
         """
-        
-        #st:int = 0
-        #idx:int = None
-        #for id,status in cls.WORKER_STATUS.items():
-        #    idx = redis.lpos(status,job_id)
-        #    if idx is None:
-        #        continue
-        #
-        #    st = id
-        #    break    
         st:int = 0
         idx:bool = False    
         for id,status in cls.WORKER_STATUS.items():            
@@ -186,14 +222,10 @@ class WorkerIdRedis(WorkerId):
         :return: listado de TaskJobs localizados
         :rtype: list[str]
         """
-        #name:str = cls.WORKER_STATUS.get(status.value,"pending")
-        #ret = redis.lrange(name,0,last)
-        #ret = redis.lrange(status.name.lower(),0,last)
         ret = redis.smembers(status.name.lower())
         if last == -1:
             return [it.decode('utf-8') for it in ret] 
 
-        ## set no son estructuras ordenadas como las listas
         return [it.decode('utf-8') for i,it in enumerate(ret) if i<last] 
         
     def in_status(self,*args:WorkerStatus)->bool:
@@ -204,18 +236,6 @@ class WorkerIdRedis(WorkerId):
         return False
 
     def change(self,status:WorkerStatus=WorkerStatus.PENDING)->bool:
-        #if self._status.value == status.value:
-        #    return False
-        #
-        #self.delete()
-        #self._status = status
-        ## para notificaciones
-        #self.push()
-        #
-        #if status == WorkerStatus.CANCELLED:
-        #    redis.sadd(f'set_{status.name.lower()}',self._job_id)
-        #
-        #return True
         if self._status.value == status.value:
             return False
 
@@ -224,24 +244,14 @@ class WorkerIdRedis(WorkerId):
         self.push()
         return True
     
-    #def is_canceled(self,remove:bool=False)-> bool:
     def is_canceled(self)-> bool:
-        #name:str = f'set_{WorkerStatus.CANCELLED.name.lower()}'
-        #if redis.sismember(name, self._job_id) == 1:
-        #    if remove:
-        #        redis.srem(name, self._job_id)
-        #    return True
-        #
-        #return False        
         return redis.sismember(WorkerStatus.CANCELLED.name.lower(), self._job_id) == 1
 
     def push(self)->bool:
-        #redis.rpush(self.get_status(),self._job_id)
         redis.sadd(self._status.name.lower(),self._job_id)
         return True
 
     def delete(self)->bool:        
-        #redis.lrem(self.get_status(),0,self._job_id)
         redis.srem(self._status.name.lower(), self._job_id)
         return True
 
@@ -258,7 +268,6 @@ class WorkerIdRedis(WorkerId):
         return redis.sismember('delete', self._job_id) == 1
     
     def delete_mark_deletion(self)->bool:
-        #redis.srem(self._status.name.lower(), self._job_id)
         redis.srem(WorkerStatus.CANCELLED.name.lower(), self._job_id)
         redis.srem('delete', self._job_id)
         return True
@@ -348,15 +357,6 @@ class WorkerRedis(Worker):
         return WorkerContextRedis(expire) 
     
     def make_workerresult(self,wrk_id:str)->WorkerResultCelery:
-        """ 
-        Metodo Factory que se encarga de crear un nuevo WorkerResult
-
-        :param wrk_id: job id con el que se creo el WorkerId del cual se desea obtener el resultado.
-        :type wrk_id: str
-
-        :return: el WorkerResult asociado al wrk_id.
-        :rtype: WorkerResult
-        """
         return WorkerResultCelery(wrk_id)
     
     def get_workers(self,status:WorkerStatus=None)->dict:
