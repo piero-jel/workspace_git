@@ -53,7 +53,11 @@ app
   - **tests** (Pruebas unitarias): Verifica la lógica del **domain** y la correcta integración de los **adapters**. 
   
 ## Contexto
-**Microservicio** para la orquestación del procesamiento de documentos a través de un ++ de proveedores externos. Se recibe **JSON** con la información (como la **metadata** del archivo) y ++ del documentos (`"content"` como un string), dicha información es procesada por distintos **stages** de procesamiento (extracción, análisis y enriquecimiento), y al finalizar la misma es publicada en un servicios **Event Streaming** para que sea luego consumida por servicio de **downstream** de eventos.
+**Microservicio** para la orquestación del procesamiento de documentos a través de un de proveedores externos.
+
+  - **Api Rest**: recibe **JSON** con la información (como **metadata** y el contenido del archivo como un string `"content"`), dicha información es procesada por distintos **stages** de provedores externos (extracción, análisis y enriquecimiento), y al finalizar el pipeline el resultado es publicada en un servicios **Event Streaming** para que sea luego consumida por servicio de **downstream** de eventos.
+
+
 
 
 ## Arquitectura General
