@@ -1,0 +1,15 @@
+import os
+import sys
+
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '../app/infrastructure/grpc/'
+        )
+    )
+)
+
+GRPC_MOCK:bool = True
+GRPC_URL:str = 'localhost'

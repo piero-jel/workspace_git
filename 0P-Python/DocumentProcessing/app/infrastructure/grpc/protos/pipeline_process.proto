@@ -1,0 +1,110 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+//1. Enviar documento a procesar
+message CreateRequest{
+    string name  = 1;
+    string topic = 2;
+    string content = 3;
+    optional string compression = 4;
+    optional string pipeline_config = 5;
+}
+message CreateResponse{
+    int32 code     = 1;
+    string job_id  = 2;
+    string name    = 3;
+    string topic   = 4;
+    string compression = 5;
+    string pipeline_config = 6;
+    optional string message = 7;
+}
+
+//2. Consultar estado de un Job
+message GetRequest {
+    string job_id  = 1;
+}
+
+message GetResponse{
+    int32 code  = 1;
+    string job_id  = 2;
+    optional string name = 3;
+    optional string topic = 4;
+    optional string compression = 5;
+    optional string stages = 6 ;
+    optional string pipeline = 7 ;
+    optional string job_status = 8;
+    optional bool ready = 9 ;
+    optional string status = 10 ;
+    optional string message = 11;    
+}
+
+//3. Modificar un Job
+message PutRequest {
+    string job_id  = 1;
+    string status  = 2;
+}
+
+message PutResponse{
+    int32 code  = 1;
+    string job_id  = 2;
+    optional string name = 3;
+    optional string topic = 4;
+    optional string compression = 5;
+    optional string stages = 6 ;
+    optional string pipeline = 7 ;
+    optional string job_status = 8;
+    optional bool ready = 9 ;
+    optional string status = 10 ;
+    optional string message = 11;
+}
+
+//4. Listar un Job
+message ListJobsRequest {
+    optional string status  = 1;
+}
+message ListJobsResponse{
+    int32 code  = 1 ;
+    repeated string pending    = 2;
+    repeated string processing = 3;
+    repeated string completed  = 4;
+    repeated string failed     = 5;
+    repeated string cancelled  = 6;    
+    optional string message = 7;
+}
+
+// 5. Listado de Proveedores 
+message ListProvidersResponse{
+    int32 code  = 1;
+    repeated string providers = 2;
+    optional string message = 3;
+}
+
+
+
+
+// 1. Enviar documento a procesa
+service Create {  
+  rpc create (CreateRequest) returns (CreateResponse) {}
+}
+
+// 2. Consultar estado de un Job
+service Get {
+  rpc get (GetRequest) returns (GetResponse) {}
+}
+
+// 3. Modificar un Job
+service Put {
+  rpc put (PutRequest) returns (PutResponse) {}
+}
+
+// 4. Listar un Job
+service ListJobs{
+    rpc list_jobs(ListJobsRequest) returns (ListJobsResponse) {}
+}
+
+// 5. Listado de Proveedores 
+service ListProviders{
+    // Method with no request
+    rpc list_providers(google.protobuf.Empty) returns (ListProvidersResponse) {}
+}
+

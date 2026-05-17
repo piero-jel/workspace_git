@@ -9,11 +9,15 @@ Aplicación de **Microservicio** y Arquitectura Hexagonal para **Pipeline** de P
   - [**Swagger Docs**](#swagger-docs)
   - [**unittest**](#unittest)
   - [**Resumen de Pasos para el Despliegue**](#resumen-de-pasos-para-el-despliegue)
+  - [**APIs Rest**](#apis-rest)
+  - [**gRPC**](#grpc)
+  
+  - [**Abreviaturas**](#abreviaturas)
   
 # Document Processing Gateway
-- **Job** : Abreviatura para representar el trabajo que realizara el '**Document Processing**'.
 
-Estructura de la aplicación:
+<details>
+  <summary><b>Estructura de la aplicación:</b></summary>
 
 ```bash
 app
@@ -31,7 +35,7 @@ app
 │   ├── adapters
 │   │   ├── __init__.py
 │   │   ├── adapters.py      # modelo que implementa la interfaces de worker
-│   │   ├── settings.py      # Configuraciones
+│   │   ├── settings.py      # Configuraciones para el adapter redis/celery/kafka
 │   │   ├── tasks_celery.py  # Implementación concreta de los puertos
 │   │   └── worker_redis.py  # Implementacion concreta p/modelar de Lógica de negocio
 │   │
@@ -39,11 +43,30 @@ app
 │   │   ├── __init__.py
 │   │   └── fastapi.py 
 │   │
+│   ├── grpc          # Adaptador gRPC
+│   │   ├── __init__.py
+│   │   ├── settings.py     # Configuraciones para el adapter gRPC
+│   │   ├── grpc_utils.py   
+│   │   ├── server.py       # services gRPC
+│   │   ├── client.py       # Aplicacion para el manejo del client
+│   │   ├── protobuf        # modulos autogenerados para protobuf
+│   │   │   ├── __init__.py
+│   │   │   ├── pipeline_process_pb2_grpc.py
+│   │   │   ├── pipeline_process_pb2.py
+│   │   │   └── pipeline_process_pb2.pyi
+│   │   │   
+│   │   └── protos          # configuracion para protobuf
+│   │       └── pipeline_process.proto
+│   │
 │   └── __init__.py
 │
 └── __init__.py
 
 ```
+
+</details>
+<br>
+
   - **domain** (Dominio): Contiene entidades con reglas de negocio puras, excepciones y interfaces abstractas (**ports**) para repositorios o eventos. 
   
   - **application** (Aplicación): Orquesta casos de uso, validaciones de entrada y servicios que implementan las interfaces definidas en el **domain** (dominio). 
@@ -53,17 +76,16 @@ app
   - **tests** (Pruebas unitarias): Verifica la lógica del **domain** y la correcta integración de los **adapters**. 
   
 ## Contexto
-**Microservicio** para la orquestación del procesamiento de documentos a través de un de proveedores externos.
-
-  - **Api Rest**: recibe **JSON** con la información (como **metadata** y el contenido del archivo como un string `"content"`), dicha información es procesada por distintos **stages** de provedores externos (extracción, análisis y enriquecimiento), y al finalizar el pipeline el resultado es publicada en un servicios **Event Streaming** para que sea luego consumida por servicio de **downstream** de eventos.
-
-
+**Microservicio** para la orquestación del procesamiento de documentos a través de un ++ de proveedores externos. Se recibe **JSON** con la información (como la **metadata** del archivo) y ++ del documentos (`"content"` como un string), dicha información es procesada por distintos **stages** de procesamiento (extracción, análisis y enriquecimiento), y al finalizar la misma es publicada en un servicios **Event Streaming** para que sea luego consumida por servicio de **downstream** de eventos.
 
 
 ## Arquitectura General
 
+<details>
+  <summary><b>Diagrama General</b></summary>
+
 ```
-      [API Rest]                     [Celery/Redis]             [Providers]
+  [API Rest, gRPC]                   [Celery/Redis]             [Providers]
                                  +------------------+
  Peticion de procesamiento -->   |                  |
                                  |    Document      | <----> Proveedor de Extracción (mock)
@@ -86,222 +108,36 @@ app
                                 (servicios downstream)
 ```
 
+</details>
+<br>
+
 Desde el punto de vista de las APIs (Entrada) tenemos :
 
-  - Enviar documento a procesar `[POST] url/pipeline_process/`
+| Accion                      | **API REST**                            | **gRPC**                   |
+|:----------------------------|:----------------------------------------|:---------------------------|
+| **Enviar documento a procesar** | `[POST] pipeline_process/`                               | `create() CreateRequest(body)`         |
+| **Consultar estado de un Job**  | `[GET]  pipeline_process/<job_id>`                       | `get()    job_id=<VAL:str>`            |
+| **Cancelar o Eliminar un Job**  | `[PUT]  pipeline_process/<job_id> {"status":"cancelled"}`| `put()    job_id=<VAL:str>,status=<VAL:str>`|
+|                                 | `[PUT]  pipeline_process/<job_id> {"status":"deleted"}`  |                                        |
+| **Listar Jobs**                 | `[GET]  pipeline_process/list/[<status>]`                | `list_jobs()`                          | 
+|                                 |                                                          | `list_jobs() status=<VAL:str>`         | 
+| **Listado de Proveedores**      | `[GET]  pipeline_process/providers/`                     | `list_providers()`                     |
+  
+<!--  
+  - Enviar documento a procesar     `[POST] url/pipeline_process/`
   - Consultar estado de un **Job**  `[GET]  url/pipeline_process/<job_id>`
   - Cancelar o Eliminar un **Job**  `[PUT]  url/pipeline_process/<job_id> {"status": "'cancel|delete'"}`
   - Listar **Job**s                 `[GET]  url/pipeline_process/list/[<status>]`
   - Listado de Proveedores          `[GET]  url/pipeline_process/providers/`
+-->
+  
 
-## Obtener el listado de Proveedores
-Para esta acción contamos con endpoint `[GET]  url/pipeline_process/providers/`, el cual podemos consultar de la siguente manera:
+  
+Para las diferentes apis y services el codigo del response se verifica mediante 
+ - `code: 0` : succes
+ - `code: 1` : error en los campos de la peticion, se especifica un campo `"message"` con la descripcion del error.
+ 
 
-``` bash
-url="http://127.0.0.1:8000/pipeline_process/providers/" ;\
-curl -sS "${url}" -i -X GET -w '\n'
-```
-El response deberá ser del siguiente tipo:
-
-``` json
-{
-  "providers": [
-    "extraction",
-    "analysis",
-    "enrichment"
-  ]
-}
-```
-
-## Petición de procesamiento
-Para la petición (`[POST] pipeline_process/`) de la creación de un **Job** tenemos el siguiente **Body**:
-
-``` json
-{
-    "name"        : "Nombre de archivo",
-    "topic"       : "Tópico/tema en el cual se publicara al finalizar",
-    "compression" : "Opcional, compresión puede ser: gzip, snappy, lz4, zstd",
-    "content"     : "string con el contenido del archivo",
-    "pipeline_config" : "Opcional nombre de los stage del Provider que se ejecutaran"
-}
-```
-  > **`"topic"`** : Este campo representa el TOPIC con el cual se publicaran los resultados, es importante ya que el consumidor del **servicios downstream** debera usar este para acceder al resultado.
-
-  > **"pipeline_config"** Para el caso particular de este campo, esté puede ser una cadena de string con cada proveedor separado por comas (con o sin espacio entre ellos). O un array con los mismo. Se respeta el orden y si se repite uns stage el mismo se repetirá en la ejecución y orden.
-  Para obtener el listado actual de proveedores disponibles contamos con el endpoint **`[GET]  url/pipeline_process/providers/`**.
-
-Y el response deberá tener la siguiente Forma:
-
-``` json
-{
-    "job_id"      : "ID del JOB creado",
-    "name"        : " ... ",
-    "topic"       : " ... ",
-    "compression" : " ... ",
-    "content"     : " ... ",
-    "pipeline_config" : "..."
-}
-```
-  > En caso de error tendremos los tabulados para **API Rest** relacionados al servicio.
-  > Debemos considerar que los errores relacionados a la sintaxis de un campo en particular no se capturan, ya que es un sistema asincronía y estos son validados para cada etapa y capa en particular. Los mismos se reflejaran en los llamados posteriores para obtener el estado en función del **ID** generado.
-
-Como podemos Observar la respuesta contiene request mas el campo `"job_id"`, él cual se deberá utilizar para realizar cualquier acción sobre el Job creado.
-
-Ejemplos para el lanzamiento de un nuevo **Job**:
-
-1. Opción por defecto:
-
-``` bash
-url='http://127.0.0.1:8000/pipeline_process/';\
-body='{"name": "example1","topic": "string","content": "Esto es un Ejemplo" }';\
-header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
-curl -X 'POST' ${url} "${header[@]}" -d "${body}" -w '\n'
-```
-
-2. Pasando `pipeline_config` como un string separado por comas:
-
-```bash
-url='http://127.0.0.1:8000/pipeline_process/';\
-body='{"name": "example1","topic": "string","content": "Esto es un Ejemplo 2","pipeline_config" : "Extraction,Analysis,Enrichment"}';\
-header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
-curl -X 'POST' ${url} "${header[@]}" -d "${body}" -w '\n'
-```
-
-3. Pasando `pipeline_config` como un array de string:
-
-```bash
-url='http://127.0.0.1:8000/pipeline_process/';\
-body='{"name": "example1","topic": "string","content": "Esto es un Ejemplo 2","pipeline_config" : ["Extraction "," Analysis ", "Enrichment"]}';\
-header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
-curl -X 'POST' ${url} "${header[@]}" -d "${body}" -w '\n'
-```
-
-
-
-## Status de un Job
-Consultar estado de un **Job** mediante su **ID**, `[GET]  pipeline_process/<job_id>`
-
-1. Obtener estado de un **Job**, con información detallada del servicio 
-```bash
-job_id="XXXXXXXX";\
-uri="http://127.0.0.1:8000/pipeline_process/${job_id}" ;\
-curl -sS "${uri}" -i -X GET -w '\n'
-```
-
-2. Obtener estado de un **Job**,, solo información del **Job**
-```bash
-job_id="XXXXXXXX";\
-uri="http://127.0.0.1:8000/pipeline_process/${job_id}" ;\
-curl -sS "${uri}" -X GET -w '\n'
-```
-
-3. Response
-``` json
-{
-  "code": 0,
-  "job_id": "061656bc-9ed2-4636-a21f-6b1364a8b95f",
-  "name": "Nombre de archivo",
-  "topic": "dato-comprimidos-v1",
-  "compression": "gzip",
-  "stages": "completed",
-  "pipeline": "extraction, analysis, enrichment",
-  "job_status": "completed",
-  "ready": true,
-  "status": "completed",
-  "result": {
-    "name": "Nombre de archivo",
-    "topic": "dato-comprimidos-v1",
-    "compression": "gzip",
-    "stages": "completed",
-    "pipeline": "extraction, analysis, enrichment",
-    "job_status": "completed"
-  }
-}
-```
-## Cancel Eliminar un Job
-Cancelar o Eliminar un job, `[PUT]  pipeline_process/<job_id> {"status": "'cancel|delete'"}`. Podemos eliminar el mismo en cualquier ciclo de vida. Debemos considerar que la eliminación se realiza en dos etapas, primero se cancela el **Job** (si el mismo esta siendo ejecutado) y luego se elimina del sistema persistente. 
-
-> Nota el sistema persistente solo mantiene la mínima información posible sobre un Job. Esta no preserva información relacionada al archivo, solo los estados y demás data relacionada al procesamiento (**pipeline**, **stage**, **status**). Dichos datos son encapsulados en un mecanismo de contexto el cual tiene una vida limitada en cuanto a persistencia (hasta 7 días, según configuración).
-
-
-1. Cancelación de **Job**
-
-```bash
-job_id="XXXXXXXX";\
-url="http://127.0.0.1:8000/pipeline_process/${job_id}";\
-header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
-body='{"status": "cancel"}';\
-curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
-```
-
-2. Delete **Job**
-
-```bash 
-job_id="XXXXXXXX";\
-url="http://127.0.0.1:8000/pipeline_process/${job_id}";\
-header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
-body='{"status": "delete"}';\
-curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
-```
-
-3. Response de un **Job** Completado
-``` json
-{
-  "code": 0,
-  "job_status": "completed",
-  "message": "No se puede cancelar el worker id '061656bc-9ed2-4636-a21f-6b1364a8b95f', fue completado",
-  "job_id": "061656bc-9ed2-4636-a21f-6b1364a8b95f"
-}
-```
-## Listado de Jobs
-Retorna el listado de Job que se encuentran en un estado en particular. `[GET]  pipeline_process/list/[<status>]`. En caso de no aportar el **`<status>`** retornara el listado para cada uno de los estados.
-
-Los estados posibles en los que puede estar el **Proccess**
-
-- **`pending`**
-- **`processing`**
-- **`completed`**
-- **`failed`**
-- **`cancelled`**
-
-1. Get, `status=cancelled`
-
-```bash
-status="cancelled" ;\
-url="http://127.0.0.1:8000/pipeline_process/list/${status}" ;\
-curl -sS "${url}" -i -X GET -w '\n'
-```
-
-2. Get default, el listado de todos los estados
-
-```bash
-url="http://127.0.0.1:8000/pipeline_process/list/";\
-curl -sS "${url}" -i -X GET -w '\n'
-```
-
-3. Response para el Status Processing:
-``` json
-{
-  "processing": [
-    "98a18e95-3c2b-4c7a-b22e-65061f468214"
-  ]
-}
-```
-
-4. Response sin status
-``` json
-{
-  "pending": [],
-  "processing": [
-    "98a18e95-3c2b-4c7a-b22e-65061f468214"
-  ],
-  "completed": [
-    "061656bc-9ed2-4636-a21f-6b1364a8b95f"
-  ],
-  "failed": [],
-  "cancelled": []
-}
-```
 
 
 # Preparación del entorno
@@ -348,6 +184,9 @@ REDIS_DB=0
 MOCKING_PROVIDER=true
 KAFKA_URL='kafka'
 KAFKA_PORT=9092
+GRPC_URL='grpc'
+GRPC_PORT=50051
+GRPC_POLL_TRHEAD=10
 ```
   
 # Despliegue con docker compose
@@ -357,9 +196,9 @@ Paso previo debemos verificar la configuración del archivo **`docker-compose.ym
 ```bash
 docker compose config
 ```
-
+<br>
 <details>
-  <summary> Configuracion Docker-Compose </summary>
+  <summary><b> Configuración Docker-Compose </b></summary>
 
 ```bash
 name: documentprocessing
@@ -430,6 +269,39 @@ services:
         source: /path-repo/0P-Python/DocumentProcessing
         target: /application
         bind: {}
+  grpc:
+    build:
+      context: /path-repo/0P-Python/DocumentProcessing/deploy
+      dockerfile: ./grpc/Dockerfile
+    command:
+      - python3
+      - app/infrastructure/grpc/server.py
+      - --port
+      - "50051"
+      - --pool_thread
+      - "10"
+    container_name: gRPC
+    depends_on:
+      celery:
+        condition: service_healthy
+        required: true
+      redis:
+        condition: service_healthy
+        required: true
+    environment:
+      TZ: America/Argentina/Buenos_Aires
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 50051
+        published: "50051"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: /path-repo/0P-Python/DocumentProcessing
+        target: /application
+        bind: {}
   kafka:
     container_name: Kafka
     environment:
@@ -469,7 +341,7 @@ services:
     command:
       - redis-server
       - --requirepass
-      - ContraseniaSegura
+      - Alfa12345Joj4
       - --appendonly
       - "yes"
     container_name: Redis
@@ -550,7 +422,7 @@ docker compose start
 docker compose restart
 ```
 
-## status
+## Status
 ```bash
 # List containers
 docker compose ps
@@ -572,7 +444,7 @@ docker compose ls
 docker compose down -v
 ```
 
-## logs
+## Logs
 ```bash
 # View output from containers
 docker compose logs -f
@@ -584,7 +456,7 @@ Para una mejor comodidad podemos adjuntar (**attached terminal**) una terminal a
 docker compose logs -f kafka 
 docker compose logs -f redis 
 docker compose logs -f celery 
-docker compose logs -f tests 
+docker compose logs -f grpc
 ```
 
 ## Conexión a una terminal dentro del contenedor
@@ -592,12 +464,13 @@ docker compose logs -f tests
 docker exec -it Kafka '/bin/bash'
 docker exec -it Redis '/bin/bash'
 docker exec -it Celery '/bin/bash'
+docker exec -it gRPC '/bin/bash'
 ```
 
 # Swagger Docs
 Aprovechando la ventaja de la generación de documentación automática de `FastAPIs` con los servicios iniciados podemos acceder a ella, para visualizar y ejecutar peticiones desde la web. Sin necesidad de ejecutar comandos que involucren `curl` o ejecutar script con finalidades similares.
 
-Dentro de nuestro ambiente en el cual desplegamos debemos acceder a la pagina ` http://127.0.0.1:8000/docs`:
+Dentro de nuestro ambiente en el cual desplegamos debemos acceder a la pagina [**`http://127.0.0.1:8000/docs`**](http://127.0.0.1:8000/docs):
 
 ![swagger ui 1](img/readme/swagger_ui_01.png)
 
@@ -633,7 +506,7 @@ Luego de ejecutar se visualizara la respuesta desde el servicio:
 ## Para el test completo 
 ```bash
 services='tests'; \
-flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+flags="--name Unittest --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
 docker compose run ${flags} ${services} bash -c "python3 -m unittest -v"
 ```
 
@@ -641,7 +514,7 @@ docker compose run ${flags} ${services} bash -c "python3 -m unittest -v"
 ## Test Especifico
 ```bash
 services='tests'; \
-flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+flags="--name Unittest --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
 module="tests.test_process_gateway.Test_ProcessGatewayV1.test_create"; \
 docker compose run ${flags} ${services} bash -c "python3 -m unittest -v ${module}" 
 ```
@@ -649,13 +522,12 @@ docker compose run ${flags} ${services} bash -c "python3 -m unittest -v ${module
 ## Consumo de los job creados por los unittest
 ```bash
 services='tests'; \
-flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+flags="--name KafkaClient --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
 docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-downstream.py"
 ```
 
-
 <details>
-  <summary>Mensaje JSON Publicado en service downstream </summary>
+  <summary><b>Mensaje JSON Publicado en service downstream</b></summary>
 
 Para los Provider establecidos deberíamos ver mensajes JSON del siguiente Tipo:
 
@@ -724,7 +596,7 @@ Para los Provider establecidos deberíamos ver mensajes JSON del siguiente Tipo:
 ```
  
 </details>
-
+<br>
 
 # Resumen de Pasos para el Despliegue
 1. build and up
@@ -752,7 +624,7 @@ docker compose logs -f kafka
 docker compose logs -f redis
 ```
 
-4. Ingresamos a la pagina [**FastAPI Swagger UI**](#swagger-docs) `http://0.0.0.0:8000/docs`, de la cual podemos lanzar una petición desde `[POST] url/pipeline_process/`:
+4. Ingresamos a la pagina [**FastAPI Swagger UI**](#swagger-docs) [**`http://0.0.0.0:8000/docs`**](http://127.0.0.1:8000/docs), de la cual podemos lanzar una petición desde `[POST] url/pipeline_process/`:
 
 ``` json
 {
@@ -768,7 +640,7 @@ Para consumir el **downstream**, podemos ejecutar:
 
 ```bash
 services='celery'; \
-flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+flags="--name KafkaClient --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
 docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-downstream.py"
 ```
 
@@ -776,13 +648,440 @@ docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-d
 5. Ejecución de los unittest
 ```bash
 services='tests'; \
-flags="--rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+flags="--name Unittest --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
 docker compose run ${flags} ${services} bash -c "python3 -m unittest -v"
 ```
+
+# Apis Rest
+## Obtener el listado de Proveedores
+Para esta acción contamos con endpoint **`[GET] url/pipeline_process/providers/`**, el cual podemos consultar de la siguiente manera:
+
+``` bash
+url="http://127.0.0.1:8000/pipeline_process/providers/" ;\
+curl -sS "${url}" -i -X GET -w '\n'
+
+HTTP/1.1 200 OK
+date: Sat, 16 May 2026 18:14:54 GMT
+server: uvicorn
+content-length: 61
+content-type: application/json
+
+{"code":0,"providers":["extraction","analysis","enrichment"]}
+```
+El response deberá ser del siguiente tipo:
+
+``` json
+{
+  "code": 0 ,
+  "providers": [
+    "extraction",
+    "analysis",
+    "enrichment"
+  ]
+}
+```
+
+## Petición de procesamiento
+Para la petición (**`[POST] pipeline_process/`**) de la creación de un **Job** tenemos el siguiente **Body**:
+
+``` json
+{
+    "name"        : "Nombre de archivo",
+    "topic"       : "Tópico/tema en el cual se publicara al finalizar",
+    "compression" : "Opcional, compresión puede ser: gzip, snappy, lz4, zstd",
+    "content"     : "string con el contenido del archivo",
+    "pipeline_config" : "Opcional nombre de los stage del Provider que se ejecutaran"
+}
+```
+  > **`"topic"`** : Este campo representa el TOPIC con el cual se publicaran los resultados, es importante ya que el consumidor del **servicios downstream** debera usar este para acceder al resultado.
+
+  > **"pipeline_config"** Para el caso particular de este campo, esté puede ser una cadena de string con cada proveedor separado por comas (con o sin espacio entre ellos). O un array con los mismo. Se respeta el orden y si se repite un stage el mismo se repetirá en la ejecución y orden.
+  Para obtener el listado actual de proveedores disponibles contamos con el endpoint **`[GET] url/pipeline_process/providers/`**.
+
+Y el response deberá tener la siguiente Forma:
+
+``` json
+{
+    "job_id"      : "ID del JOB creado",
+    "name"        : " ... ",
+    "topic"       : " ... ",
+    "compression" : " ... ",
+    "content"     : " ... ",
+    "pipeline_config" : "..."
+}
+```
+  > En caso de error tendremos los tabulados para **API Rest** relacionados al servicio.
+  > Debemos considerar que los errores relacionados a la sintaxis de un campo en particular no se capturan, ya que es un sistema asincronía y estos son validados para cada etapa y capa en particular. Los mismos se reflejaran en los llamados posteriores para obtener el estado en función del **ID** generado.
+
+Como podemos Observar la respuesta contiene request mas el campo `"job_id"`, él cual se deberá utilizar para realizar cualquier acción sobre el Job creado.
+
+Ejemplos para el lanzamiento de un nuevo **Job**:
+
+1. Opción por defecto:
+
+``` bash
+url='http://127.0.0.1:8000/pipeline_process/';\
+body='{"name": "example1","topic": "dato-comprimidos-v1","content": "Esto es un Ejemplo" }';\
+header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
+curl -X 'POST' ${url} "${header[@]}" -d "${body}" -w '\n'
+
+{"job_id":"ab357e70-3570-4c3f-90e5-fe03f35c1a44","name":"example1","topic":"string","compression":null,"pipeline_config":["extraction"]}
+```
+
+2. Pasando `pipeline_config` como un string separado por comas:
+
+```bash
+url='http://127.0.0.1:8000/pipeline_process/';\
+body='{"name": "example1","topic": "dato-comprimidos-v1","content": "Esto es un Ejemplo 2","pipeline_config" : "Extraction,Analysis,Enrichment"}';\
+header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
+curl -X 'POST' ${url} "${header[@]}" -d "${body}" -w '\n'
+
+{"job_id":"58a68aaf-4cb7-4b5c-bd1d-02a2056a8fb7","name":"example1","topic":"string","compression":null,"pipeline_config":["extraction","analysis","enrichment"]}
+```
+
+3. Pasando `pipeline_config` como un array de string:
+
+```bash
+url='http://127.0.0.1:8000/pipeline_process/';\
+body='{"name": "example1","topic": "dato-comprimidos-v1","content": "Esto es un Ejemplo 2","pipeline_config" : ["Extraction "," Analysis ", "Enrichment"]}';\
+header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
+curl -X 'POST' ${url} "${header[@]}" -d "${body}" -w '\n'
+
+{"job_id":"33c48064-bc4b-4a65-ae08-635be0bb616e","name":"example1","topic":"string","compression":null,"pipeline_config":["extraction","analysis","enrichment"]}
+```
+
+
+
+## Status de un Job
+Consultar estado de un **Job** mediante su **ID**, `[GET]  pipeline_process/<job_id>`
+
+1. Obtener estado de un **Job**, con información detallada del servicio 
+```bash
+job_id="XXXXXXXX";\
+uri="http://127.0.0.1:8000/pipeline_process/${job_id}" ;\
+curl -sS "${uri}" -i -X GET -w '\n'
+HTTP/1.1 200 OK
+date: Sat, 16 May 2026 18:21:36 GMT
+server: uvicorn
+content-length: 219
+content-type: application/json
+
+{"code":0,"job_id":"XXXXXXXX","name":"example1","topic":"string","stages":"completed","pipeline":"extraction, analysis, enrichment","job_status":"completed","ready":true,"status":"completed"}
+```
+
+2. Obtener estado de un **Job**, solo información del **Job**
+```bash
+job_id="XXXXXXXX";\
+uri="http://127.0.0.1:8000/pipeline_process/${job_id}" ;\
+curl -sS "${uri}" -X GET -w '\n'
+
+{"code":0,"job_id":"XXXXXXXX","name":"example1","topic":"string","stages":"completed","pipeline":"extraction, analysis, enrichment","job_status":"completed","ready":true,"status":"completed"}
+```
+
+3. Response
+``` json
+{
+  "code": 0,
+  "job_id": "XXXXXXXX",
+  "name": "example1",
+  "topic":"string",
+  "stages":"completed",
+  "pipeline":"extraction, analysis, enrichment",
+  "job_status":"completed",
+  "ready":true,
+  "status":"completed"
+}
+```
+
+## Cancel Eliminar un Job
+Cancelar o Eliminar un job, **`[PUT] pipeline_process/<job_id> {"status": "'cancelled|deleted'"}`**. Podemos eliminar el mismo en cualquier ciclo de vida. Debemos considerar que la eliminación se realiza en dos etapas, primero se cancela el **Job** (si el mismo esta siendo ejecutado) y luego se elimina del sistema persistente. 
+
+> Nota el sistema persistente solo mantiene la mínima información posible sobre un Job. Esta no preserva información relacionada al archivo, solo los estados y demás data relacionada al procesamiento (**pipeline**, **stage**, **status**). Dichos datos son encapsulados en un mecanismo de contexto el cual tiene una vida limitada en cuanto a persistencia (hasta 7 días, según configuración).
+
+
+1. Cancelación de **Job**
+
+```bash
+job_id="XXXXXXXX";\
+url="http://127.0.0.1:8000/pipeline_process/${job_id}";\
+header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
+body='{"status": "cancel"}';\
+curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
+```
+
+2. Delete **Job**
+
+```bash 
+job_id="XXXXXXXX";\
+url="http://127.0.0.1:8000/pipeline_process/${job_id}";\
+header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
+body='{"status": "delete"}';\
+curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
+```
+
+3. Response de un **Job** Completado
+``` json
+{
+  "code": 0,
+  "job_status": "completed",
+  "message": "No se puede cancelar el worker id '061656bc-9ed2-4636-a21f-6b1364a8b95f', fue completado",
+  "job_id": "061656bc-9ed2-4636-a21f-6b1364a8b95f"
+}
+```
+## Listado de Jobs
+Retorna el listado de Job que se encuentran en un estado en particular. **`[GET] pipeline_process/list/[<status>]`**. En caso de no aportar el **`<status>`** retornara el listado para cada uno de los estados.
+
+Los estados posibles en los que puede estar el **Proccess**
+
+- **`pending`**
+- **`processing`**
+- **`completed`**
+- **`failed`**
+- **`cancelled`**
+
+1. Get, **`status=cancelled`**
+
+```bash
+status="cancelled" ;\
+url="http://127.0.0.1:8000/pipeline_process/list/${status}" ;\
+curl -sS "${url}" -i -X GET -w '\n'
+HTTP/1.1 200 OK
+date: Sat, 16 May 2026 18:24:57 GMT
+server: uvicorn
+content-length: 25
+content-type: application/json
+
+{"code":0,"cancelled":[]}
+```
+
+2. Get default, el listado de todos los estados
+
+```bash
+url="http://127.0.0.1:8000/pipeline_process/list/";\
+curl -sS "${url}" -i -X GET -w '\n'
+HTTP/1.1 200 OK
+date: Sat, 16 May 2026 18:25:22 GMT
+server: uvicorn
+content-length: 305
+content-type: application/json
+
+{"pending":[],"processing":[],"completed":["4f97cc4e-337f-4b4e-9c16-2a44b6de05a0","3d435558-215a-4e67-93bf-641da1e185ef","a33af399-7407-4e12-b293-2d40fb603c26","ab357e70-3570-4c3f-90e5-fe03f35c1a44","58a68aaf-4cb7-4b5c-bd1d-02a2056a8fb7","33c48064-bc4b-4a65-ae08-635be0bb616e"],"failed":[],"cancelled":[]}
+```
+
+
+<br>
+<details>
+  <summary><b>Response para el Status Processing:</b></summary>
+
+``` json
+{
+  "processing": [
+    "98a18e95-3c2b-4c7a-b22e-65061f468214"
+  ]
+}
+```
+
+</details>
+<details>
+  <summary><b>Response sin status</b></summary>
+
+``` json
+{
+  "pending":[],
+  "processing":[],
+  "completed":[
+    "4f97cc4e-337f-4b4e-9c16-2a44b6de05a0",
+    "3d435558-215a-4e67-93bf-641da1e185ef",
+    "a33af399-7407-4e12-b293-2d40fb603c26",
+    "ab357e70-3570-4c3f-90e5-fe03f35c1a44",
+    "58a68aaf-4cb7-4b5c-bd1d-02a2056a8fb7",
+    "33c48064-bc4b-4a65-ae08-635be0bb616e"
+  ],
+  "failed":[],
+  "cancelled":[]
+}
+```
+
+</details>
+<br>
+
+
+
+# gRPC 
+Para el test de este servicio contamos con `app/infrastructure/grpc/client.py` el cual contiene una lógica mínima para lanzar pruebas y verificar el funcionamiento. Se mantiene la misma estructura de las APIs Rest
+
+  - **`create()`**: para crear un nuevo job
+  - **`get()`** : para obtener el estado actual de un job
+  - **`put()`** : para cancelar o eliminar un job
+  - **`list_jobs()`** : para listar todos los job por estado o solo los job en un estado particular.
+  - **`list_providers()`** : para listar los Provider externos. 
+
+Para poder lanzar las diferentes pruebas podemos atacharnos mediante una terminal al contenedor **`gRPC`**. El cual ya posee el contexto para poder realizar las acciones. Para realizar esto solo debemos ejecutar el comando:
+
+```bash 
+docker exec -it gRPC '/bin/bash'
+```
+
+## create
+```bash
+python3 app/infrastructure/grpc/client.py --create '{"name": "Archivo de test por gRPC","topic": "dato-comprimidos-v1","content": "string con el contenido del archivo","compression": "gzip","pipeline_config" : " extraction , analysis, enrichment "}'
+
+create Response:{
+  "job_id": "5aa82099-3d2b-4744-922a-de69192afc23",
+  "name": "Archivo de test por gRPC",
+  "topic": "dato-comprimidos-v1",
+  "compression": "gzip",
+  "pipeline_config": " extraction , analysis, enrichment ",
+  "code": 0
+}
+```
+
+## get
+```bash
+python3 app/infrastructure/grpc/client.py --get '{"job_id" : "5aa82099-3d2b-4744-922a-de69192afc23"}'
+
+get Response:{
+  "job_id": "5aa82099-3d2b-4744-922a-de69192afc23",
+  "name": "Archivo de test por gRPC",
+  "topic": "dato-comprimidos-v1",
+  "compression": "gzip",
+  "stages": "completed",
+  "pipeline": "extraction, analysis, enrichment",
+  "job_status": "completed",
+  "ready": true,
+  "status": "completed",
+  "code": 0
+}
+```
+
+```bash
+# job not found
+python3 app/infrastructure/grpc/client.py --get '{"job_id" : "XYZPPDADFAFDEAEFAEFEAQV"}'
+
+get Response:{
+  "code": 1,
+  "job_id": "XYZPPDADFAFDEAEFAEFEAQV",
+  "message": "worker id 'XYZPPDADFAFDEAEFAEFEAQV' not found"
+}
+```
+
+## put
+```bash
+python3 app/infrastructure/grpc/client.py --put '{"job_id" : "3d435558-215a-4e67-93bf-641da1e185ef", "status":"cancelled"}'
+
+put Response:{
+  "job_id": "3d435558-215a-4e67-93bf-641da1e185ef",
+  "job_status": "completed",
+  "message": "No se puede cancelar el worker id '3d435558-215a-4e67-93bf-641da1e185ef', fue completado",
+  "code": 0
+}
+```
+
+```bash
+python3 app/infrastructure/grpc/client.py --put '{"job_id" : "3d435558-215a-4e67-93bf-641da1e185ef", "status":"deleted"}'
+
+put Response:{
+  "job_id": "3d435558-215a-4e67-93bf-641da1e185ef",
+  "job_status": "completed",
+  "message": "Se elimino del worker id '3d435558-215a-4e67-93bf-641da1e185ef'",
+  "code": 0
+}
+
+# verificamos
+python3 app/infrastructure/grpc/client.py --get '{"job_id" : "3d435558-215a-4e67-93bf-641da1e185ef"}'
+
+get Response:{
+  "code": 1,
+  "job_id": "3d435558-215a-4e67-93bf-641da1e185ef",
+  "message": "worker id '3d435558-215a-4e67-93bf-641da1e185ef' not found"
+}
+```
+
+```bash
+## peticion con error
+python3 app/infrastructure/grpc/client.py --put '{"job_id" : "XYZPPDADFAFDEAEFAEFEAQV", "status":"canceled"}'
+
+put Response:{
+  "code": 1,
+  "job_id": "XYZPPDADFAFDEAEFAEFEAQV",
+  "status": "canceled",
+  "message": "Estado 'canceled' no permitido, solo 'cancelled' o 'deleted'"
+}
+```
+
+## list_jobs
+```bash
+## lista all jobs
+python3 app/infrastructure/grpc/client.py --list_jobs
+
+list_jobs Response:{
+  "completed": [
+    "17501cb2-03f8-4df5-9b10-ed7accef3d17",
+    "4f97cc4e-337f-4b4e-9c16-2a44b6de05a0",
+    "5aa82099-3d2b-4744-922a-de69192afc23",
+    "ab357e70-3570-4c3f-90e5-fe03f35c1a44",
+    "4e37b325-2ec3-4555-b5ff-285f1a784afc",
+    "a33af399-7407-4e12-b293-2d40fb603c26",
+    "58a68aaf-4cb7-4b5c-bd1d-02a2056a8fb7",
+    "33c48064-bc4b-4a65-ae08-635be0bb616e"
+  ],
+  "code": 0,
+  "pending": [],
+  "processing": [],
+  "failed": [],
+  "cancelled": []
+}
+```
+
+```bash
+# Estados Posibles ['pending', 'processing', 'completed', 'failed', 'cancelled']
+python3 app/infrastructure/grpc/client.py --list_jobs '{"status":"pending"}'
+python3 app/infrastructure/grpc/client.py --list_jobs '{"status":"processing"}'
+python3 app/infrastructure/grpc/client.py --list_jobs '{"status":"completed"}'
+python3 app/infrastructure/grpc/client.py --list_jobs '{"status":"failed"}'
+python3 app/infrastructure/grpc/client.py --list_jobs '{"status":"cancelled"}'
+
+# con error en el campo status
+python3 app/infrastructure/grpc/client.py --list_jobs '{"status":"canceled"}'
+```
+  > **Nota** : Como el en el cliente no tenemos lógica de verificación de los campos **repeated** para este service, siempre visualizaremos todos los campos, los que deberian estar ausente con el valor por defecto `[]`. 
+  Esto lo realiza el cliente, no tiene sobrecarga el server, si monitoreamos el log del contenedor **gRPC/grpc** podemos observar la información que el servicio retorna en la solicitud, sin los campos sobrantes en función de la petición.
+
+
+## list_providers
+```bash
+python3 app/infrastructure/grpc/client.py --list_providers
+
+list_providers Response:{
+  "providers": [
+    "extraction",
+    "analysis",
+    "enrichment"
+  ],
+  "code": 0
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Abreviaturas
+- **Job** : Abreviatura para representar el trabajo que realizara el '**Document Processing**'.
+
+
+
+
 
 <!--  
 FIXME Pendientes:
  - add los unittest para FastAPI
- - add input adapter gRPC, file content in bytearrays
 -->
-

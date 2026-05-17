@@ -4,9 +4,7 @@ pylint
 celery[redis]
 redis
 confluent-kafka
-uvicorn
-pydantic
-fastapi[standard]
 grpcio
 grpcio-tools
+# for unittest `pip install grpcio-testing`
 grpcio-testing

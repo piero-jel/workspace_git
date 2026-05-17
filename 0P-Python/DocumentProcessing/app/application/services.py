@@ -87,7 +87,7 @@ class ProcessGateway:
         if self.worker_id.job_id is None :
             self.resp = {
                 "code"      : 1,
-                "error"     : f"worker id '{worker_id}' not found",
+                "message"   : f"worker id '{worker_id}' not found",
                 "job_id"    : worker_id
             }
             return False
@@ -155,7 +155,7 @@ class ProcessGateway:
         :rtype: str
         """
         if job_id is None:
-            return self.worker.get_workers()
+            return {'code':0, **self.worker.get_workers()}
 
         if not self._status(job_id):
             return self.resp
@@ -260,14 +260,14 @@ class ProcessGateway:
             st = status_map.get(status.strip().upper(),None)
         
         if st is not None:
-            return self.worker.get_workers(WorkerStatus(st))
+            return { 'code':0, **self.worker.get_workers(WorkerStatus(st))}
         
         if status:
+            status_list:str = ",".join([f"'{x.lower()}'" for x in status_map.keys()])
             return { 
-                "message": f"Estado '{status}' NO SOPORTADO, estado admisibles 'status_list'",
-                "status_list": [x.lower() for x in status_map.keys()],
-                    #**self.worker.get_workers()
-                }
+                "code" : 1,
+                "message": f"Estado '{status}' NO SOPORTADO, estados admisibles {status_list}"
+            }
         
         return self.worker.get_workers()
     
@@ -278,4 +278,4 @@ class ProcessGateway:
         :return: dict con el listado de provedores
         :rtype: dict
         """        
-        return {'providers' : [x for x in PROVIDERS_CLS.keys()] }
+        return {'code':0,'providers' : [x for x in PROVIDERS_CLS.keys()] }

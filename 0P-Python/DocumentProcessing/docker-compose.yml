@@ -80,6 +80,28 @@ services:
 
         volumes:
             - "./:/application"
+
+    grpc:
+        build:
+            context: ./deploy/
+            dockerfile: ./grpc/Dockerfile
+
+        container_name: gRPC
+        command: python3 app/infrastructure/grpc/server.py --port ${GRPC_PORT} --pool_thread ${GRPC_POLL_TRHEAD}
+        ports:
+            - "${GRPC_PORT}:${GRPC_PORT}"
+
+        depends_on:
+            celery:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+
+        environment:
+            - TZ=America/Argentina/Buenos_Aires
+
+        volumes:
+            - "./:/application"
     
     tests: # services for unittest, solo se crea la imagen
         build:

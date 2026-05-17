@@ -56,9 +56,9 @@ from app.application.services import ProcessGateway
 from app.infrastructure.adapters.tasks_celery import TaskProcessingGateway
 from app.infrastructure.adapters.worker_redis import (
     #WorkerContextRedis, 
-    WorkerIdRedis,
+    #WorkerIdRedis,
     WorkerRedis,
-    WorkerStatus,
+    #WorkerStatus,
 )
 
 fastapi:FastAPI = FastAPI()
@@ -129,8 +129,14 @@ async def process_create(order:PipelineProcessCreate):
 
     pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
     job_id:str = pr_gateway.create(TaskProcessingGateway.launch(order.model_dump()))
+
+    # no retornamos "content" por el payload del response
     return {
-        'job_id':job_id, **order.model_dump()
+        'job_id': job_id,
+        "name"  : order.name,
+        "topic" : order.topic,
+        "compression" : order.compression,
+        "pipeline_config" : order.pipeline_config
     }
 
 
@@ -160,14 +166,14 @@ async def process_get(job_id:str):
 @fastapi.put("/pipeline_process/{job_id}")
 async def process_discard(job_id:str,option:PipelineProcessPut):
     '''
-    Cancelar o Eliminar un job, [PUT]  pipeline_process/<job_id> {"status": "'cancel|delete'"}
+    Cancelar o Eliminar un job, [PUT]  pipeline_process/<job_id> {"status": "'cancelled|deleted'"}
 
     Cancel Job
     ```
     job_id="$(uuidgen --time)";\\
     url="http://127.0.0.1:8000/pipeline_process/${job_id}";\\
     header=(-H 'accept: application/json' -H 'Content-Type: application/json');\\
-    body='{"status": "cancel"}';\\
+    body='{"status": "cancelled"}';\\
     curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\\n'
     ```
 
@@ -176,7 +182,7 @@ async def process_discard(job_id:str,option:PipelineProcessPut):
     job_id="$(uuidgen --time)";\\
     url="http://127.0.0.1:8000/pipeline_process/${job_id}";\\
     header=(-H 'accept: application/json' -H 'Content-Type: application/json');\\
-    body='{"status": "delete"}';\\
+    body='{"status": "deleted"}';\\
     curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\\n'
     ```
     '''
@@ -185,21 +191,21 @@ async def process_discard(job_id:str,option:PipelineProcessPut):
     job_id="$(uuidgen --time)";\
     url="http://127.0.0.1:8000/pipeline_process/${job_id}";\
     header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
-    body='{"status": "cancel"}';\
+    body='{"status": "cancelled"}';\
     curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
     '''
-    st:str = option.status.lower()
+    st:str = option.status.strip().lower()
     pr:ProcessGateway = ProcessGateway(WorkerRedis())
-    if st == 'cancel':
+    if st == 'cancelled':
         return pr.cancel(job_id)
 
-    if st == 'delete':
+    if st == 'deleted':
         return pr.delete(job_id)
 
     #return {'job_id':job_id,**option.model_dump()}
     return {
         "job_id": job_id,
-        "message": f"Estado '{option.status}' no permitido, solo 'cancel' o 'delete'",
+        "message": f"Estado '{option.status}' no permitido, solo 'cancelled' o 'deleted'",
         **option.model_dump()
     }
 
