@@ -64,15 +64,12 @@ from protobuf.pipeline_process_pb2 import (
     ListJobsRequest,ListJobsResponse,
     ListProvidersResponse
 )
-#from grpc_utils import gRPCUtils
+
 from grpc_utils import gRPCUtils,gRPCServer,gRPCServicesReg
 import protobuf.pipeline_process_pb2_grpc as gRPCStub
 from app.application.services import ProcessGateway
 from app.infrastructure.adapters.tasks_celery import TaskProcessingGateway
-from app.infrastructure.adapters.worker_redis import (
-    #WorkerContextRedis, WorkerIdRedis,WorkerStatus,
-    WorkerRedis,
-)
+from app.infrastructure.adapters.worker_redis import ( WorkerRedis )
 
 log:Logger = get_logger(__name__)
 
@@ -89,7 +86,6 @@ class CreateProcess(gRPCStub.CreateServicer):
 
         return CreateResponse(
             job_id=job_id,
-            #job_id=str(uuid4()),
             name=request.name,
             topic=request.topic,
             compression=request.compression,
@@ -100,10 +96,6 @@ class CreateProcess(gRPCStub.CreateServicer):
 class GetProcess(gRPCStub.GetServicer):
     def get(self, request:GetRequest,context):
         resp:dict = ProcessGateway(WorkerRedis()).get(request.job_id)
-        #return GetResponse(
-        #    code=0,
-        #    job_id=request.job_id
-        #)
         log.info('%s::list_jobs(), resp: %s',type(self).__name__,resp)
         return GetResponse(**resp)
 
@@ -128,12 +120,7 @@ class PutProcess(gRPCStub.PutServicer):
                     "status"  : request.status,
                     "message" : f"Estado '{st}' no permitido, solo 'cancelled' o 'deleted'",
                 }
-        
-        #return PutResponse(
-        #    code=0,
-        #    job_id=request.job_id,
-        #    status=request.status
-        #)
+
         return PutResponse(**resp)
 
 
@@ -142,10 +129,6 @@ class ListJobsProcess(gRPCStub.ListJobsServicer):
 
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         resp:dict = None
-
-        #dct_req:dict = gRPCUtils.objgrpc2dict(request)
-        #print(f'{type(self).__name__}::list_jobs({dct_req})')
-        
        
         if not request.HasField('status'):
             resp = pr_gateway.get_list()
@@ -158,14 +141,6 @@ class ListJobsProcess(gRPCStub.ListJobsServicer):
 
 class ListProvidersProcess(gRPCStub.ListProvidersServicer):
     def list_providers(self,request:Empty,context):
-        #response:list = [
-        #    "pending"   , 
-        #    "processing", 
-        #    "completed" , 
-        #    "failed"    , 
-        #    "cancelled"  
-        #]
-        #return ListProvidersResponse(providers=response)
         return ListProvidersResponse(**ProcessGateway(WorkerRedis()).get_providers())
     
 

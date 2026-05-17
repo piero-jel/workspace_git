@@ -59,7 +59,6 @@ import sys
 
 # agregamos el directorio root del proyecto al `sys.path` para los import de los modulos,
 # ya que se invoca app/infrastructure/grpc/server.py
-#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), './protobuf')))
 
@@ -101,6 +100,4 @@ def get_logger(appname:str,stdout:bool=False,config:dict=None)->Logger:
     else:
         basicConfig(**config)
 
-    # 4. Uso
-    #ret.info("Este mensaje se imprimirá en la consola (stdout)")
     return ret

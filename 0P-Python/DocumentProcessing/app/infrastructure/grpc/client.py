@@ -130,9 +130,7 @@ def get_parmas(options:list[str])->tuple[str,dict]:
 def main():
     """ funcion principal del modulo """
     cliente:PipelineProcessClient = PipelineProcessClient(url=GRPC_URL,port=GRPC_PORT)
-    #print(f'cliente: {cliente.methods}')
     opt,request = get_parmas(cliente.methods)
-    #print(f'opt: {opt} | data: {request}')
     
     response:dict = None
     try:
@@ -144,9 +142,6 @@ def main():
         print(f"{opt} Response:{json.dumps(response,indent=2)}")
     except Exception as e:
         print(f'Exception<{type(e).__name__}>, detail {e}')
-
-    
-    
 
 
 if __name__ == "__main__":

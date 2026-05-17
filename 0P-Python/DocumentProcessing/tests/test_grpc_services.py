@@ -46,12 +46,7 @@ JEL            2026.04.14     0.0.3       Version Inicial no release
 """
 # build-in module
 import unittest   
-#from time import sleep
-#import json
-#import random
-#from uuid import uuid4
 from collections import namedtuple
-
 
 # third-party modules
 import unittest
@@ -69,7 +64,6 @@ from app.infrastructure.grpc.protobuf.pipeline_process_pb2 import (
     ListJobsRequest,ListJobsResponse,
     ListProvidersResponse
 )
-#import protobuf.pipeline_process_pb2_grpc as gRPCStub
 from tests.grpc_settings import (GRPC_MOCK,GRPC_URL)
 from app.infrastructure.grpc.server import (
     CreateProcess,
@@ -403,8 +397,7 @@ class Test_gRPCServices(unittest.TestCase):
         ''' Test case para el service ListJobs por status
            
         python3 -m unittest -v tests.test_grpc_services.Test_gRPCServices.test_list_jobs_v2
-        '''        
-         # Invocar el método directamente
+        '''
         # Obtener respuesta        
         response:dict = self.cliente.run('list_jobs')
         # Verificaciones
