@@ -639,7 +639,7 @@ docker compose logs -f redis
 Para consumir el **downstream**, podemos ejecutar:
 
 ```bash
-services='celery'; \
+services='tests'; \
 flags="--name KafkaClient --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
 docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-downstream.py"
 ```
