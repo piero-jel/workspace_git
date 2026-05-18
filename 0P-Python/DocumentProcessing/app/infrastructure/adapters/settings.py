@@ -43,6 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version             Brief
 JEL            2026.04.14     0.0.3               Version Inicial no release
+JEL            2026.05.17     0.0.4               Ajustest para el modelo persistente de workers
+                                                  (entre backend y broker) y correciones para pylint
 """
 
 # third-party modules
@@ -75,16 +77,15 @@ redis:Redis = Redis(
 celery:Celery = Celery(
     'tasks',
     broker  = f'redis://:{REDISCLI_AUTH}@{REDIS_URL}:{REDIS_PORT}/0',
-    backend = f'redis://:{REDISCLI_AUTH}@{REDIS_URL}:{REDIS_PORT}/0',
+    backend = f'redis://:{REDISCLI_AUTH}@{REDIS_URL}:{REDIS_PORT}/1',
     result_extended=True
 )
 
 
-celery.conf.update(    
+celery.conf.update(
     task_serializer='json',
     accept_content=['json'],
     result_serializer='json',
     timezone='UTC',
     enable_utc=True,
 )
-

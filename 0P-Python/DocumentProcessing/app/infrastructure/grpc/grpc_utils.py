@@ -41,27 +41,31 @@ POSSIBILITY OF SUCH DAMAGE.
 @warning
 @note
 @Change History:
-Author         Date           Version          Brief
-JEL            2026.04.16     0.0.3            Version Inicial no release
+Author         Date           Version      Brief
+JEL            2026.04.16     0.0.3        Version Inicial no release
+JEL            2026.05.17     0.0.4        Add Logger for gRPCServer y Ajustes para pylint
 """
 # build-in modules
 from typing import TypeAlias,Callable,overload
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from concurrent.futures import ThreadPoolExecutor
+from logging import Logger
 
 
 # third-party modules
 from grpc import insecure_channel,Channel,Server,server
 from google.protobuf.json_format import MessageToDict
-from google.protobuf.empty_pb2 import Empty
+
 
 
 
 class gRPCUtils:
+    """ clase para encapsular utilidades """
 
     @classmethod
-    def objgrpc2dict(self,objgrpc:object)->dict:
+    def objgrpc2dict(cls,objgrpc:object)->dict:
+        """ metodo para la converiosion de un objeto de protobuf a dict"""
         return MessageToDict(
             objgrpc,
             preserving_proto_field_name=True,   # Keep original field names (snake_case)
@@ -73,38 +77,42 @@ class gRPCUtils:
 # alias para el caller de metodo de un cliente
 gRPCAction:TypeAlias = Callable[[Channel,dict], object]
 
-# tupla para el registro de services 
-gRPCServicesReg = namedtuple('gRPCServicesReg',[ 'name','server']) 
+# tupla para el registro de services
+gRPCServicesReg = namedtuple('gRPCServicesReg',[ 'name','server'])
 
 class gRPCServer(ABC):
-    port:int 
+    """clase abstracta que modela el server gRPS"""
+    port:int
     pool_thread:int
+    log:Logger
 
-    def __init__(self,port:int,pool_thread:int):
+    def __init__(self,port:int,pool_thread:int,log:Logger=None):
         self.port = port
         self.pool_thread = pool_thread
         self._srv:Server = None
-    
-    def _add(self,module:object,name:str,instance:object): 
+        self.log = log
+
+    def _add(self,module:object,name:str,instance:object):
         name_fun = f"add_{name}Servicer_to_server"
         if not hasattr(module, name_fun):
-            raise ValueError(f"El modulo '{module.__name__}', no tiene una funcion llamada {name_fun}")
-            
-            
+            raise ValueError(f"El modulo '{module.__name__}', no tiene una funcion "\
+                             f"llamada {name_fun}")
+
         func = getattr(module, name_fun)
         if not callable(func):
-            raise TypeError(f"El attributo {name_fun} del modulo '{module.__name__}' no es una funcion")
-        
-        print(f"Add {type(instance).__name__} al services {name} para el modulo '{module.__name__}'")
-        func(instance,self._srv) 
+            raise TypeError(f"El attributo {name_fun} del modulo '{module.__name__}' "\
+                            "no es una funcion")
+
+        self.log.info("Add %s al services %s para el modulo '%s'",
+                      type(instance).__name__,name,module.__name__)
+        func(instance,self._srv)
 
     @overload
-    def add(self,module:object,name:list[gRPCServicesReg]): ... 
-    
+    def add(self,module:object,name:list[gRPCServicesReg]): ...
+
     @overload
-    #def add(self,module:object,name:str,*,instance:object): ...
     def add(self,module:object,name:str,instance:object): ...
-    
+
     def add(self,module:object,name:str|list[gRPCServicesReg],instance:object=None):
         """ 
         Metodo que se encarga de agregar un service al listado
@@ -125,15 +133,15 @@ class gRPCServer(ABC):
         if isinstance(name,str):
             self._add(module,name,instance)
             return
-        
+
         if isinstance(name,(list|tuple)):
             for it in name:
                 self._add(module,it.name,it.server)
-            
-            return 
-        
+
+            return
+
         raise TypeError(f"El el tipo de attributo para name <{type(name).__name__}> no soportado")
-        
+
     @abstractmethod
     def add_services(self):
         """ 
@@ -141,7 +149,7 @@ class gRPCServer(ABC):
         funciones para cada services en particular, usando el gRPCStub generado desde la 
         definiciones dentro del proto file
         """
-    
+
     def run(self):
         """ Metodo que inicia la ejecucion del servicio """
         self._srv = server(ThreadPoolExecutor(max_workers=self.pool_thread))
@@ -151,7 +159,7 @@ class gRPCServer(ABC):
             self.port = port
 
         self._srv.start()
-        
+
     def join(self):
         """ Metodo que permite atacharse al servicio a la espera de que el mismo finalice """
         self._srv.wait_for_termination()
@@ -162,14 +170,15 @@ class gRPCServer(ABC):
 
 
 class gRPCClient:
-    url:str 
+    """ clase abstracta para modelar un Cliente gRPC"""
+    url:str
     port:int
     _method:gRPCAction
     _methods:list[str] = None
 
     DISCARD_METHODS:tuple[str] = ('get_method','methods','run')
 
-    def __init__(self,url:str,port:int,*args,**kwargs):
+    def __init__(self,url:str,port:int,*args,**kwargs): #pylint:disable=unused-argument
         """
         Creacion de un objeto del tipo gRPCClient, para le manejo del cliente gRPC
         
@@ -182,7 +191,7 @@ class gRPCClient:
         self.url = url
         self.port = port
         cls = type(self)
-        self._methods = [ m for m in dir(self) 
+        self._methods = [ m for m in dir(self)
            if not m in cls.DISCARD_METHODS and callable(getattr(self, m)) and not m.startswith('__')
         ]
 
@@ -201,12 +210,12 @@ class gRPCClient:
         method:gRPCAction = getattr(self,name,None)
         if method is None:
             raise ValueError(f"El Objeto '{cls.__name__}', no tiene un metodo llamado {name}")
-        
+
         if not callable(method):
             raise TypeError(f'El attributo {cls.__name__}::{name} no es una funcion')
-        
+
         return method
-    
+
     def run(self,method:str,request:dict=None)->dict:
         """ 
         Metodo que se encarga de ejecutar una peticion al sevicio gRPC
@@ -225,9 +234,10 @@ class gRPCClient:
         with insecure_channel(f"{self.url}:{self.port}") as channel:
             if request is None:
                 return gRPCUtils.objgrpc2dict(self._method(channel))
-                
+
             return gRPCUtils.objgrpc2dict(self._method(channel,request))
-    
+
     @property
     def methods(self)->list[str]:
+        """ property para el geter del atributo con el listado de metodos"""
         return self._methods

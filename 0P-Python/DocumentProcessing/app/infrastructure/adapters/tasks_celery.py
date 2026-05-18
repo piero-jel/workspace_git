@@ -43,6 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version        Brief
 JEL            2026.04.14     0.0.3          Version Inicial no release
+JEL            2026.05.17     0.0.4          Ajustes para y correciones para pylint
 """
 # build-in module
 from json import dumps as json_dumps
@@ -60,16 +61,14 @@ from app.application.services import PROVIDERS_CLS
 
 
 
-
 log:Logger = get_task_logger(__name__)
 
 
-
 class TaskProcessingGateway(TaskPipeline):
-
-    providers_cls:dict = PROVIDERS_CLS # ProvidersCls    
+    """ clase concreta que representa la tarea que realizara la ejecucion del pipeline"""
+    providers_cls:dict = PROVIDERS_CLS
     worker:WorkerRedis = WorkerRedis()
-    
+
     # opcionales dependen de la implememntacion concreta
     _pipeline:list[str] = None  # lista donde se almacenaran los stages ejecutas
 
@@ -81,7 +80,7 @@ class TaskProcessingGateway(TaskPipeline):
           - topic : topic - tema
           - compression : si desea compresion
           - content : datos a procesar 
-        """   
+        """
         self.pipeline_config = data.get('pipeline_config',list(self.providers_cls.keys()))
         self._pipeline = [] # iniciamos el registro de stages ejecutados
         self.context = { # establecemso el context para localizar errores externos
@@ -95,7 +94,7 @@ class TaskProcessingGateway(TaskPipeline):
 
         if 'content' not in data.keys():
             log.error('%s::run() No tenemos datos para procesar',type(self).__name__)
-            raise Exception(f'{type(self).__name__}::run() No tenemos datos para procesar')
+            raise ValueError(f'{type(self).__name__}::run() No tenemos datos para procesar')
 
         return data
 
@@ -105,23 +104,17 @@ class TaskProcessingGateway(TaskPipeline):
         # actualizamos el context con el job_status
         self.context['job_status'] = self.work_id.get_status()
         self.context["stages"]   = WorkerStatus.COMPLETED.name.lower()
-        
+
         # publicamos el job
         self.eventpublisher.publish(self.context,data)
         return json_dumps(self.context)
-    
+
 
     def run_stage(self,name:str,stage:ProviderInterfaces,data:dict):
         self._pipeline.append(name)
         self.context['pipeline'] = ", ".join(self._pipeline)
         self.context["stages"]   = name
         super().run_stage(name,stage,data)
-
-        
-
-       
-  
-
 
 
 
@@ -130,8 +123,6 @@ class TaskProcessingGateway(TaskPipeline):
 celery.register_task(TaskProcessingGateway())
 
 ##
-# celery -A app.infrastructure.adapters.tasks_celery worker --loglevel=INFO 
+# celery -A app.infrastructure.adapters.tasks_celery worker --loglevel=INFO
 # celery -A app.infrastructure.adapters.tasks_celery worker --loglevel=DEBUG
 ##
-
-

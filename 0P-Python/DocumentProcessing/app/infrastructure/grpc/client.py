@@ -43,6 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version      Brief
 JEL            2026.04.16     0.0.3        Version Inicial no release
+JEL            2026.05.17     0.0.4        Ajustes y correciones para pylint
 """
 
 # build-in modules
@@ -53,42 +54,45 @@ import json
 
 # third-party modules
 from grpc import Channel#,insecure_channel
-#from google.protobuf.json_format import MessageToDict
-from google.protobuf.empty_pb2 import Empty
+from google.protobuf.empty_pb2 import Empty # pylint:disable=no-name-in-module
 
 # project modules
-from settings import (GRPC_URL,GRPC_PORT)
-from protobuf.pipeline_process_pb2 import (
+from settings import (GRPC_URL,GRPC_PORT) # pylint:disable=import-error
+from app.infrastructure.grpc.protobuf.pipeline_process_pb2 import (#pylint:disable=no-name-in-module
     CreateRequest,CreateResponse,
     GetRequest,GetResponse,
     PutRequest,PutResponse,
     ListJobsRequest,ListJobsResponse,
     ListProvidersResponse
 )
-import protobuf.pipeline_process_pb2_grpc as gRPCStub
-from grpc_utils import gRPCClient
+import app.infrastructure.grpc.protobuf.pipeline_process_pb2_grpc as gRPCStub
+from app.infrastructure.grpc.grpc_utils import gRPCClient
 
 
-    
 
 class PipelineProcessClient(gRPCClient):
+    """clase concreta para el mdelo del cliente de gRPC"""
 
     def create(self,ch:Channel,request:dict)->dict:
-        stub = gRPCStub.CreateStub(ch)        
+        """ metodo create para el Sevice Creat"""
+        stub = gRPCStub.CreateStub(ch)
         response:CreateResponse = stub.create(CreateRequest(**request))
         return response
-    
+
     def get(self,ch:Channel,request:dict)->dict:
-        stub = gRPCStub.GetStub(ch)        
+        """ metodo get para el Sevice Get"""
+        stub = gRPCStub.GetStub(ch)
         response:GetResponse = stub.get(GetRequest(**request))
         return response
-    
+
     def put(self,ch:Channel,request:dict)->dict:
-        stub = gRPCStub.PutStub(ch)        
+        """ metodo put para el Sevice Put"""
+        stub = gRPCStub.PutStub(ch)
         response:PutResponse = stub.put(PutRequest(**request))
         return response
-    
+
     def list_jobs(self,ch:Channel,request:dict=None)->dict:
+        """ metodo list_jobs para el Sevice ListJobs"""
         stub = gRPCStub.ListJobsStub(ch)
         response:ListJobsResponse = None
         if request is None:
@@ -98,31 +102,32 @@ class PipelineProcessClient(gRPCClient):
         return response
 
     def list_providers(self,ch:Channel)->dict:
-        stub = gRPCStub.ListProvidersStub(ch)        
+        """ metodo list_providers para el Sevice ListProviders"""
+        stub = gRPCStub.ListProvidersStub(ch)
         response:ListProvidersResponse = stub.list_providers(Empty())
         return response
 
 
 def get_parmas(options:list[str])->tuple[str,dict]:
+    """ funcion para obtener los parametros desde la linea de comandos"""
     argv:list = sys.argv
     argc:int  = len(argv)
-
     targets:list[str] = [f'--{x}' for x in options]
 
-    if argc < 2: # <2
+    if argc < 2:
         print(f'Error en el llamado {argv[0]}, intente con las opciones:')
         #print(f'{argv[0]} {targets}')
         print(f'{argv[0]} {" [params] | ".join(targets)} [params]\n\n')
         sys.exit(0)
-    
+
     if argv[1] not in targets:
-        print(f'Error en el llamado {argv[0]}, parametro {argv[1]} invalido')        
+        print(f'Error en el llamado {argv[0]}, parametro {argv[1]} invalido')
         sys.exit(0)
 
     opt = options[targets.index(argv[1])]
     if argc < 3:
         return opt,None
-    
+
     return opt,json.loads(argv[2])
 
 
@@ -131,7 +136,7 @@ def main():
     """ funcion principal del modulo """
     cliente:PipelineProcessClient = PipelineProcessClient(url=GRPC_URL,port=GRPC_PORT)
     opt,request = get_parmas(cliente.methods)
-    
+
     response:dict = None
     try:
         if request is None:
@@ -140,8 +145,9 @@ def main():
             response = cliente.run(opt,request)
 
         print(f"{opt} Response:{json.dumps(response,indent=2)}")
-    except Exception as e:
+    except Exception as e: #pylint:disable=broad-exception-caught
         print(f'Exception<{type(e).__name__}>, detail {e}')
+
 
 
 if __name__ == "__main__":

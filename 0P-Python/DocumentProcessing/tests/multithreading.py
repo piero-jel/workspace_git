@@ -42,7 +42,9 @@ POSSIBILITY OF SUCH DAMAGE.
 @note
 @Change History:
 Author         Date           Version             Brief
-JEL            2026.04.14     0.0.0               Version Inicial no release
+JEL            2026.04.14     0.0.3               Version Inicial no release
+JEL            2026.05.17     0.0.4               Add logger, delete jobs creados y ajustes
+                                                  para pylint
 """
 # build-in modules
 from threading import Thread,Event
@@ -56,12 +58,7 @@ import random
 # project modules
 from app.application.services import ProcessGateway
 from app.infrastructure.adapters.tasks_celery import TaskProcessingGateway
-from app.infrastructure.adapters.worker_redis import (
-    #WorkerContextRedis, 
-    #WorkerIdRedis,
-    WorkerRedis,
-    WorkerStatus
-)
+from app.infrastructure.adapters.worker_redis import ( WorkerRedis, WorkerStatus )
 
 
 
@@ -99,7 +96,15 @@ class MThread_ProcessGateway:
 
         # finalizados todos los theads
         for item in self.workers_id.values():
-            print(f'{item.work_id} : {item.name} | {item.status}')
+            self.log.info(f'{item.work_id} : {item.name} | {item.status}')
+
+        pr:ProcessGateway = ProcessGateway(WorkerRedis())
+        for item in self.workers_id.values():
+            if item.status == "DELETED":
+                continue
+            self.log.info(f'Delete JobID {item.work_id} : {item.name} | {item.status}')
+            pr.delete(item.work_id)
+
 
     def start(self):
         self.th_create_monitor.start()

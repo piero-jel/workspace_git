@@ -43,44 +43,50 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version        Brief
 JEL            2026.04.16     0.0.3          Version Inicial no release
+JEL            2026.05.17     0.0.4          Add Logger for gRPCServer y Ajustes para pylint
 """
 
 # build-in modules
-from concurrent.futures import ThreadPoolExecutor
 from argparse import ArgumentParser
-from uuid import uuid4
 
 # third-party modules
-from grpc import Server,server
-from google.protobuf.empty_pb2 import Empty
-from google.protobuf.json_format import MessageToDict
+from google.protobuf.empty_pb2 import Empty #pylint:disable=no-name-in-module
 
 # project modules
-from settings import (GRPC_POLL_TRHEAD,GRPC_PORT,get_logger,Logger)
-from protobuf.pipeline_process_pb2 import (
+from settings import (GRPC_POLL_TRHEAD,GRPC_PORT,get_logger,Logger) #pylint:disable=import-error
+from app.infrastructure.grpc.protobuf.pipeline_process_pb2 import ( #pylint:disable=no-name-in-module
     CreateRequest,CreateResponse,
     GetRequest,GetResponse,
     PutRequest,PutResponse,
     ListJobsRequest,ListJobsResponse,
     ListProvidersResponse
 )
+from app.infrastructure.grpc.grpc_utils import gRPCUtils,gRPCServer,gRPCServicesReg
+import app.infrastructure.grpc.protobuf.pipeline_process_pb2_grpc as gRPCStub
 
-from grpc_utils import gRPCUtils,gRPCServer,gRPCServicesReg
-import protobuf.pipeline_process_pb2_grpc as gRPCStub
 from app.application.services import ProcessGateway
 from app.infrastructure.adapters.tasks_celery import TaskProcessingGateway
-from app.infrastructure.adapters.worker_redis import ( WorkerRedis )
+from app.infrastructure.adapters.worker_redis import (
+    WorkerRedis,
+    #WorkerIdRedis,WorkerStatus
+)
 
-log:Logger = get_logger(__name__)
+class Process: # pylint:disable=too-few-public-methods
+    """ clase para agregar el manejo de log a los server"""
+    log:Logger
+    def __init__(self,log:Logger):
+        self.log = log
 
-class CreateProcess(gRPCStub.CreateServicer):
-    def create(self, request:CreateRequest,context):
+class CreateProcess(gRPCStub.CreateServicer,Process):
+    """ clase concreta que maneja el servicio gRPC Create"""
+    def create(self, request:CreateRequest,context):#pylint:disable=unused-argument
+        """ metodo create del services"""
 
         dct_req:dict = gRPCUtils.objgrpc2dict(request)
         dct_req['pipeline_config'] = [
             x.strip().lower() for x in request.pipeline_config.split(',')
         ]
-        log.info(f'{type(self).__name__}::create({dct_req})')
+        self.log.info(f'{type(self).__name__}::create({dct_req})')
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         job_id:str = pr_gateway.create(TaskProcessingGateway.launch(dct_req))
 
@@ -93,16 +99,19 @@ class CreateProcess(gRPCStub.CreateServicer):
         )
 
 
-class GetProcess(gRPCStub.GetServicer):
-    def get(self, request:GetRequest,context):
+class GetProcess(gRPCStub.GetServicer,Process):
+    """ clase concreta que maneja el servicio gRPC Get"""
+    def get(self, request:GetRequest,context):#pylint:disable=unused-argument
+        """ metodo get del servicio"""
         resp:dict = ProcessGateway(WorkerRedis()).get(request.job_id)
-        log.info('%s::list_jobs(), resp: %s',type(self).__name__,resp)
+        self.log.info('%s::list_jobs(), resp: %s',type(self).__name__,resp)
         return GetResponse(**resp)
 
-    
-class PutProcess(gRPCStub.PutServicer):
-    def put(self, request:PutRequest,context):
 
+class PutProcess(gRPCStub.PutServicer):
+    """ clase concreta que maneja el servicio gRPC Put"""
+    def put(self, request:PutRequest,context):#pylint:disable=unused-argument
+        """ metodo put del servicio"""
         st:str = request.status.strip().lower()
         pr:ProcessGateway = ProcessGateway(WorkerRedis())
         resp:dict = None
@@ -124,42 +133,49 @@ class PutProcess(gRPCStub.PutServicer):
         return PutResponse(**resp)
 
 
-class ListJobsProcess(gRPCStub.ListJobsServicer):
-    def list_jobs(self, request:ListJobsRequest,context):
-
+class ListJobsProcess(gRPCStub.ListJobsServicer,Process):
+    """ clase concreta que maneja el servicio gRPC ListJobs"""
+    def list_jobs(self, request:ListJobsRequest,context):#pylint:disable=unused-argument
+        """ metodo list_jobs del servicio"""
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
         resp:dict = None
-       
+
         if not request.HasField('status'):
             resp = pr_gateway.get_list()
         else:
             resp = pr_gateway.get_list(status=request.status)
 
-        log.info('%s::list_jobs(), resp: %s',type(self).__name__,resp)
+        self.log.info('%s::list_jobs(), resp: %s',type(self).__name__,resp)
         return ListJobsResponse(**resp)
 
 
 class ListProvidersProcess(gRPCStub.ListProvidersServicer):
-    def list_providers(self,request:Empty,context):
+    """ clase concreta que maneja el servicio gRPC ListProviders"""
+    def list_providers(self,request:Empty,context):#pylint:disable=unused-argument
+        """ Metodo list_provider del servicio"""
+        #return ListProvidersResponse(providers=response)
         return ListProvidersResponse(**ProcessGateway(WorkerRedis()).get_providers())
-    
+
 
 class PipelineProcessServer(gRPCServer):
-    list_services:list[gRPCServicesReg] = [
-        gRPCServicesReg(name='Create'       ,server=CreateProcess()),
-        gRPCServicesReg(name='Get'          ,server=GetProcess()),
-        gRPCServicesReg(name='Put'          ,server=PutProcess()),
-        gRPCServicesReg(name='ListJobs'     ,server=ListJobsProcess()),
-        gRPCServicesReg(name='ListProviders',server=ListProvidersProcess()),
-    ]
-    
+    """ clase concreta que modela el server gRPC, con todos los serivicios anteriores"""
     def add_services(self):
-        self.add(gRPCStub,self.list_services)
+        """ metodo que agrega el listado de services al server gRPC"""
+        list_services:list[gRPCServicesReg] = [
+            gRPCServicesReg(name='Create'       ,server=CreateProcess(log=self.log)),
+            gRPCServicesReg(name='Get'          ,server=GetProcess(log=self.log)),
+            gRPCServicesReg(name='Put'          ,server=PutProcess()),
+            gRPCServicesReg(name='ListJobs'     ,server=ListJobsProcess(log=self.log)),
+            gRPCServicesReg(name='ListProviders',server=ListProvidersProcess()),
+        ]
+
+        self.add(gRPCStub,list_services)
 
 def main():
+    """ metodo principal del servicio a lanzar"""
     try:
-        ## --port VAL:int        
-        ## --pool-thread VAL:int
+        ## --port VAL:int
+        ## --pool_thread VAL:int
         parser = ArgumentParser(description="gRPC Server")
         parser.add_argument(
             "--port",
@@ -175,17 +191,18 @@ def main():
         )
         args = parser.parse_args()
         srv = PipelineProcessServer(port=int(args.port),
-                                    pool_thread=int(args.pool_thread))
-        
+                                    pool_thread=int(args.pool_thread),
+                                    log=get_logger(__name__))
+
         srv.run()
         print(f"Server started, listening on {srv.port}, thread pool {srv.pool_thread}")
         srv.join()
-        
-    except Exception as e:
+
+    except Exception as e: #pylint:disable=broad-exception-caught
         print(f'Exception <{type(e).__name__}, detail {e}>')
     except KeyboardInterrupt:
         print('KeyboardInterrupt, end services.')
 
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     main()

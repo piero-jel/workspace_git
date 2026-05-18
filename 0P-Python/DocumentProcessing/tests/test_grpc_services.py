@@ -43,13 +43,14 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version     Brief
 JEL            2026.04.14     0.0.3       Version Inicial no release
+JEL            2026.05.17     0.0.4       Add logger in gRPC Server, delete jobs creados y
+                                          ajustes para pylint
 """
 # build-in module
-import unittest   
+import unittest
 from collections import namedtuple
 
 # third-party modules
-import unittest
 from grpc import StatusCode
 from grpc_testing import server_from_dictionary, strict_real_time
 from google.protobuf.empty_pb2 import Empty
@@ -58,12 +59,12 @@ from google.protobuf.empty_pb2 import Empty
 from tests.config import get_log,unittest_log,Logger
 from app.infrastructure.grpc.protobuf.pipeline_process_pb2 import (
     DESCRIPTOR,
-    CreateRequest,CreateResponse,
-    GetRequest,GetResponse,
-    PutRequest,PutResponse,
-    ListJobsRequest,ListJobsResponse,
-    ListProvidersResponse
+    CreateRequest,
+    GetRequest,
+    PutRequest,
+    ListJobsRequest
 )
+
 from tests.grpc_settings import (GRPC_MOCK,GRPC_URL)
 from app.infrastructure.grpc.server import (
     CreateProcess,
@@ -89,17 +90,19 @@ class Test_gRPCServicesMock(unittest.TestCase):
     '''
     @classmethod
     def setUpClass(cls):
-        cls.log = get_log(cls.__name__)        
+        cls.log = get_log(cls.__name__)
+        cls.job_list:list = []
         return super().setUpClass()
     
     def setUp(self):
         self.log:Logger = type(self).log
+        self.job_id:str = None
         # Creamos las instancias de todos los services
         services:list[ServicesReg] = [
-            ServicesReg(name='Create'       ,server=CreateProcess()),            
-            ServicesReg(name='Get'          ,server=GetProcess()),
+            ServicesReg(name='Create'       ,server=CreateProcess(log=self.log)),
+            ServicesReg(name='Get'          ,server=GetProcess(log=self.log)),
             ServicesReg(name='Put'          ,server=PutProcess()),
-            ServicesReg(name='ListJobs'     ,server=ListJobsProcess()),
+            ServicesReg(name='ListJobs'     ,server=ListJobsProcess(log=self.log)),
             ServicesReg(name='ListProviders',server=ListProvidersProcess()),
         ]
         # Armamos el dict con los server
@@ -109,6 +112,30 @@ class Test_gRPCServicesMock(unittest.TestCase):
         # Crear el servidor para las pruebas
         self.test_server = server_from_dictionary(servicers, strict_real_time())
         return super().setUp()
+    
+    def tearDown(self):
+        if self.job_id is not None:
+            req:dict = { "job_id" : self.job_id, "status":"deleted"}
+            request = PutRequest(**req)
+            # Invocar el método directamente
+            method = self.test_server.invoke_unary_unary(
+                method_descriptor=(
+                    DESCRIPTOR.services_by_name['Put'].methods_by_name['put']
+                ),
+                invocation_metadata={},
+                request=request,
+                timeout=10
+            )
+            # Obtener respuesta
+            response, _, code, details = method.termination()
+
+            # Verificaciones
+            self.log.info(f'{type(self).__name__}::tearDown() response:\n{response}')
+            if code != StatusCode.OK: 
+                # en caso de timeout log el mensaje
+                self.log.info(f'{type(self).__name__}::tearDown() response error details {details}')
+
+        return super().tearDown()
     
 
     def test_create_v1(self):
@@ -137,12 +164,13 @@ class Test_gRPCServicesMock(unittest.TestCase):
         response, metadata, code, details = method.termination()
 
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_create_v1() response:\n{response}')
+        self.assertEqual(code, StatusCode.OK)
         self.assertEqual(response.name, req['name'])
         self.assertEqual(response.topic, req['topic'])
         self.assertEqual(response.compression, req['compression'])
-        self.assertEqual(response.pipeline_config, req['pipeline_config'])        
-        self.assertEqual(code, StatusCode.OK)
+        self.assertEqual(response.pipeline_config, req['pipeline_config'])
+        self.job_id = response.job_id
 
     def test_get_v1(self):
         ''' Test case para el service Get
@@ -166,11 +194,11 @@ class Test_gRPCServicesMock(unittest.TestCase):
         response, metadata, code, details = method.termination()
         if code != StatusCode.OK: 
             # en caso de timeout
-            self.log.info(f'response error details {details}')
+            self.log.info(f'{type(self).__name__}::test_get_v1() response error details {details}')
             return 
 
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_get_v1() response:\n{response}')
         self.assertEqual(code, StatusCode.OK)
         self.assertEqual(response.job_id, req['job_id'])
     
@@ -196,10 +224,10 @@ class Test_gRPCServicesMock(unittest.TestCase):
         # Obtener respuesta
         response, metadata, code, details = method.termination()
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_put_v1() response:\n{response}')
         if code != StatusCode.OK: 
             # en caso de timeout log el mensaje
-            self.log.info(f'response error details {details}')
+            self.log.info(f'{type(self).__name__}::test_put_v1() response error details {details}')
             return 
         
         self.assertEqual(code, StatusCode.OK)
@@ -233,7 +261,7 @@ class Test_gRPCServicesMock(unittest.TestCase):
             "failed",
             "cancelled",
         )
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_list_jobs_v1() response:\n{response}')
         self.assertEqual(code, StatusCode.OK)
         for st in state_list:
             if st == req["status"]:
@@ -259,7 +287,7 @@ class Test_gRPCServicesMock(unittest.TestCase):
         # Obtener respuesta
         response, metadata, code, details = method.termination()
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_list_jobs_v2() response:\n{response}')
         self.assertEqual(code, StatusCode.OK)
 
     def test_list_providers_v1(self):
@@ -279,7 +307,7 @@ class Test_gRPCServicesMock(unittest.TestCase):
         # Obtener respuesta
         response, metadata, code, details = method.termination()
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_list_providers_v1() response:\n{response}')
         self.assertEqual(code, StatusCode.OK)
         self.assertTrue(len(response.providers) > 0 )
         
@@ -298,13 +326,22 @@ class Test_gRPCServices(unittest.TestCase):
     
     def setUp(self):
         self.log:Logger = type(self).log
+        self.job_id:str = None
         # Creamos las instancias de todos los services
-        self.server:PipelineProcessServer = PipelineProcessServer(port=0,pool_thread=1)
+        self.server:PipelineProcessServer = PipelineProcessServer(port=0,pool_thread=1,
+                                                                  log=type(self).log)
         self.server.run()
-        self.cliente:PipelineProcessClient = PipelineProcessClient(url=GRPC_URL,port=self.server.port)
+        self.cliente:PipelineProcessClient = PipelineProcessClient(url=GRPC_URL,
+                                                                   port=self.server.port)
         return super().setUp()
     
     def tearDown(self):
+        
+        if self.job_id is not None:
+            req:dict = { "job_id" : self.job_id, "status":"deleted"}
+            response:dict = self.cliente.run('put',req)
+            self.log.info(f'{type(self).__name__}::tearDown() delete {self.job_id} response:\n{response}')
+
         self.server.stop()
         return super().tearDown()
 
@@ -326,7 +363,8 @@ class Test_gRPCServices(unittest.TestCase):
         response:dict = self.cliente.run('create',req)
 
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_create_v1() response:\n{response}')
+        self.job_id = response['job_id']
         self.assertEqual(response['name'], req['name'])
         self.assertEqual(response['topic'], req['topic'])
         self.assertEqual(response['compression'], req['compression'])
@@ -345,7 +383,7 @@ class Test_gRPCServices(unittest.TestCase):
         # Obtener respuesta        
         response:dict = self.cliente.run('get',req)
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_get_v1() response:\n{response}')
         self.assertEqual(response['job_id'], req['job_id'])
         self.assertEqual(response['code'], 1)
     
@@ -362,7 +400,7 @@ class Test_gRPCServices(unittest.TestCase):
         response:dict = self.cliente.run('put',req)
 
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_put_v1() response:\n{response}')
         self.assertEqual(response['job_id'], req['job_id'])
         self.assertEqual(response['code'], 1)
 
@@ -385,7 +423,7 @@ class Test_gRPCServices(unittest.TestCase):
             "failed",
             "cancelled",
         )
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_list_jobs_v1() response:\n{response}')
         self.assertEqual(response['code'], 0)
         for st in state_list:
             if st == req["status"]:
@@ -397,11 +435,12 @@ class Test_gRPCServices(unittest.TestCase):
         ''' Test case para el service ListJobs por status
            
         python3 -m unittest -v tests.test_grpc_services.Test_gRPCServices.test_list_jobs_v2
-        '''
+        '''        
+         # Invocar el método directamente
         # Obtener respuesta        
         response:dict = self.cliente.run('list_jobs')
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_list_jobs_v2() response:\n{response}')
         self.assertEqual(response['code'], 0)
 
     def test_list_providers_v1(self):
@@ -413,7 +452,7 @@ class Test_gRPCServices(unittest.TestCase):
         response:dict = self.cliente.run('list_providers')
         
         # Verificaciones
-        self.log.info(f'response:\n{response}')
+        self.log.info(f'{type(self).__name__}::test_list_providers_v1() response:\n{response}')
         self.assertEqual(response['code'], 0)
         self.assertTrue(len(response['providers']) > 0 )
                 

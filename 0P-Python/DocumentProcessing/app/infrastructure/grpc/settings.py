@@ -41,21 +41,23 @@ POSSIBILITY OF SUCH DAMAGE.
 @warning
 @note
 @Change History:
-Author         Date           Version             Brief
-JEL            2026.04.14     0.0.3               Version Inicial no release
+Author         Date           Version         Brief
+JEL            2026.04.14     0.0.3           Version Inicial no release
+JEL            2026.05.17     0.0.4           Ajustes y correciones para pylint
 """
 
-# third-party modules
-from dotenv import dotenv_values
+# build-in modules
+import os
+import sys
 from logging import (
     Logger,Formatter,StreamHandler,
     getLogger,basicConfig,
     DEBUG,
 )
+from datetime import datetime
 
-import os
-import sys
-
+# third party modules
+from dotenv import dotenv_values
 
 # agregamos el directorio root del proyecto al `sys.path` para los import de los modulos,
 # ya que se invoca app/infrastructure/grpc/server.py
@@ -72,13 +74,13 @@ GRPC_URL:str          = ENV_VARS.get('GRPC_URL','localhost')
 GRPC_PORT:int         = ENV_VARS.get('GRPC_PORT',50051)
 GRPC_POLL_TRHEAD:int  = ENV_VARS.get('GRPC_POLL_TRHEAD',10)
 
-CONFIG_LOGGING:dict = { 
+CONFIG_LOGGING:dict = {
     'level'    : DEBUG, # Nivel de detalle (DEBUG, INFO, WARNING, etc.)
     'filemode' : "a",
     #'format'   : "%(asctime)s.%(msecs)03d %(levelname)s %(filename)s:%(funcName)s() - %(message)s",
     'format'   : "%(asctime)s.%(msecs)03d %(levelname)-8.8s- %(message)s",
     'datefmt'  : "%Y-%m-%d %H:%M:%S",
-    #'filename' : f"tests/logs/test_{datetime.now().strftime('%Y%m%d')}.log"
+    'filename' : f"logs/grpc_{datetime.now().strftime('%Y%m%d')}.log"
 }
 
 
@@ -90,9 +92,14 @@ def get_logger(appname:str,stdout:bool=False,config:dict=None)->Logger:
     if config is None:
         config = CONFIG_LOGGING
 
+    if not stdout :
+        log_dir:str = os.path.dirname(config['filename'])
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
     ret:Logger = getLogger(appname)
     if stdout:
-        ret.setLevel(config['level'])  
+        ret.setLevel(config['level'])
         # Añadir el manejador que envía a stdout
         stdout_handler = StreamHandler(sys.stdout)
         stdout_handler.setFormatter(Formatter(config['format']))

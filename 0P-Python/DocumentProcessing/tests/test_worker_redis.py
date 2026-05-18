@@ -43,25 +43,19 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version     Brief
 JEL            2026.04.14     0.0.3       Version Inicial no release
+JEL            2026.05.17     0.0.4       Ajustes para pylint
 """
 # build-in module
 import unittest   
 from time import sleep
 import json
-import random
 from uuid import uuid4
-
-
-
-# third-party modules
-
-
 
 # project modules, under test
 #from app.infrastructure.adapters.settings import celery
 #from app.application.services import ProcessGateway
 from app.domain.worker import (
-    Worker,WorkerContext, WorkerId, WorkerResult,WorkerStatus
+    WorkerContext, WorkerId, WorkerResult,WorkerStatus
 )
 from app.infrastructure.adapters.worker_redis import (
     WorkerContextRedis,
@@ -69,7 +63,6 @@ from app.infrastructure.adapters.worker_redis import (
     WorkerRedis,
     WorkerResultCelery    
 )
-#from app.infrastructure.adapters.tasks_celery import TaskProcessingGateway
 from tests.config import get_log,unittest_log,Logger
 
 

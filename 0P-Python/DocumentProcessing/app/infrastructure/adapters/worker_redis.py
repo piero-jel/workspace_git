@@ -43,15 +43,15 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version      Brief
 JEL            2026.04.14     0.0.3        Version Inicial no release
+JEL            2026.05.17     0.0.4        Ajustes para el modelo persistente de workers
+                                           (entre backend y broker) y correciones para pylint
 """
-
 
 # build-in modules
 from time import sleep
 from json import loads as json_loads, dumps as json_dumps
 
 # third-party modules
-#from redis import Redis
 from celery.result import AsyncResult
 from confluent_kafka import Producer
 
@@ -65,7 +65,7 @@ from app.domain.worker import (
 
 
 class WorkerContextRedis(WorkerContext):
-    """ """
+    """ clase concreta que modela el contexto usando Redis """
 
     def __init__(self,expire:int=None):
         """
@@ -76,31 +76,31 @@ class WorkerContextRedis(WorkerContext):
         cls=type(self)
         self.sec_expire = cls.SEC_EXPIRE if expire is None else expire
 
-    def store(self,id:str,contex:dict)->bool:
+    def store(self,jid:str,contex:dict)->bool:
         store_val = {}
         for k,v in contex.items():
             if v is None:
                 continue
-            elif isinstance(v,bool):
+            if isinstance(v,bool):
                 store_val[k] = int(v)
             else:
                 store_val[k] = v
-            
-        redis.hset(id,mapping=store_val)
-        redis.expire(id,self.sec_expire)
+
+        redis.hset(jid,mapping=store_val)
+        redis.expire(jid,self.sec_expire)
         return True
-    
-    def get(self,id:str,key:str)->dict:
-        return redis.hget(id,key).decode('utf-8') 
-    
-    def load(self,id:str)->dict:
-        ret:dict = redis.hgetall(id)
+
+    def get(self,jid:str,key:str)->dict:
+        return redis.hget(jid,key).decode('utf-8')
+
+    def load(self,jid:str)->dict:
+        ret:dict = redis.hgetall(jid)
         if ret is None:
             return {}
-        return { k.decode('utf-8'):v.decode('utf-8') for k,v in redis.hgetall(id).items() }
-    
-    def delete(self,id:str)->bool:
-        redis.delete(id)
+        return { k.decode('utf-8'):v.decode('utf-8') for k,v in redis.hgetall(jid).items() }
+
+    def delete(self,jid:str)->bool:
+        redis.delete(jid)
         return True
 
 
@@ -108,7 +108,7 @@ class WorkerIdRedis(WorkerId):
     """ Clase concreta para manejar los worker id mediante Redis """
 
     @classmethod
-    def make(cls,wrk_id:str,status:WorkerStatus=WorkerStatus.PENDING)->WorkerIdRedis:
+    def make(cls,wrk_id:str,status:WorkerStatus=WorkerStatus.PENDING)->WorkerIdRedis: #pylint: disable=undefined-variable
         """
         Metodo de la clase que se encarga de crear un nuevo WorkerId
 
@@ -124,7 +124,7 @@ class WorkerIdRedis(WorkerId):
         ret._status = status
         ret.push()
         return ret
-    
+
     @classmethod
     def find(cls,job_id:str)->WorkerIdRedis:
         """
@@ -138,12 +138,12 @@ class WorkerIdRedis(WorkerId):
         :rtype: WorkerId
         """
         st:int = 0
-        idx:bool = False    
-        for id,status in cls.WORKER_STATUS.items():            
+        idx:bool = False
+        for jid,status in cls.WORKER_STATUS.items():
             if redis.sismember(status, job_id) == 1:
-                st = id
+                st = jid
                 idx = True
-                break            
+                break
 
         if not idx:
             return WorkerIdRedis()
@@ -152,7 +152,7 @@ class WorkerIdRedis(WorkerId):
         ret._job_id = job_id
         ret._status = WorkerStatus(st)
         return ret
-    
+
     @classmethod
     def block_find(cls,job_id:str,retry:int=1,time:float=0.01)->WorkerIdRedis:
         """
@@ -181,7 +181,7 @@ class WorkerIdRedis(WorkerId):
             ret = WorkerIdRedis.find(job_id)
 
         return ret
-        
+
     @classmethod
     def load(cls,job_id:str,create:bool=False)->WorkerIdRedis:
         """
@@ -199,10 +199,10 @@ class WorkerIdRedis(WorkerId):
         ret:WorkerIdRedis = cls.find(job_id)
         if ret:
             return ret
-        
+
         if not create:
             return None
-        
+
         ret._job_id = job_id
         ret.push()
         return ret
@@ -224,18 +224,32 @@ class WorkerIdRedis(WorkerId):
         """
         ret = redis.smembers(status.name.lower())
         if last == -1:
-            return [it.decode('utf-8') for it in ret] 
+            return [it.decode('utf-8') for it in ret]
 
-        return [it.decode('utf-8') for i,it in enumerate(ret) if i<last] 
-        
+        return [it.decode('utf-8') for i,it in enumerate(ret) if i<last]
+
+    def __refresh_satatus(self)->bool:
+        for status in WorkerStatus:
+            n:str = status.name.lower()
+            if redis.sismember(n, self._job_id) == 1:
+                self._status = status
+                return True
+        # estado incosistente
+        return False
+
     def in_status(self,*args:WorkerStatus)->bool:
+        if not self.__refresh_satatus():
+            return False
+
         for st in args:
             if st.value == self._status.value:
                 return True
-            
+
         return False
 
     def change(self,status:WorkerStatus=WorkerStatus.PENDING)->bool:
+        self.__refresh_satatus()
+
         if self._status.value == status.value:
             return False
 
@@ -243,7 +257,7 @@ class WorkerIdRedis(WorkerId):
         self._status = status
         self.push()
         return True
-    
+
     def is_canceled(self)-> bool:
         return redis.sismember(WorkerStatus.CANCELLED.name.lower(), self._job_id) == 1
 
@@ -251,30 +265,40 @@ class WorkerIdRedis(WorkerId):
         redis.sadd(self._status.name.lower(),self._job_id)
         return True
 
-    def delete(self)->bool:        
-        redis.srem(self._status.name.lower(), self._job_id)
+    def delete(self)->bool:
+        for status in WorkerStatus:
+            n:str = status.name.lower()
+            if redis.sismember(n, self._job_id) == 1:
+                redis.srem(n, self._job_id)
         return True
 
     def mark_for_deletion(self)->bool:
+        self.__refresh_satatus()
         if self._status != WorkerStatus.CANCELLED:
-            self.delete()
+            redis.srem(self._status.name.lower(), self._job_id)
             self._status = WorkerStatus.CANCELLED
-            self.push()
+            redis.sadd(self._status.name.lower(),self._job_id)
 
         redis.sadd('delete',self._job_id)
         return True
-    
+
     def is_marked_for_deletion(self)->bool:
         return redis.sismember('delete', self._job_id) == 1
-    
+
     def delete_mark_deletion(self)->bool:
-        redis.srem(WorkerStatus.CANCELLED.name.lower(), self._job_id)
         redis.srem('delete', self._job_id)
+        self._status = WorkerStatus.CANCELLED
+        for status in WorkerStatus:
+            n:str = status.name.lower()
+            if redis.sismember(n, self._job_id) == 1:
+                redis.srem(n, self._job_id)
+
         return True
 
 
 class WorkerResultCelery(WorkerResult):
-    """ """
+    """ clase concreta para modelar el resultado de una tarea ejecutada por celery """
+
     def __init__(self,wrk_id:str):
         """ 
         Metodo Factory que se encarga de crear un nuevo WorkerResult
@@ -297,22 +321,22 @@ class WorkerResultCelery(WorkerResult):
                 return
 
             self._result:dict = json_loads(result.result)
-        except Exception as e:
-            #print(f'{type(self).__name__}({wrk_id}), Exception<{type(e).__name__}>, detail: {e}')
-            return 
+        except Exception: # pylint: disable=broad-exception-caught
+            return
 
     def status(self)->str:
         return self._status
-    
+
     def get(self)->dict:
         return self._result
-    
+
     def ready(self)->bool:
-        return self._ready        
+        return self._ready
 
 
 class EventPublisherKafka(EventPublisher):
-    
+    """ Clase Concreta que se encarga de pubicar un job sobre kafka """
+
     def publish(self, header:dict, data:dict):
         params:dict = {
             'bootstrap.servers': f'{KAFKA_URL}:{KAFKA_PORT}'
@@ -327,9 +351,8 @@ class EventPublisherKafka(EventPublisher):
             ('source', pipeline.encode("utf-8"))
         ]
         if compression:
-           params['compression.type'] = compression
-           headers.append(('compression', compression.encode("utf-8")),)
-
+            params['compression.type'] = compression
+            headers.append(('compression', compression.encode("utf-8")),)
 
         producer:Producer = Producer(params)
         producer.produce(
@@ -339,30 +362,29 @@ class EventPublisherKafka(EventPublisher):
         )
         producer.flush()
 
-        
-
 
 class WorkerRedis(Worker):
-    
+    """ clase concreta que modela el worker usando Redis como backed/broker"""
+
     def find_workerid(self,wrk_id:str,retry:int=1,time:float=0.01)->WorkerIdRedis:
         return WorkerIdRedis.block_find(wrk_id,retry,time)
-    
+
     def make_workerid(self,wrk_id:str,status:WorkerStatus=WorkerStatus.PENDING)->WorkerIdRedis:
         return WorkerIdRedis.make(wrk_id,status)
 
-    def gets_workerid(self,status:WorkerStatus=WorkerStatus.PENDING,last:int=-1)->list[str]:        
+    def gets_workerid(self,status:WorkerStatus=WorkerStatus.PENDING,last:int=-1)->list[str]:
         return WorkerIdRedis.gets(status,last)
-    
+
     def make_workercontext(self,expire:int=WorkerContext.SEC_EXPIRE)->WorkerContext:
-        return WorkerContextRedis(expire) 
-    
+        return WorkerContextRedis(expire)
+
     def make_workerresult(self,wrk_id:str)->WorkerResultCelery:
         return WorkerResultCelery(wrk_id)
-    
+
     def get_workers(self,status:WorkerStatus=None)->dict:
         if status:
             return { status.name.lower(): WorkerIdRedis.gets(status)}
-        
+
         return { it.name.lower(): WorkerIdRedis.gets(it) for it in WorkerStatus}
 
     def make_evenpublisher(self, *args, **kwargs)->EventPublisherKafka:

@@ -44,6 +44,7 @@ para la interaccion de la aplicacion con la infraestructura.
 @Change History:
 Author         Date           Version          Brief
 JEL            2026.04.14     0.0.3            Version Inicial no release
+JEL            2026.05.17     0.0.4            Ajustest para pylint
 """
 # build-in modules
 from abc import ABC, abstractmethod
@@ -69,16 +70,17 @@ class WorkerStatus(Enum):
 
 
 class WorkerContext(ABC):
+    """ clase absracta que modela el contexto """
     #SEC_EXPIRE:int = 604800 # 1-Semana
     SEC_EXPIRE:int = 60 # 1-Minuto
-    
+
     @abstractmethod
-    def store(self,id:str,contex:dict)->bool:
+    def store(self,jid:str,contex:dict)->bool:
         """
         Metodo que se encarga de almacenar un contexto en funcion de una clave `job_id`
 
-        :param id: job id para localizar y cargar en memoria el registro.
-        :type id: str
+        :param jid: job id para localizar y cargar en memoria el registro.
+        :type jid: str
 
         :param contex: contexto que se desea almacenar.
         :type contex: dict
@@ -86,15 +88,15 @@ class WorkerContext(ABC):
         :return: Estado del store 
         :rtype: bool
         """
-    
+
     @abstractmethod
-    def get(self,id:str,key:str)->dict:
+    def get(self,jid:str,key:str)->dict:
         """
         Metodo que se encarga de obtener un target desde un contexto, previamente salvado, medinate 
         la clave job_id` y la `key` dentro del map.
 
-        :param id: job id para localizar y cargar en memoria el registro.
-        :type id: str
+        :param jid: job id para localizar y cargar en memoria el registro.
+        :type jid: str
 
         :param key: nombre del parametro a localizar dentro del contexto 'dict serializado'
         :type key: str
@@ -104,25 +106,25 @@ class WorkerContext(ABC):
         """
 
     @abstractmethod
-    def load(self,id:str)->dict:
+    def load(self,jid:str)->dict:
         """
         Metodo que se encarga recuperar un contexto, previamente salvado, en funcion del `id=job_id`
 
-        :param id: job id para localizar y cargar en memoria el registro.
-        :type id: str
+        :param jid: job id para localizar y cargar en memoria el registro.
+        :type jid: str
                 
         :return: contexto, si no localiza uno retorna un dict vacio
         :rtype: dict
         """
 
     @abstractmethod
-    def delete(self,id:str)->bool:
+    def delete(self,jid:str)->bool:
         """
         Metodo que se encarga de eliminar un contexto, previamente salvado, en funcion 
-        del `id=job_id`
+        del `jid=job_id`
 
-        :param id: job id para localizar y eliminar en memoria el registro.
-        :type id: str
+        :param jid: job id para localizar y eliminar en memoria el registro.
+        :type jid: str
                 
         :return: estado del delete
         :rtype: bool
@@ -130,7 +132,7 @@ class WorkerContext(ABC):
 
 
 class WorkerId(ABC):
-    """  """
+    """  clase abstrata para modelar la persistencia del worker id"""
     WORKER_STATUS:dict = {it.value:it.name.lower() for it in WorkerStatus}
     _job_id:str = None
     #_status:int = WorkerStatus.PENDING.value
@@ -138,10 +140,10 @@ class WorkerId(ABC):
 
     def __bool__(self)->bool:
         return self._job_id is not None
-    
-    def __eq__(self, obj:WorkerId):
+
+    def __eq__(self, obj:WorkerId): # pylint: disable=undefined-variable
         return obj._job_id == self._job_id and obj._status == self._status
-   
+
     def __str__(self)->str:
         cls = type(self)
         #return f'{cls.__name__}(job_id="{self._job_id}", status={self.get_status()})'
@@ -151,18 +153,18 @@ class WorkerId(ABC):
         """ Metodo para obtner la representacion str del estado actual """
         #return type(self).WORKER_STATUS.get(self._status)
         return self._status.name.lower()
-    
+
     @property
     #def status(self)->int:
     def status(self)->WorkerStatus:
         """ getter para el attr status """
         return self._status
-    
+
     @property
     def job_id(self)->str:
         """ getter para el attr job id """
         return self._job_id
-    
+
     @abstractmethod
     def in_status(self,*args:WorkerStatus)->bool:
         """
@@ -188,7 +190,7 @@ class WorkerId(ABC):
         :return: estado de la accion, True: success, False: Failure
         :rtype: bool
         """
-    
+
     @abstractmethod
     def is_canceled(self)-> bool:
         """
@@ -209,7 +211,7 @@ class WorkerId(ABC):
         :return: estado de la accion, True: success, False: Failure
         :rtype: bool
         """
-        
+
     @abstractmethod
     def delete(self)->bool:
         """
@@ -218,8 +220,8 @@ class WorkerId(ABC):
         :return: estado de la accion, True: success, False: Failure
         :rtype: bool
         """
-        
-    # Para el delete de worker necesitamos tres pasos      
+
+    # Para el delete de worker necesitamos tres pasos
     @abstractmethod
     def mark_for_deletion(self)->bool:
         """
@@ -250,6 +252,7 @@ class WorkerId(ABC):
 
 
 class WorkerResult(ABC):
+    """ Clase abstracta para obtener el resultado de una tarea ejecutada o en ejecucion"""
 
     @abstractmethod
     def status(self)->str:
@@ -280,6 +283,7 @@ class WorkerResult(ABC):
 
 
 class Worker(ABC):
+    """ Clase abstracta que modela el worker, el cual se encarga de interactura con las task """
 
     @abstractmethod
     def find_workerid(self,wrk_id:str,retry:int=1,time:float=0.01)->WorkerId:
@@ -300,14 +304,6 @@ class Worker(ABC):
         :return: el WorkerId localizado, de lo contrario WorkerId vacio `bool(WorkerId) == False`.
         :rtype: WorkerId
         """
-        ''' esta ligado a de forma encadenada
-        @classmethod
-        def block_find(cls,job_id:str,retry:int=1,time:float=0.01)->WorkerId:        
-        
-        @classmethod
-        def find(cls,job_id:str)->WorkerId:
-        
-        '''
 
     @abstractmethod
     def make_workerid(self,wrk_id:str,status:WorkerStatus=WorkerStatus.PENDING)->WorkerId:
@@ -326,10 +322,6 @@ class Worker(ABC):
         :rtype: WorkerId
         """
 
-        ''' esta ligado a 
-        @classmethod
-        def make(cls,job_id:str,status:WorkerStatus=WorkerStatus.PENDING)->WorkerId:
-        '''
 
     @abstractmethod
     def gets_workerid(self,status:WorkerStatus=WorkerStatus.PENDING,last:int=-1)->list[str]:
@@ -362,7 +354,7 @@ class Worker(ABC):
 
         :return: el WorkerId creado y persistido en el sistema.
         :rtype: WorkerId
-        """        
+        """
 
     @abstractmethod
     def make_workerresult(self,wrk_id:str)->WorkerResult:

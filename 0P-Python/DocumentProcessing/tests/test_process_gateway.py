@@ -43,6 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version       Brief
 JEL            2026.04.14     0.0.3         Version Inicial no release
+JEL            2026.05.17     0.0.4         Add logger, delete jobs creados y
+                                            ajustes para pylint
 """
 
 # build-in module
@@ -50,12 +52,6 @@ import unittest
 from time import sleep
 import json
 from uuid import uuid4
-
-
-
-# third-party modules
-
-
 
 # project modules, under test
 from app.application.services import ProcessGateway
@@ -66,12 +62,8 @@ from app.infrastructure.adapters.worker_redis import (
     WorkerStatus,
 )
 from app.infrastructure.adapters.tasks_celery import TaskProcessingGateway
-
-from app.infrastructure.adapters.settings import KAFKA_URL,KAFKA_PORT
 from tests.config import get_log,unittest_log,Logger
 from tests.multithreading import MThread_ProcessGateway
-
-
 
 
 
@@ -82,9 +74,31 @@ class Test_ProcessGatewayV1(unittest.TestCase):
     '''
     @classmethod
     def setUpClass(cls):
-        cls.log = get_log(cls.__name__)        
+        cls.log = get_log(cls.__name__)
+        cls.job_list:list = []
         return super().setUpClass()
 
+    @classmethod
+    def tearDownClass(cls):
+        pr:ProcessGateway = ProcessGateway(WorkerRedis())
+        
+        for job_id in cls.job_list:
+            response = pr.delete(job_id)            
+            cls.log.info(f'{cls.__name__}.tearDownClass() delete {job_id}, response: {response}')
+
+        return super().tearDownClass()
+    
+    def setUp(self):
+        self.log = type(self).log
+        self.job_id:str = None
+        return super().setUp()
+
+    def tearDown(self):            
+        if self.job_id is not None:
+            type(self).job_list.append(self.job_id)
+
+        return super().tearDown()
+    
     def test_create(self):
         ''' Test case create new jobs
            
@@ -98,16 +112,16 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         }
 
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
-        job_id:str = pr_gateway.create(TaskProcessingGateway.launch(data))
-        log.info('job_ids: %s',job_id)
-        self.assertIsInstance(job_id,str)
+        self.job_id = pr_gateway.create(TaskProcessingGateway.launch(data))
+        log.info('job_ids: %s',self.job_id)
+        self.assertIsInstance(self.job_id,str)
 
-        resp:dict = pr_gateway.get(job_id)
+        resp:dict = pr_gateway.get(self.job_id)
         while not resp['ready']:   
             log.info("Response: %s",resp)
             self.assertIsInstance(resp,dict)
             sleep(1)
-            resp = pr_gateway.get(job_id)
+            resp = pr_gateway.get(self.job_id)
 
         self.assertIsInstance(resp,dict)
         log.info("Response: %s",json.dumps(resp,indent=2))
@@ -125,18 +139,18 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         }
 
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
-        job_id:str = pr_gateway.create(TaskProcessingGateway.launch(data))
-        log.info('job_ids: %s',job_id)        
-        resp:dict = pr_gateway.get(job_id)
+        self.job_id = pr_gateway.create(TaskProcessingGateway.launch(data))
+        log.info('job_ids: %s',self.job_id)
+        resp:dict = pr_gateway.get(self.job_id)
         while not resp['ready'] and resp['status'] != 'cancelled':
             log.info("Response: %s",resp)            
             self.assertIsInstance(resp,dict)
             if resp['status'] == 'processing':
-                st_cancel = pr_gateway.cancel(job_id)
+                st_cancel = pr_gateway.cancel(self.job_id)
                 log.info('st_cancle: %s',st_cancel)
 
             sleep(1)
-            resp = pr_gateway.get(job_id)
+            resp = pr_gateway.get(self.job_id)
 
         self.assertIsInstance(resp,dict)
         log.info("Response: %s",json.dumps(resp,indent=2))
@@ -154,16 +168,16 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         }
 
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
-        job_id:str = pr_gateway.create(TaskProcessingGateway.launch(data))
-        log.info('job_ids: %s',job_id)
-        st_cancel = pr_gateway.cancel(job_id)
+        self.job_id = pr_gateway.create(TaskProcessingGateway.launch(data))
+        log.info('job_ids: %s',self.job_id)
+        st_cancel = pr_gateway.cancel(self.job_id)
         log.info('st_cancle: %s',st_cancel)
-        resp:dict = pr_gateway.get(job_id)
+        resp:dict = pr_gateway.get(self.job_id)
         while not resp['ready'] and resp['status'] != 'cancelled':
             log.info("Response: %s",resp)            
             self.assertIsInstance(resp,dict)
             sleep(1)
-            resp = pr_gateway.get(job_id)
+            resp = pr_gateway.get(self.job_id)
 
         self.assertIsInstance(resp,dict)
         log.info("Response: %s",json.dumps(resp,indent=2))
@@ -181,16 +195,16 @@ class Test_ProcessGatewayV1(unittest.TestCase):
         }
 
         pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
-        job_id:str = pr_gateway.create(TaskProcessingGateway.launch(data))
-        log.info('job_ids: %s',job_id)
-        resp:dict = pr_gateway.get(job_id)
+        self.job_id = pr_gateway.create(TaskProcessingGateway.launch(data))
+        log.info('job_ids: %s',self.job_id)
+        resp:dict = pr_gateway.get(self.job_id)
         while not resp['ready']:
             log.info("Response: %s",resp)            
             self.assertIsInstance(resp,dict)
             sleep(1)
-            resp = pr_gateway.get(job_id)
+            resp = pr_gateway.get(self.job_id)
 
-        st_cancel = pr_gateway.cancel(job_id)
+        st_cancel = pr_gateway.cancel(self.job_id)
         log.info('st_cancle: %s',st_cancel)
         self.assertIsInstance(resp,dict)
         log.info("Response: %s",json.dumps(resp,indent=2))
@@ -356,6 +370,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
             self.assertIsInstance(jid,str)
             job_id.append(jid)
 
+        type(self).job_list.extend(job_id)
         resp:dict = pr_gateway.get(job_id[-1])
         while not resp['ready']:   
             log.info("Response: %s",resp)
@@ -386,6 +401,7 @@ class Test_ProcessGatewayV1(unittest.TestCase):
             self.assertIsInstance(jid,str)
             job_id.append(jid)
 
+        type(self).job_list.extend(job_id)
         resp:dict = pr_gateway.get(job_id[-1])
         while not resp['ready']:   
             log.info("Response: %s",resp)
@@ -421,8 +437,6 @@ class Test_ProcessGatewayV1(unittest.TestCase):
            
         python3 -m unittest -v tests.test_process_gateway.Test_ProcessGatewayV1.test_multithread_v1
         '''
-        log:Logger = unittest_log(self)
-
         params:list[dict] = [
             {
                 'name' : f'{type(self).__name__}-idx{i:02d}',
@@ -430,11 +444,11 @@ class Test_ProcessGatewayV1(unittest.TestCase):
                 'content' : f"Datos Originales-id {i:02d}"  
             } for i in range(0,10)
         ]
-        mt_test = MThread_ProcessGateway(params,log)
-        print(f'Begin Test MultiThread')
+        mt_test = MThread_ProcessGateway(params,log=self.log)
+        self.log.info(f'Begin Test MultiThread')
         mt_test.start()        
         mt_test.join()
-        print(f'End   Test MultiThread')
+        self.log.info(f'End   Test MultiThread')
         
     def test_get_v1(self):
         ''' Test case get job no creado

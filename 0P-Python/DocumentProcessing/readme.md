@@ -13,6 +13,8 @@ Aplicación de **Microservicio** y Arquitectura Hexagonal para **Pipeline** de P
   - [**gRPC**](#grpc)
   
   - [**Abreviaturas**](#abreviaturas)
+  - [**static code analyzers with pylint**](#static-code-analyzers-with-pylint)
+  - [**Autor**](#autor)
   
 # Document Processing Gateway
 
@@ -149,7 +151,8 @@ Para el caso de usar distribuciones de **linux** como **Fedora** o **RedHat** de
 ```bash
 curr=${PWD};cd .. && chcon -R -t svirt_sandbox_file_t "${curr}/" && cd -
 ```
-
+  > ***Con cada cambio en la estructura de directorios dentro de la aplicación, debemos ejecutar el mismo para que los contenedores tengan accesos a dichos cambios. De lo contrario tendremos un error similar a este `The file/folder XXXX doesn't exist!`***
+  
 ## Creación de los .env Kafka
 Debemos crear el archivo **`deploy/kafka/environment/.env`** con la siguiente configuración:
 
@@ -639,7 +642,7 @@ docker compose logs -f redis
 Para consumir el **downstream**, podemos ejecutar:
 
 ```bash
-services='tests'; \
+services='celery'; \
 flags="--name KafkaClient --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
 docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-downstream.py"
 ```
@@ -805,7 +808,7 @@ Cancelar o Eliminar un job, **`[PUT] pipeline_process/<job_id> {"status": "'canc
 job_id="XXXXXXXX";\
 url="http://127.0.0.1:8000/pipeline_process/${job_id}";\
 header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
-body='{"status": "cancel"}';\
+body='{"status": "cancelled"}';\
 curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
 ```
 
@@ -815,7 +818,7 @@ curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
 job_id="XXXXXXXX";\
 url="http://127.0.0.1:8000/pipeline_process/${job_id}";\
 header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
-body='{"status": "delete"}';\
+body='{"status": "deleted"}';\
 curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
 ```
 
@@ -1063,25 +1066,73 @@ list_providers Response:{
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
 # Abreviaturas
 - **Job** : Abreviatura para representar el trabajo que realizara el '**Document Processing**'.
 
 
 
 
+# static code analyzers with pylint
+## Instalaccion
+En caso de que necesitemos ejecutarlo fuera de un contenedor, podemos instalar el paquete necesario localmente.
 
-<!--  
-FIXME Pendientes:
- - add los unittest para FastAPI
--->
+```bash
+python3 -m pip install pylint
+```
+
+
+## Ejecucion
+### Usando el contendor de Tests
+```bash
+services='tests'; \
+flags="--name Pylint --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+docker compose run ${flags} ${services} bash -c "pylint --rcfile ./pyproject.toml --recursive=y ."
+```
+
+### Desde el ambiente local
+```bash
+## modo recursivo
+pylint --recursive=y .
+```
+
+Por cada modulo:
+
+```bash
+## Application
+pylint ./app/application
+
+## Domain
+pylint ./app/domain
+
+## Infrastructure
+pylint ./app/infrastructure
+```
+<br>
+<details>
+  <summary><b>Por script/source file en particular:</b></summary>
+
+```bash
+pylint app.infrastructure.adapters.tasks_celery
+pylint app.infrastructure.adapters.worker_redis
+pylint app.infrastructure.adapters.settings
+pylint app.infrastructure.adapters.adapters
+pylint app.infrastructure.grpc.server
+pylint app.infrastructure.grpc.grpc_utils
+pylint app.infrastructure.grpc.settings
+pylint app.infrastructure.grpc.client
+pylint app.infrastructure.apis.fastapi
+pylint app.domain.ports
+pylint app.domain.worker
+pylint app.application.providermocks
+pylint app.application.services
+
+```
+ 
+</details>
+<br>
+
+
+# Autor
+  + [Luccioni Jesuse Emanuel](mailto:jeluccioni@gmail.com)
+
+

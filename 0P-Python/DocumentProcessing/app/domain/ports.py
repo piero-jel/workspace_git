@@ -43,11 +43,10 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version     Brief
 JEL            2026.04.14     0.0.3       Version Inicial no release
+JEL            2026.05.17     0.0.4       Ajustest para pylint
 """
 # build-in modules
 from abc import ABC, abstractmethod
-
-
 
 
 class ProviderInterfaces(ABC):
@@ -63,9 +62,9 @@ class ProviderInterfaces(ABC):
 
         :return: dato ya procesado
         :rtype: dict | list[dict]
-        """        
+        """
         #pass
-  
+
 
 
 class EventPublisher(ABC):
@@ -80,19 +79,5 @@ class EventPublisher(ABC):
 
         :param data: datos que se debe public
         :type data: dict
-        """   
-        pass   
-        
-
-
-
-class EventConsumer(ABC):
-    ''' Define un puerto de salida en el dominio '''
-    
-    @abstractmethod
-    def subscribe(self, topic: str):
-        pass
-
-    @abstractmethod
-    def poll(self, timeout: float):
-        pass 
+        """
+        #pass

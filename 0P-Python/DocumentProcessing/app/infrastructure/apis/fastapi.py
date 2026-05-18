@@ -41,9 +41,13 @@ POSSIBILITY OF SUCH DAMAGE.
 @warning
 @note
 @Change History:
-Author         Date                 Version                      Brief
-JEL            2026.04.14     0.0.3   Version Inicial no release
+Author         Date                      Version                      Brief
+JEL            2026.04.14     0.0.3      Version Inicial no release
+JEL            2026.05.17     0.0.4      Ajustes y correciones para pylint
 """
+
+#pylint:disable=fixme,disable=line-too-long
+
 # build-in module
 from typing import Optional
 
@@ -54,20 +58,14 @@ from pydantic import BaseModel
 # project modules
 from app.application.services import ProcessGateway
 from app.infrastructure.adapters.tasks_celery import TaskProcessingGateway
-from app.infrastructure.adapters.worker_redis import (
-    #WorkerContextRedis, 
-    #WorkerIdRedis,
-    WorkerRedis,
-    #WorkerStatus,
-)
+from app.infrastructure.adapters.worker_redis import WorkerRedis
 
 fastapi:FastAPI = FastAPI()
 
 
 
-
-
 class PipelineProcessCreate(BaseModel):
+    """ clase para modelar los datos de una peticion para crear un Process """
     name: str
     topic: str
     content:str
@@ -75,6 +73,7 @@ class PipelineProcessCreate(BaseModel):
     pipeline_config:Optional[str|list[str]] = None
 
 class PipelineProcessPut(BaseModel):
+    """ modelo para el Put del servicio"""
     status: str
 
 
@@ -130,7 +129,6 @@ async def process_create(order:PipelineProcessCreate):
     pr_gateway:ProcessGateway = ProcessGateway(WorkerRedis())
     job_id:str = pr_gateway.create(TaskProcessingGateway.launch(order.model_dump()))
 
-    # no retornamos "content" por el payload del response
     return {
         'job_id': job_id,
         "name"  : order.name,
@@ -138,7 +136,6 @@ async def process_create(order:PipelineProcessCreate):
         "compression" : order.compression,
         "pipeline_config" : order.pipeline_config
     }
-
 
 @fastapi.get("/pipeline_process/{job_id}")
 async def process_get(job_id:str):
@@ -186,14 +183,6 @@ async def process_discard(job_id:str,option:PipelineProcessPut):
     curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\\n'
     ```
     '''
-
-    '''
-    job_id="$(uuidgen --time)";\
-    url="http://127.0.0.1:8000/pipeline_process/${job_id}";\
-    header=(-H 'accept: application/json' -H 'Content-Type: application/json');\
-    body='{"status": "cancelled"}';\
-    curl -X 'PUT' "${url}" "${header[@]}" -d "${body}" -w '\n'
-    '''
     st:str = option.status.strip().lower()
     pr:ProcessGateway = ProcessGateway(WorkerRedis())
     if st == 'cancelled':
@@ -204,6 +193,7 @@ async def process_discard(job_id:str,option:PipelineProcessPut):
 
     #return {'job_id':job_id,**option.model_dump()}
     return {
+        "code" : 1,
         "job_id": job_id,
         "message": f"Estado '{option.status}' no permitido, solo 'cancelled' o 'deleted'",
         **option.model_dump()
@@ -260,7 +250,7 @@ async def process_providers():
     return ProcessGateway(WorkerRedis()).get_providers()
 
 
-## Run 
+## Run
 # fastapi dev app/infrastructure/apis/fastapi.py
 
 ## Doc

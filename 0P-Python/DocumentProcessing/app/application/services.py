@@ -43,15 +43,16 @@ POSSIBILITY OF SUCH DAMAGE.
 @Change History:
 Author         Date           Version          Brief
 JEL            2026.04.14     0.0.3            Version Inicial no release
+JEL            2026.05.17     0.0.4            Ajustest para pylint
 """
 
 # project modules
 from app.application.providermocks import (
     ProviderAnalysis,ProviderExtraction,ProviderEnrichment
 )
-
 from app.domain.worker import (
-    WorkerStatus,WorkerContext,WorkerId,WorkerResult,Worker
+    WorkerStatus,WorkerContext,WorkerId,Worker,
+    #WorkerResult,
 )
 
 
@@ -77,9 +78,9 @@ class ProcessGateway:
         :param worker: Objeto concreto que modela la infraestructura usada para el backed 
         de los worker
         :type worker: Worker
-        """        
+        """
         self.worker:Worker = worker
-        self.work_context:WorkerContext = self.worker.make_workercontext(expire=self.expire)        
+        self.work_context:WorkerContext = self.worker.make_workercontext(expire=self.expire)
 
     def _status(self,worker_id:str)->bool:
         """ """
@@ -99,33 +100,32 @@ class ProcessGateway:
                     "status"    : "REVOKED",                
                     "stages"    : self.worker_id.get_status(),
                     "job_id"    : worker_id
-            } 
+            }
             resp = self.work_context.load(self.worker_id.job_id)
             if resp:
                 self.resp.update(resp)
-                
+
             return False
-        
+
         return True
-    
+
     def _get_result(self)->dict:
         #result:WorkerResult = None
         tsk_status = self.work_context.load(self.worker_id.job_id)
-        
-        ret:dict = { 
+
+        ret:dict = {
             "code": 0,
             "job_id"    : self.worker_id.job_id,
         }
         if tsk_status:
             ret.update(**tsk_status)
-        
-        
+
         #result:WorkerResult = self.worker.make_workerresult(self.worker_id.job_id)
         return {
             **ret,
             #"ready"     : result.ready(),
             "ready"     : self.worker_id.in_status(WorkerStatus.COMPLETED), 
-            #"status"    : result.status(), 
+            #"status"    : result.status(),
             #"stages"    : self.worker_id.get_status(), # lo toma del context
             "status"    : self.worker_id.get_status(), 
             #"result"    : result.get()
@@ -143,7 +143,7 @@ class ProcessGateway:
         """
         wrk_id:WorkerId = self.worker.make_workerid(job_id)
         return wrk_id.job_id
-    
+
     def get(self,job_id:str=None)->dict:
         """ 
         Metodo para obtener el estado de un procesamiento
@@ -159,9 +159,9 @@ class ProcessGateway:
 
         if not self._status(job_id):
             return self.resp
-        
+
         return self._get_result()
-    
+
     def cancel(self,worker_id:str)->bool:
         """ 
         Metodo para la peticion de cancelar un procesamiento
@@ -174,7 +174,6 @@ class ProcessGateway:
         """
         if not self._status(worker_id):
             return self.resp
-        
 
         if self.worker_id.in_status(WorkerStatus.COMPLETED):
             return {
@@ -188,19 +187,19 @@ class ProcessGateway:
             return {
                 "code"      : 0,
                 "job_status": self.worker_id.get_status(),
-                "message"   : f"No se puede cancelar el worker id '{worker_id}', finalizo con errores",
+                "message"   : f"No se puede cancelar el worker id '{worker_id}', "\
+                               "finalizo con errores",
                 "job_id"    : worker_id
             }
 
         self.worker_id.change(WorkerStatus.CANCELLED)
-
         return {
             "code"      : 0,
             "job_status": self.worker_id.get_status(),
             "message"   : f"Abortando worker id '{worker_id}'",
             "job_id"    : worker_id
         }
-    
+
     def delete(self,worker_id:str)->dict:
         """ 
         Metodo para eliminar una peticion procesamiento
@@ -215,7 +214,7 @@ class ProcessGateway:
         """
         if not self._status(worker_id) :
             return self.resp
-        
+
         # estado intermedio, no inicio aun o esta en proceso
         if self.worker_id.in_status(WorkerStatus.PROCESSING,WorkerStatus.PENDING):
             self.worker_id.mark_for_deletion()
@@ -225,17 +224,17 @@ class ProcessGateway:
                 "message"   : f"Inicio del Borrado del worker id '{worker_id}'",
                 "job_id"    : worker_id
             }
-        
+
         # estado final WorkerStatus.CANCELLED,WorkerStatus.COMPLETED,WorkerStatus.FAILED
         job_status:str = self.worker_id.get_status()
         self.worker_id.delete()
         return {
             "code"      : 0,
             "job_status": job_status,
-            "message"   : f"Se elimino del worker id '{worker_id}'",
+            "message"   : f"Se elimino el worker id '{worker_id}'",
             "job_id"    : worker_id
         }
-        
+
     def get_list(self,status:str=None)->dict:
         """ 
         Metodo para obtener el listado de job en funcion del estado, los valores posibles dependen
@@ -256,26 +255,27 @@ class ProcessGateway:
         """
         st:int = None
         status_map:dict = {it.name:it.value for it in WorkerStatus}
-        if status:            
+        if status:
             st = status_map.get(status.strip().upper(),None)
-        
+
         if st is not None:
             return { 'code':0, **self.worker.get_workers(WorkerStatus(st))}
-        
+
         if status:
             status_list:str = ",".join([f"'{x.lower()}'" for x in status_map.keys()])
-            return { 
+            return {
                 "code" : 1,
                 "message": f"Estado '{status}' NO SOPORTADO, estados admisibles {status_list}"
             }
-        
+
         return self.worker.get_workers()
-    
+
     def get_providers(self)->dict:
         """ 
         Metodo para obtener el listado de Provedores disponibles para armar el `"pipeline_config"`
         
         :return: dict con el listado de provedores
         :rtype: dict
-        """        
-        return {'code':0,'providers' : [x for x in PROVIDERS_CLS.keys()] }
+        """
+        #return {'code':0,'providers' : [x for x in PROVIDERS_CLS.keys()] }
+        return {'code':0,'providers' : list(PROVIDERS_CLS.keys())}
