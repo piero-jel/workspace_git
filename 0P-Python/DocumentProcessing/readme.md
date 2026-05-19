@@ -567,6 +567,27 @@ flags="--name KafkaClient --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buen
 docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-downstream.py"
 ```
 
+Para mas detalles contamos con el help del script :
+
+```bash
+usage: kafka-servicios-downstream.py [-h] [-t TOPIC [TOPIC ...]]
+
+Kafka Apache Consumer
+
+options:
+  -h, --help            show this help message and exit
+  -t, --topic TOPIC [TOPIC ...]
+                        topic names.
+```
+  > El topico por defecto al cual se subscribe es **`dato-comprimidos-v1`**.
+
+```bash
+services='tests'; \
+flags="--name KafkaClient --rm -u $(id -u $USER):20 -e TZ=America/Argentina/Buenos_Aires"; \
+docker compose run ${flags} ${services} bash -c "python3 tests/kafka-servicios-downstream.py -t my-topic"
+```
+  
+
 <details>
   <summary><b>Mensaje JSON Publicado en service downstream</b></summary>
 

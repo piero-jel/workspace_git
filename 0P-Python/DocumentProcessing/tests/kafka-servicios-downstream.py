@@ -44,6 +44,11 @@ POSSIBILITY OF SUCH DAMAGE.
 Author         Date           Version    Brief
 JEL            2026.04.14     0.0.3      Version Inicial no release
 """
+# build-in modules
+from argparse import ArgumentParser
+from time import sleep
+
+# third-party modules
 from confluent_kafka import Consumer, KafkaException,KafkaError
 
 consumer = Consumer({
@@ -56,29 +61,57 @@ consumer = Consumer({
 
 
 def main():
-    topic:str='dato-comprimidos-v1'
-    consumer.subscribe([topic])
-    try:
-        while True:
+    """ main function of module """
+    parser = ArgumentParser(description="Kafka Apache Consumer")
+    parser.add_argument(
+        "-t","--topic",
+        #nargs='*', # cero o mas
+        nargs='+', # uno o mas
+        type=str,
+        default='dato-comprimidos-v1',
+        required=False,
+        help="topic names."
+    )
+
+    args = parser.parse_args()
+    topic:str|list[str]=args.topic
+    if isinstance(topic,list):
+        consumer.subscribe(topic)
+    else:
+        consumer.subscribe([topic])
+
+    print('subscribe to topic: ', topic if isinstance(topic,str) else ", ".join(topic))
+    while True:
+        err:KafkaError = None
+        try:
             msg = consumer.poll(timeout=5.0)
             if msg is None:
                 continue
 
-            if msg.error():
-                if msg.error().code() == KafkaError._PARTITION_EOF:
+            err = msg.error()
+            if err:
+                if err.code() == KafkaError._PARTITION_EOF: # pylint:disable=protected-access
                     continue
-                else:
-                    raise KafkaException(msg.error())
+                if err.code() == KafkaError.UNKNOWN_TOPIC_OR_PART:
+                    sleep(1)
+                    continue
+
+                print(f're raise KafkaException err: {err}')
+                raise KafkaException(err)
 
 
             print("Headers:", msg.headers())  # Devuelve lista de tuplas
             value = msg.value().decode('utf-8')
             #value = msg.value()
             print(f"Mensaje recibido: {value}")
-    except Exception as e:
-        print(f'Exception<{type(e).__name__}>, detail {e}')
-    except KeyboardInterrupt:
-        print('KeyboardInterrupt, peticion de finalizacion.')
+
+        except Exception as e: # pylint:disable=broad-exception-caught
+            print(f'Exception<{type(e).__name__}>, detail {e}')
+            break
+
+        except KeyboardInterrupt:
+            print('KeyboardInterrupt, peticion de finalizacion.')
+            break
 
 
 
