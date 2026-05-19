@@ -579,7 +579,7 @@ options:
   -t, --topic TOPIC [TOPIC ...]
                         topic names.
 ```
-  > El topico por defecto al cual se subscribe es **`dato-comprimidos-v1`**.
+  > El topic/tema por defecto al cual se subscribe es **`dato-comprimidos-v1`**.
 
 ```bash
 services='tests'; \
