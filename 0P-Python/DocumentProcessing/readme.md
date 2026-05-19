@@ -125,20 +125,58 @@ Desde el punto de vista de las APIs (Entrada) tenemos :
 |                                 |                                                          | `list_jobs() status=<VAL:str>`         | 
 | **Listado de Proveedores**      | `[GET]  pipeline_process/providers/`                     | `list_providers()`                     |
   
-<!--  
-  - Enviar documento a procesar     `[POST] url/pipeline_process/`
-  - Consultar estado de un **Job**  `[GET]  url/pipeline_process/<job_id>`
-  - Cancelar o Eliminar un **Job**  `[PUT]  url/pipeline_process/<job_id> {"status": "'cancel|delete'"}`
-  - Listar **Job**s                 `[GET]  url/pipeline_process/list/[<status>]`
-  - Listado de Proveedores          `[GET]  url/pipeline_process/providers/`
--->
+
   
 
   
-Para las diferentes apis y services el codigo del response se verifica mediante 
+Para las diferentes **APIs** y **services** el código del response se verifica mediante 
  - `code: 0` : succes
- - `code: 1` : error en los campos de la peticion, se especifica un campo `"message"` con la descripcion del error.
+ - `code: 1` : error en los campos de la petición, se especifica un campo `"message"` con la descripción del error.
  
+## Diagrama General del Flujo de datos
+![Flow Diagram](readme/img/FlowDiagram.png)
+
+<br>
+
+## Manejo de la FSM de Workers
+
+<div style="display: grid; grid-template-columns: 1fr 1fr;">
+<div style="text-align: center;">
+
+![FSM Workers](readme/img/Workers.png)
+    
+</div>
+<div style="text-align: left; font-size: 13px">
+<br>
+
+***Estados***
+
+  - **PENDING** : estado inicial de cualquier worker
+  - **PROCESSING** : estado de un worker que esta siendo ejecutado.
+  - **COMPLETED** : worker que ya finalizo.
+  - **FAILED** : estado para el worker que fallo.
+  - **CANCELLED** : estado que se solicito cancelar. 
+
+<br>
+
+***Actions***
+
+   - **`/fail`** : loguea el fallo y marca el worker id con el estado **FAILED**.
+   - **`/empty`**: sale de la tarea sin almacenar contexto.
+   
+   - **`/begin`**: marca el worker id con el estado **PROCESSING** e invoca el método **`begin()`** (quien inicia el contexto   de ejecución). 
+   
+   - **`/cancel`**: marca el worker id con el estado **CANCELLED** e invoca el método **`cancel()`** (quien actualiza el   contexto de ejecucion).
+   
+   - **`/end`**: marca el worker id con el estado **COMPLETED** e invoca el método **`end()`** (quien actualiza el contexto de   ejecución).
+   
+   - **`/exit`**: arma el response para que el **scheduler** lo disponga a las próximas consultas de estados.
+   
+   - **`/delete`**: Elimina el worker id y el contexto relacionado al **job_id** del task.
+
+</div>
+</div>
+<br>
 
 
 
@@ -152,7 +190,7 @@ Para el caso de usar distribuciones de **linux** como **Fedora** o **RedHat** de
 curr=${PWD};cd .. && chcon -R -t svirt_sandbox_file_t "${curr}/" && cd -
 ```
   > ***Con cada cambio en la estructura de directorios dentro de la aplicación, debemos ejecutar el mismo para que los contenedores tengan accesos a dichos cambios. De lo contrario tendremos un error similar a este `The file/folder XXXX doesn't exist!`***
-  
+
 ## Creación de los .env Kafka
 Debemos crear el archivo **`deploy/kafka/environment/.env`** con la siguiente configuración:
 
@@ -475,18 +513,18 @@ Aprovechando la ventaja de la generación de documentación automática de `Fast
 
 Dentro de nuestro ambiente en el cual desplegamos debemos acceder a la pagina [**`http://127.0.0.1:8000/docs`**](http://127.0.0.1:8000/docs):
 
-![swagger ui 1](img/readme/swagger_ui_01.png)
+![swagger ui 1](readme/img/swagger_ui_01.png)
 
 Expandimos la documentación para `[POST] url/pipeline_process/`:
 
-![swagger ui 2](img/readme/swagger_ui_02.png)
+![swagger ui 2](readme/img/swagger_ui_02.png)
 Al final de este detalle del lado derecho tendremos el botón **`Try it out`**, el cual habilita la prueba del **endpoint** desde **`Swagger UI`**, aqui un ejemplo para el test del **endpoint** en cuestión:
 
-![swagger ui 3](img/readme/swagger_ui_03.png)
+![swagger ui 3](readme/img/swagger_ui_03.png)
 
 Armamos el body en función de los datos requeridos:
 
-![swagger ui 4](img/readme/swagger_ui_04.png)
+![swagger ui 4](readme/img/swagger_ui_04.png)
 
 ``` json
 {
@@ -500,7 +538,7 @@ Armamos el body en función de los datos requeridos:
 
 Luego de ejecutar se visualizara la respuesta desde el servicio:
 
-![swagger ui 5](img/readme/swagger_ui_05.png)
+![swagger ui 5](readme/img/swagger_ui_05.png)
 
 
 
@@ -1066,10 +1104,19 @@ list_providers Response:{
 ```
 
 
+
+
+
+
+
+
+
+
+
+
+
 # Abreviaturas
 - **Job** : Abreviatura para representar el trabajo que realizara el '**Document Processing**'.
-
-
 
 
 # static code analyzers with pylint
@@ -1132,7 +1179,9 @@ pylint app.application.services
 <br>
 
 
+
+
+
 # Autor
   + [Luccioni Jesuse Emanuel](mailto:jeluccioni@gmail.com)
-
-
+  
