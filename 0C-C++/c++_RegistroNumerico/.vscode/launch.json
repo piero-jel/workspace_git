@@ -1,0 +1,57 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "GDB main",
+            "type": "cppdbg",
+            "request": "launch",
+            // Ruta al ejecutable (debe coincidir con la salida de tu tasks.json)
+            "program": "${workspaceFolder}/app/appdebug", 
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Habilitar impresión bonita para gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            // IMPORTANTE: Debe coincidir con el 'label' en tu tasks.json
+            "preLaunchTask": "C/C++: main",
+            "miDebuggerPath": "/usr/bin/gdb", // En Windows: "C:\\msys64\\mingw64\\bin\\gdb.exe"
+            "logging": {
+                "engineLogging": false
+            }
+        },
+        {
+            "name": "GDB unittest",
+            "type": "cppdbg",
+            "request": "launch",
+            // Ruta al ejecutable (debe coincidir con la salida de tu tasks.json)
+            "program": "${workspaceFolder}/app/appdebug",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Habilitar impresión bonita para gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            // IMPORTANTE: Debe coincidir con el 'label' en tu tasks.json
+            "preLaunchTask": "C/C++: unittest",
+            "miDebuggerPath": "/usr/bin/gdb", // En Windows: "C:\\msys64\\mingw64\\bin\\gdb.exe"
+            "logging": {
+                "engineLogging": false
+            }
+        }
+    ]
+}

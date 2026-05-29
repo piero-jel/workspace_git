@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "type": "cppbuild",
+      "label": "C/C++: main",
+      "command": "/usr/bin/make",
+      "args": [ "builddebug" ],
+      "detail": "Tarea generada por el depurador."
+    },
+    {
+      "type": "cppbuild",
+      "label": "C/C++: unittest",
+      "command": "/usr/bin/make",
+      "args": [ "builddebug_unittest" ],
+      "detail": "Tarea generada por el depurador."
+    }
+  ],
+  "version": "2.0.0"
+}

@@ -1,19 +1,20 @@
 # Contenido
 
-  + [Registro Numerico, Descripción del Proyecto](#registro-numerico)
+  + [**Registro Numerico, Descripción del Proyecto**](#registro-numerico)
   
-  + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicacion)
+  + [**Esquema de directorios de la Aplicación**](#esquema-de-directorios-de-la-aplicacion)
   
-  + [Compilación](#compilacion)
-    - [Instalación Red Hat](#instalaccion-red-hat)
-    - [Instalación Debian](#instalaccion-debian)
-    - [Configuración Makefile](#configuracion-makefile)
+  + [**Compilación**](#compilacion)
+    - [**Instalación Red Hat**](#instalaccion-red-hat)
+    - [**Instalación Debian**](#instalaccion-debian)
+    - [**Configuración Makefile**](#configuracion-makefile)
  
-  + [Examples](#examples)
-    - [make all](#make-all)
-    - [make new](#make-new)
-    - [make run](#make-run)
-    - [run executable](#run-executable)
+  + [**Examples**](#examples)
+    - [**make all**](#make-all)
+    - [**make new**](#make-new)
+    - [**make run**](#make-run)
+    - [**run executable**](#run-executable)
+    - [**unittests**](#unittests)
 
 # Registro Numerico
 El registro de Numeros se basa en un programa que solicite al usuario el ingreso de numeros enteros y los guarde en un archivo de acuerdo a los siguentes requerimientos:
@@ -29,19 +30,22 @@ El registro de Numeros se basa en un programa que solicite al usuario el ingreso
   + Seinformara si el archivo fue guardado con exito o si fallo y luego terminara la ejecucion del programa.
  
 # Esquema de directorios de la Aplicacion
-~~~
+```bash
 .
-├── app
-│
-├── inc
-│   └── main.hpp
-├── Makefile
-├── out
-│   
-├── readme.md
-└── src
-    └── main.cpp
-~~~
+├── app  # Directorios de los ejecutables
+├── inc  # Directorio con los header files del proyecto
+│   ├── main.hpp
+│   └── registro.hpp
+├── Makefile  # Archivo con los target para compilar y ejecutar
+├── out       # Directorio intermedio para la compilación  
+├── readme.md # este archivo
+└── src       # Directorio con los archivos fuentes
+    ├── main.cpp
+    ├── registro.cpp
+    └── unittests.cpp
+
+```
+
 
   + **app** : Directorio donde se colocara el ejecutable.
   + **inc** : Directorio donde se localizan los header files.
@@ -50,32 +54,45 @@ El registro de Numeros se basa en un programa que solicite al usuario el ingreso
   + **out** : Directorio donde se colocaran los object files, resultado de la compilación.
   + **readme.md** : este documento.
 
+Debemos considerar que dentro de los **sources files** tenemos tres archivos importantes:
+
+  - **`src/main.cpp`** archivo principal con el core del proyecto.
+  - **`src/unittests.cpp`** los test cases del unit tests.
+  
+  > Todos ellos con su correspondiente función `main()`, por lo que se aconseja manejar/editar con cuidado el archivo **`Makefile`**, ya que se pueden modificar los filter y se intente compilar combinaciones de estos. Lo que arrojara errores relacionados al comando **`make`**.
+  
+  
 # Compilacion
 Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
 
-  + ```make all``` : default, este compila los sources.
-  + ```make clean``` : elimina los objects files y el ejecutable.
-  + ```make new``` : ejecuta un clean y vuelve a compilar.
-  + ```make run``` : Si no se compilo aun compila los sources y luego ejecuta.
-  + ```make debug``` : Este lanza una sesión de gdb para el debug del proyecto.
+  + **`make all`** : default, este compila los sources.
+  + **`make clean`** : elimina los objects files y el ejecutable.
+  + **`make new`** : ejecuta un clean y vuelve a compilar.
+  + **`make run`** : Si no se compilo aun compila los sources y luego ejecuta.
+  + **`make debug`** : Este lanza una sesión de gdb para el debug del proyecto.
+  + **`make unittests`** : Compila solo el codigo correspondiente a los unit tests.
   
 Para que los target anteriores pueda ejecutarse se recomienda tener instalado **gcc/g++**, y **make**, de caso contrario debemos instalarlos.
 
 Los target **run** y **debug** tiene habilitado la variable ARGS con la cual le pasamos al ejecutable (o session de GDB) los argumentos.
 
 
-## Instalaccion Red Hat
-~~~ bash
-  yum update
-  yum install -y gcc gdb make llvm-toolset yum-utils libasan
-~~~
+## Instalaccion Fedora Red Hat
+``` bash
+sudo dnf update -y
+sudo dnf install -y gcc gdb make llvm-toolset yum-utils libasan
+```
 
 ## Instalaccion Debian
-~~~ bash
-sudo apt-get update
-sudo apt-get upgrade -y
+``` bash
+## apt get
+sudo apt-get update && sudo apt-get upgrade -y
 sudo apt-get install -y build-essential gdb
-~~~
+
+## aptitude
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y build-essential gdb
+```
 
 
 
@@ -83,18 +100,18 @@ sudo apt-get install -y build-essential gdb
   
 ## Configuracion Makefile
 La configuración Básica contempla:
-  + Selección de la versión del proyecto ```VERSION```, por defecto '0' tenemos una sola version para este caso.
-  + Selección de la versión del estándar de compilaccion ```STD_VER``` por defecto esta en '2020', que representa el estándar de c++20.
-  + Setting de depuración de memoria ```DEBUG_ON```, por defecto '0':
+  + Selección de la versión del proyecto **`VERSION`**, por defecto '0' tenemos una sola version para este caso.
+  + Selección de la versión del estándar de compilaccion **`STD_VER`** por defecto esta en '2023', que representa el estándar de c++23.
+  + Setting de depuración de memoria **`DEBUG_ON`**, por defecto '0':
   
     - 0 : Deshabilita las opciones de debug.
     - 1 : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecucion.
-    - 2 : Habilita solo los Flags de GDB (para ```make debug``` este se establece de forma automatica).
+    - 2 : Habilita solo los Flags de GDB (para **`make debug`** este se establece de forma automatica).
     
 
 # Examples
 ## make all
-~~~ bash
+``` bash
 make
 
 ===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
@@ -104,10 +121,10 @@ Tamaño del archivo ejecutable formato:
   25757	   1040	    576	  27373	   6aed	./app/RegistroNumerico_v0
 ===========[END, compiling: "RegistroNumerico_v0"]==========
 
-~~~
+```
 
 ## make new
-~~~ bash
+``` bash
 make new
 
 ===========[ clean files ... ]==========
@@ -118,10 +135,10 @@ Tamaño del archivo ejecutable formato:
    text	   data	    bss	    dec	    hex	filename
   25757	   1040	    576	  27373	   6aed	./app/RegistroNumerico_v0
 ===========[END, compiling: "RegistroNumerico_v0"]==========
-~~~
+```
 
 ## make run
-~~~ bash
+``` bash
 make run
 
 ===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
@@ -147,10 +164,10 @@ cat out/test_01.txt
 0000000012
 0000003215
 9876543210
-~~~
+```
 
 ## run executable
-~~~ bash
+``` bash
 app/RegistroNumerico_v0 
 Ingrese un Registro Numerico de hasta 10 Digitos: 9874563
 Ingrese un Registro Numerico de hasta 10 Digitos: 123
@@ -164,7 +181,50 @@ Registros volcado al al archivo out/test_02.txt de forma Sastifactoria
 cat out/test_02.txt 
 0009874563
 0000000123
-~~~
+```
+## unittests
+Compilación de los unittests
+
+```bash
+make unittests
+```
+
+<details>
+<summary><b>compile</b></summary>
+
+```bash
+make clean
+make unittests
+
+==========[ BEGIN, compiling C++ file ./src/registro.cpp ]==========
+==========[ END, compiling C++ file ./src/registro.cpp ]==========
+
+
+==========[ BEGIN, compiling C++ file ./src/unittests.cpp ]==========
+==========[ END, compiling C++ file ./src/unittests.cpp ]==========
+
+
+===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
+
+Tamaño del archivo ejecutable formato:
+   text    data     bss     dec     hex filename
+  82219    1212     368   83799   14757 ./app/unittest_app
+===========[END, compiling: "unittest_app"]==========
+
+```
+    
+</details>
+
+
+Ejecución de los unittests:
+
+```bash
+make unittests_run
+```
+
+  > No es necesario ejecutar en secuencia, primero el **`make unittests`** y luego **`make unittests_run`** si solo queremos ejecutar los mismos. Al estar armada las dependencias dentro del makefile con solo ejecutar **`make unittests_run`** se compilara lo necesario para armar el binario correspondiente para luego ejecutarlo.
+
+
 
 
 

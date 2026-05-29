@@ -58,9 +58,11 @@
 /*
  * ======================[ BEGIN include header file ]=================================
  */
+#include <cstdio>
 #include <cstdint>
 #include <cstdarg>
 #include <cstring>
+#include <exception>
 
 
 
@@ -84,39 +86,18 @@
 * 
 */
 template <uint32_t LEN = 256>
-class Exception : public std::exception
-{
-  static constexpr uint32_t _BUFF_LEN = LEN;   /**<@brief Longitud del buffer donde almacenarmeos el mensaje. */
-  char _buff[LEN];                 /**<@brief buffer que almacenara el mensaje. */ 
-
-  virtual void set(const Exception& e) noexcept
-  {
-    if(this == &e)
-      return;  
-    std::memcpy(this->_buff,e._buff,LEN);
-  }
-
-  virtual void set(const char* fmt,va_list args) noexcept
-  {
-    std::vsnprintf( this->_buff,LEN-1, fmt, args );
-    /* cerramos la lista de argumentos */
-    va_end( args );
-  }
-
-  public:
+struct  Exception : public std::exception {  
     /**
      * @brief Construct a new Exception object
      * @param[in] fmt CStyle string con el formato del print
      * @param ... : listado variadic de parametros relacionados a \p fmt
      */
-    Exception(const char* fmt,...) noexcept
-    {
-      if(!fmt)
-        return ;
+    Exception(const char* fmt,...) noexcept {
+        if(!fmt) return ;
 
-      va_list args;
-      va_start(args, fmt );
-      this->set(fmt,args);  
+        va_list args;
+        va_start(args, fmt );
+        this->set(fmt,args);  
     }
 
     /**
@@ -127,10 +108,7 @@ class Exception : public std::exception
     * \code
     * \endcode
     */
-    Exception(const Exception& e) noexcept
-    {
-      this->set(e);
-    }
+    Exception(const Exception& e) noexcept { this->set(e); }
 
     /**
     * \brief sobrecarga del operador de asignacion \b =
@@ -140,10 +118,9 @@ class Exception : public std::exception
     * \code
     * \endcode
     */
-    Exception& operator= (const Exception& e)noexcept
-    {
-      this->set(e);
-      return *this;
+    Exception& operator= (const Exception& e)noexcept {
+        this->set(e);
+        return *this;
     }
 
     /**
@@ -175,28 +152,26 @@ class Exception : public std::exception
     */
     virtual const char* what(void) const noexcept
     { return (const char*) this->_buff; }     
+
+    protected:
+        static constexpr uint32_t _BUFF_LEN = LEN;   /** Longitud del buffer donde almacenarmeos el mensaje. */
+        char _buff[LEN];                 /** buffer que almacenara el mensaje. */ 
+
+        virtual void set(const Exception& e) noexcept {
+            if(this == &e) return;  
+            std::memcpy(this->_buff,e._buff,LEN);
+        }
+
+        virtual void set(const char* fmt,va_list args) noexcept {
+            std::vsnprintf( this->_buff,LEN-1, fmt, args );
+            /* cerramos la lista de argumentos */
+            va_end( args );
+        }
+
 };
 
 
-#if ( STD_VER >= 2017 )
-  #ifdef NDEBUG
-    #define EXCEPTION(Fmt, arg...)\
-      Exception ( "[%s:%s():%ld] " Fmt\
-                , __FILE__,__func__,(long int)__LINE__\
-                , ##arg)
-  #else
-    #define EXCEPTION(Fmt, arg...) Exception(Fmt, ##arg)
-  #endif
-#else
-  #ifdef NDEBUG
-    #define EXCEPTION(Fmt, arg...)\
-      Exception<> ( "[%s:%s():%ld] " Fmt\
-                , __FILE__,__func__,(long int)__LINE__\
-                , ##arg)
-  #else
-    #define EXCEPTION(Fmt, arg...) Exception<>(Fmt, ##arg)
-  #endif
-#endif
+
 
 /*
  * ========================[ END   class interfaces ]==================================

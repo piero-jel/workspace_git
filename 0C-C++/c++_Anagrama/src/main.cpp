@@ -79,41 +79,10 @@
 #include <exception>
 #include <vector>
 #include <algorithm>
-#include <string>
-#include <cstring>
-#include <memory>
 
-/**
- * @brief Funcion para verificar si dos palabras son un anagrama.
- * Una cadena es un anagrama de otra si la segunda es simplemente un 
- * reordenamiento de la primera. Por ejemplo, \b 'fresa' y \b 'frase' son 
- * anagramas. Las cadenas \b 'caro' y \b 'roca' son también anagramas.
- * 
- * @param[in] op1 operando uno de la operacion
- * @param[in] op2 operando dos de la operacion
- * \param[in] sen optional, este nos permite habilitar o deshabilitar la 
- * comparacion sensitiva entre mayuscula y minuscula. Por defecto \b false 
- * 'deshabilitado el sensistive case'
- * @return true es un anagrama
- * @return false no es un anagrema
- */
-bool checkAnagrama( const std::string& op1, const std::string& op2,bool sen=false);
 
-/**
- * @brief Funcion para verificar si dos palabras son un anagrama. 
- * Una cadena es un anagrama de otra si la segunda es simplemente un 
- * reordenamiento de la primera. Por ejemplo, \b 'fresa' y \b 'frase' son 
- * anagramas. Las cadenas \b 'caro' y \b 'roca' son también anagramas.
- * 
- * @param[in] op1 operando uno de la operacion
- * @param[in] op2 operando dos de la operacion
- * \param[in] sen optional, este nos permite habilitar o deshabilitar la 
- * comparacion sensitiva entre mayuscula y minuscula. Por defecto \b false 
- * 'deshabilitado el sensistive case'
- * @return true es un anagrama
- * @return false no es un anagrema
- */
-bool checkAnagrama( const char* op1, const char* op2,bool sen=false);
+#include <check_anagrama.hpp>
+
 
 
 /*
@@ -126,8 +95,7 @@ bool checkAnagrama( const char* op1, const char* op2,bool sen=false);
 *      \li 0, success
 *      \li 1, failure
 *********************************************************************************/
-int main(int argc, char **argv)
-{  
+int main(int argc, char **argv) {  
   using Container = std::vector<std::string>;
   using Size = std::vector<std::string>::size_type;
   using IT = Container::iterator;
@@ -137,29 +105,22 @@ int main(int argc, char **argv)
   Container vctb {"chau","roca","fresa","Lalo"};
   */
   Container vcta,vctb;
-  if(argc>1 && (argc-1)%2 )
-  {
+  if(argc>1 && (argc-1)%2 ){
     std::cout<<"La cantidad de palabras debe ser par: <op1> <op2>, para el anagrama\n";
     exit(EXIT_SUCCESS);
   }
 
-  try
-  { 
-    if(argc < 2)
-    {
-      for(const auto& it :{"Hola","caro","fresa","emanuel"})
-      {
+  try{ 
+    if(argc < 2){
+      for(const auto& it :{"Hola","caro","fresa","emanuel"}){
         vcta.emplace_back(it);
       }
-      for(const auto& it : {"chau","roca","fresa","Lalo"})
-      {
+      for(const auto& it : {"chau","roca","fresa","Lalo"}){
         vctb.emplace_back(it);
       }
     }
-    else
-    {
-      for(int i=1; i<argc; i +=2)
-      {
+    else{
+      for(int i=1; i<argc; i +=2){
         vcta.emplace_back(argv[i]);
         vctb.emplace_back(argv[i+1]);
       }
@@ -231,60 +192,6 @@ int main(int argc, char **argv)
   exit(EXIT_SUCCESS);
 }   
 
-bool checkAnagrama( const std::string& op1
-                  , const std::string& op2
-                  , bool sen
-                  )
-{
-  if (op1.length() != op2.length())
-    return false;
-
-  std::string a=op1,b=op2;
-
-  if(sen)
-  {
-    const auto lmb_toupper = [](char l) -> char { return std::toupper(l);};
-    std::transform( std::begin(op1),std::end(op1),std::begin(a)
-                  , lmb_toupper);
-
-    std::transform( std::begin(op2),std::end(op2),std::begin(b)
-                  , lmb_toupper);
-  } 
-
-  std::sort(a.begin(),a.end());
-  std::sort(b.begin(),b.end());
-  if(a == b )
-    return true;
-  
-  return false;  
-}
-
-bool checkAnagrama( const char* op1, const char* op2,bool sen)
-{
-  auto len = std::strlen(op1);
-  if (!op1 || !op2 ||  len != std::strlen(op2))
-    return false;
-
-  std::unique_ptr<char[], void(*)(void*)> a (strdup(op1),free);
-  std::unique_ptr<char[], void(*)(void*)> b (strdup(op2),free);
-  
-  if(sen)
-  {
-    const auto lmb_toupper = [](char l) -> char { return std::toupper(l);};
-    std::transform( op1,op1+len,a.get()
-                  , lmb_toupper);
-
-    std::transform( op2,op2+len, b.get()
-                  , lmb_toupper);
-  }
-
-  /* ordenamos cada uno*/
-  std::sort(a.get(),a.get()+len);
-  std::sort(b.get(),b.get()+len);
-  
-  return std::strcmp(a.get(),b.get())? false: true;
-
-}
 
 
 #elif ( VERSION == 1 )

@@ -39,16 +39,21 @@
 VERSION ?= 0
 
 ## Set Standar de Compilacion {2011,2014,2017,2020}, default value 2011
+#STD_VER  := 2023
 STD_VER  := 2020
 
 ## '1' enable, '0' disable, (!= 1 && != 0) user setting for debug
 DEBUG_ON := 0
 
 
+# nombre del source que contiene los unit test
+UNITTEST_MAIN := unittests.cpp
+UNITTEST_APP  := unittests
 
-## para el linker de shared libraries del sistema
-## estas son pasadas en flag en barias etapas
-LINKER_FLAGS = -lrt -pthread
+# definimos el nombre de la aplicacion para GDB
+APP_DEBUG := appdebug
+## En caso de necesitar habilitar poxis thread
+#LINKER_FLAGS = -lrt -pthread
 
 ## metodo or in ifeq
 ifeq ($(VERSION),0)
@@ -95,6 +100,19 @@ APP_NAME = $(APP)_v$(VERSION)
 ## BEGIN set flags compiles memory track/gdb/glibcxx
 ###################################################################################
 ## 
+# Detect the operating system distribution
+# Check for a debian_version file first
+ifeq ($(shell [ -f "/etc/debian_version" ] && echo debian), debian)
+    OS_DISTRO := debian
+# If not Debian, check for a redhat-release file for Fedora
+else ifeq ($(shell [ -f "/etc/redhat-release" ] && grep -Eo 'Fedora' /etc/redhat-release), Fedora)
+    OS_DISTRO := fedora
+# Fallback for other systems
+else
+    OS_DISTRO := other
+endif
+
+
 ifeq ($(DEBUG_ON),1)
 ## enable debug flags
   DEBUG_MEMORY   ?= 1
@@ -119,40 +137,54 @@ endif
 #####################################################################################
 ## BEGIN set vars
 #####################################################################################
-AR        = $(CROSS_COMPILER)ar
-SIZE      = $(CROSS_COMPILER)size
-GETASM	  = $(CROSS_COMPILER)objdump -S
+AR        = @$(CROSS_COMPILER)ar
+SIZE      = @$(CROSS_COMPILER)size
+GETASM	  = @$(CROSS_COMPILER)objdump -S
 
 ifeq ($(COMPILER),clang)
-CC        = clang
-CCPP      = clang++
+CC        = @clang
+CCPP      = @clang++
 # FLAGS = -stdlib=libc++ -v
 FLAGS = -stdlib=libstdc++
 # FLAGS = -v
 
 else ifeq ($(COMPILER),clang-9)
-CC        = clang-9
-CCPP      = clang++-9
+CC        = @clang-9
+CCPP      = @clang++-9
 else ifeq ($(COMPILER),clang-11)
-CC        = clang-11
-CCPP      = clang++-11
+CC        = @clang-11
+CCPP      = @clang++-11
 else ifeq ($(COMPILER),clang-12)
-CC        = clang-12
-CCPP      = clang++-12
+CC        = @clang-12
+CCPP      = @clang++-12
 else ifeq ($(COMPILER),gcc)
-CC        = gcc
-CCPP      = g++
+CC        = @gcc
+CCPP      = @g++
 else
-CC        = $(CROSS_COMPILER)gcc
-CCPP      = $(CROSS_COMPILER)g++
-LD        = $(CROSS_COMPILER)ld
+CC        = @$(CROSS_COMPILER)gcc
+CCPP      = @$(CROSS_COMPILER)g++
+LD        = @$(CROSS_COMPILER)ld
 endif
 
 
 
+MAKE      = @make
+GDB       = @gdb
+RM        = @rm -f
+
+# Define commands based on the detected OS_FLAVOR
+ifeq ($(OS_DISTRO), debian)
+	PRINT   := @echo
+else ifeq ($(OS_DISTRO), fedora)
+	PRINT   := @echo -e
+else
+	PRINT   := @printf
+endif
+
+
 
 SRC_PATH = ./src
-INC_PATH = ./inc
+INC_PATH = ./inc ../includes
 OBJ_PATH = ./out
 APP_PATH = ./app
 
@@ -160,14 +192,24 @@ APP_PATH = ./app
 CPP_FILES = $(wildcard $(SRC_PATH)/*.cpp)
 CXX_FILES += $(wildcard $(SRC_PATH)/*.cxx)
 CCC_FILES += $(wildcard $(SRC_PATH)/*.cc)
-CC_FILES += $(wildcard $(SRC_PATH)/*.C)
+CC_FILES  += $(wildcard $(SRC_PATH)/*.C)
 
 ### 
-OBJ_FILES = $(addprefix $(OBJ_PATH)/,$(notdir $(CPP_FILES:.cpp=.o)))
-OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CXX_FILES:.cxx=.o)))
-OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CCC_FILES:.cc=.o)))
-OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CC_FILES:.C=.o)))
-PROJECT_OBJS := $(notdir $(OBJ_FILES))
+VAR_OBJ_FILES = $(addprefix $(OBJ_PATH)/,$(notdir $(CPP_FILES:.cpp=.o)))
+VAR_OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CXX_FILES:.cxx=.o)))
+VAR_OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CCC_FILES:.cc=.o)))
+VAR_OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CC_FILES:.C=.o)))
+OBJ_FILES = $(filter-out $(OBJ_PATH)/$(basename $(UNITTEST_MAIN)).o,$(VAR_OBJ_FILES))
+
+VAR_UNITTEST_OBJ_FILES = $(addprefix $(OBJ_PATH)/,$(notdir $(CPP_FILES:.cpp=.o)))
+VAR_UNITTEST_OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CXX_FILES:.cxx=.o)))
+VAR_UNITTEST_OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CCC_FILES:.cc=.o)))
+VAR_UNITTEST_OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CC_FILES:.C=.o)))
+UNITTEST_OBJ_FILES = $(filter-out $(OBJ_PATH)/main.o,$(VAR_UNITTEST_OBJ_FILES))
+
+
+PROJECT_OBJS  := $(notdir $(OBJ_FILES))
+UNITTEST_OBJS := $(notdir $(UNITTEST_OBJ_FILES))
 
 INCLUDES = $(addprefix -I, $(INC_PATH))
 # INCLUDES += /usr/include/c++/9
@@ -199,9 +241,9 @@ else ifeq ($(STD_VER),2020)
 
 else ifeq ($(STD_VER),2023)
 ## c++23, version preliminar
-  FLAGS += -std=c++2b 
+  FLAGS += -std=c++23
 else
-  FLAGS += -std=gnu++11
+  FLAGS += -std=gnu++20
 endif
 
 
@@ -240,7 +282,7 @@ LDFLAGS += $(LINKER_FLAGS)
 
 ## BEGIN all
 all :
-	@make $(APP_NAME) --no-print-directory	
+	$(MAKE) $(APP_NAME) --no-print-directory
 ## END   all
 
 ## BEGIN export file path, *.cpp, *.cxx, *.cc, *.C
@@ -255,70 +297,87 @@ vpath %.C $(SRC_PATH)
 
 ## BEGIN compiling cpp and cxx files
 %.o : %.cpp
-# 	@echo "\n==========[ BEGIN, compiling C++ file $< ]=========="
-	@$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -o $(OBJ_PATH)/$@
-	@$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -MM > $(OBJ_PATH)/$(@:.o=.d)
-# 	@echo "==========[ END, compiling C++ file $< ]==========\n"
+	$(PRINT) "\n==========[ BEGIN, compiling C++ file $< ]=========="
+	$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -o $(OBJ_PATH)/$@
+	$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -MM > $(OBJ_PATH)/$(@:.o=.d)
+	$(PRINT) "==========[ END, compiling C++ file $< ]==========\n"
 
 %.o : %.cxx
-# 	@echo "\n==========[ BEGIN, compiling C++ file $< ]=========="
-	@$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -o $(OBJ_PATH)/$@
-	@$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -MM > $(OBJ_PATH)/$(@:.o=.d)
-# 	@echo "==========[ END, compiling C++ file $< ]==========\n"
+	$(PRINT) "\n==========[ BEGIN, compiling C++ file $< ]=========="
+	$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -o $(OBJ_PATH)/$@
+	$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -MM > $(OBJ_PATH)/$(@:.o=.d)
+	$(PRINT) "==========[ END, compiling C++ file $< ]==========\n"
 
 %.o : %.cc
-# 	@echo "\n==========[ BEGIN, compiling C++ file $< ]=========="
-	@$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -o $(OBJ_PATH)/$@
-	@$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -MM > $(OBJ_PATH)/$(@:.o=.d)
-# 	@echo "==========[ END, compiling C++ file $< ]==========\n"
+	$(PRINT) "\n==========[ BEGIN, compiling C++ file $< ]=========="
+	$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -o $(OBJ_PATH)/$@
+	$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -MM > $(OBJ_PATH)/$(@:.o=.d)
+	$(PRINT) "==========[ END, compiling C++ file $< ]==========\n"
 
 %.o : %.C
-# 	@echo "\n==========[ BEGIN, compiling C++ file $< ]=========="
-	@$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -o $(OBJ_PATH)/$@
-	@$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -MM > $(OBJ_PATH)/$(@:.o=.d)
-# 	@echo "==========[ END, compiling C++ file $< ]==========\n"
+	$(PRINT) "\n==========[ BEGIN, compiling C++ file $< ]=========="
+	$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -o $(OBJ_PATH)/$@
+	$(CCPP) $(SYMBOLS) $(FLAGS) $(INCLUDES) -c $< -MM > $(OBJ_PATH)/$(@:.o=.d)
+	$(PRINT) "==========[ END, compiling C++ file $< ]==========\n"
 ## END   compiling cpp and cxx files
 
 ## BEGIN clean target
 clean:
-	@echo "\n===========[ clean files ... ]=========="
-	@rm -f $(OBJ_PATH)/*.*
-	@rm -f $(APP_PATH)/$(APP_NAME)
+	$(PRINT) "\n===========[ clean files ... ]=========="
+	$(RM) -f $(OBJ_PATH)/*.*
+	$(RM) -f $(APP_PATH)/$(APP_NAME)
+	$(RM) -f $(APP_PATH)/$(UNITTEST_APP)
 ## END   clean target
 
 ## BEGIN new target FIXME debemos independizzar del header
 new: clean
-	@make all --no-print-directory
+	$(MAKE) all --no-print-directory
 ## END   new target	
 
 ## BEGIN APP_NAME target
 $(APP_NAME): $(PROJECT_OBJS)
-	@echo "\n===========[BEGIN, compiling VERSION: $(VERSION), STD_VER: $(STD_VER) ]=========="
-	@$(CCPP) -o $(APP_PATH)/$(APP_NAME) $(OBJ_FILES) $(LDFLAGS)
-	@echo "\nTamaño del archivo ejecutable formato:"
-	@$(SIZE) -B $(APP_PATH)/$(APP_NAME)
-	@echo "===========[END, compiling: \"$(APP_NAME)\"]==========\n"
+	$(PRINT) "\n===========[BEGIN, compiling VERSION: $(VERSION), STD_VER: $(STD_VER) ]=========="
+	$(CCPP) -o $(APP_PATH)/$(APP_NAME) $(OBJ_FILES) $(LDFLAGS)
+	$(PRINT) "\nTamaño del archivo ejecutable formato:"
+	$(SIZE) -B $(APP_PATH)/$(APP_NAME)
+	$(PRINT) "===========[END, compiling: \"$(APP_NAME)\"]==========\n"
+## END   APP_NAME target
+
+
+## BEGIN unittest target
+unittests: $(UNITTEST_OBJS)
+	$(PRINT) "\n===========[BEGIN, compiling VERSION: $(VERSION), STD_VER: $(STD_VER) ]=========="
+	$(CCPP) -o $(APP_PATH)/$(UNITTEST_APP) $(UNITTEST_OBJ_FILES) $(LDFLAGS)
+	$(PRINT) "\nTamaño del archivo ejecutable formato:"
+	$(SIZE) -B $(APP_PATH)/$(UNITTEST_APP)
+	$(PRINT) "===========[END, compiling: \"$(UNITTEST_APP)\"]==========\n"
+
+unittests_run:
+	$(MAKE) unittests --no-print-directory
+	@$(APP_PATH)/$(UNITTEST_APP) $(ARGS)
 ## END   APP_NAME target
 
 ## BEGIN info target
 info:
-	@echo "CPP_FILES    : $(CPP_FILES)"
-	@echo "CXX_FILES    : $(CXX_FILES)"
-	@echo "CCC_FILES    : $(CCC_FILES)"
-	@echo "CC_FILES     : $(CC_FILES)"
-	@echo "OBJ_FILES    : $(OBJ_FILES)"
-	@echo "PROJECT_OBJS : $(PROJECT_OBJS)"
-	@echo "FLAGS        : $(FLAGS)"
-	@echo "APP_NAME     : $(APP_NAME)"
-	@echo "INCLUDES     : $(INCLUDES)"
-	@echo "hpp          : $(notdir $(wildcard $(INC_PATH)/*.hpp))"
+	$(PRINT) "CPP_FILES             : $(CPP_FILES)"
+	$(PRINT) "CXX_FILES             : $(CXX_FILES)"
+	$(PRINT) "CCC_FILES             : $(CCC_FILES)"
+	$(PRINT) "CC_FILES              : $(CC_FILES)"
+	$(PRINT) "OBJ_FILES             : $(OBJ_FILES)"
+	$(PRINT) "PROJECT_OBJS          : $(PROJECT_OBJS)"
+	$(PRINT) "UNITTEST_OBJS         : $(UNITTEST_OBJS)"
+	$(PRINT) "UNITTEST_OBJ_FILES    : $(UNITTEST_OBJ_FILES)"
+	$(PRINT) "FLAGS                 : $(FLAGS)"
+	$(PRINT) "APP_NAME              : $(APP_NAME)"
+	$(PRINT) "INCLUDES              : $(INCLUDES)"
+	$(PRINT) "hpp                   : $(notdir $(wildcard $(INC_PATH)/*.hpp))"
 ## END   info target	
 
 
 ## BEGIN run target
 run:
-	@make all --no-print-directory
-	@echo "$(APP_PATH)/$(APP_NAME) ARGS = '$(ARGS)', CASE = '$(CASE)'"
+	$(MAKE) all --no-print-directory
+	$(PRINT) "$(APP_PATH)/$(APP_NAME) ARGS = '$(ARGS)', CASE = '$(CASE)'"
 	@$(APP_PATH)/$(APP_NAME) $(ARGS)
 	
 nrun: new
@@ -327,8 +386,11 @@ nrun: new
 
 ## BEGIN debug target
 debug: 
-	@make new DEBUG_GDB=1 --no-print-directory
-	@gdb --args $(APP_PATH)/$(APP_NAME)$(EXT_APP) $(ARGS)
+	$(MAKE) new DEBUG_GDB=1 --no-print-directory
+	$(GDB) --args $(APP_PATH)/$(APP_NAME)$(EXT_APP) $(ARGS)
+
+builddebug: 
+	$(MAKE) new DEBUG_GDB=1 APP_NAME=$(APP_DEBUG) --no-print-directory
 ## END   debug target
 
 
@@ -338,30 +400,30 @@ debug:
 ## frame <Nro> : cambio de contexto 
 ## list        : para listar el codigo en el frame
 debug_core: 
-	@make new DEBUG_GDB=1 --no-print-directory
-	@gdb $(APP_PATH)/$(APP_NAME)$(EXT_APP) $(CORE_DUMP_FILE)
+	$(MAKE) new DEBUG_GDB=1 --no-print-directory
+	$(GDB) $(APP_PATH)/$(APP_NAME)$(EXT_APP) $(CORE_DUMP_FILE)
 ## END   debug_core target
 
 ## BEGIN get asm 
 getasm:
-	@$(GETASM) $(APP_PATH)/$(APP_NAME)
+	$(GETASM) $(APP_PATH)/$(APP_NAME)
 	
 ngetasm: new
-	@$(GETASM) $(APP_PATH)/$(APP_NAME)
+	$(GETASM) $(APP_PATH)/$(APP_NAME)
 ## END   get asm
 ## BEGIN help target
 help:
-	@echo "\n===========[BEGIN, HELP: ]=========="
-	@echo "\tmake all          : compila los archivos que cambiaron su estado"
-	@echo "\tmake new          : Realiza un clean y vuelve a compialr todo los archivos"
-	@echo "\tmake clean        : Elimina todos los archivos generados incluyendo la aplicacion"
-	@echo "\tmake run          : Ejecuta la aplicacion"
-	@echo "\tmake nrun         : Invoca el target new y luego Ejecuta la aplicacion"
-	@echo "\tmake info         : Muestra informacion sobre la configuracion actual del proyecto"
-	@echo "\tmake debug        : Inicia la secion de depuracion con GDB GNU DebuG"
-	@echo "\tmake debug_core   : Idem a debug mas el contexto para Core Dump"
-	@echo "\tmake <Target> ARGS=\"Lista de Arg\" set ARG para los target run, debug"
-	@echo "\tmake <Target> DEBUG_GDB= { 1 | 0 } Enable/disable GDB"
-	@echo "\tmake <Target> DEBUG_MEMORY= { 1 | 0 } Enable/disable Mmeory Trace Satinizer"
-	@echo "\n===========[END  , HELP: ]==========\n"	
+	$(PRINT) "\n===========[BEGIN, HELP: ]=========="
+	$(PRINT) "\tmake all          : compila los archivos que cambiaron su estado"
+	$(PRINT) "\tmake new          : Realiza un clean y vuelve a compialr todo los archivos"
+	$(PRINT) "\tmake clean        : Elimina todos los archivos generados incluyendo la aplicacion"
+	$(PRINT) "\tmake run          : Ejecuta la aplicacion"
+	$(PRINT) "\tmake nrun         : Invoca el target new y luego Ejecuta la aplicacion"
+	$(PRINT) "\tmake info         : Muestra informacion sobre la configuracion actual del proyecto"
+	$(PRINT) "\tmake debug        : Inicia la secion de depuracion con GDB GNU DebuG"
+	$(PRINT) "\tmake debug_core   : Idem a debug mas el contexto para Core Dump"
+	$(PRINT) "\tmake <Target> ARGS=\"Lista de Arg\" set ARG para los target run, debug"
+	$(PRINT) "\tmake <Target> DEBUG_GDB= { 1 | 0 } Enable/disable GDB"
+	$(PRINT) "\tmake <Target> DEBUG_MEMORY= { 1 | 0 } Enable/disable Mmeory Trace Satinizer"
+	$(PRINT) "\n===========[END  , HELP: ]==========\n"	
 ## END   help target

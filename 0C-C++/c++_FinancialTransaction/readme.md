@@ -1,97 +1,114 @@
 # Contenido
-  + [Financial Transaction, Descripción del Proyecto](#financial-transaction)
+  + [**Financial Transaction, Descripción del Proyecto**](#financial-transaction)
   
-  + [Esquema de directorios de la Aplicación](#esquema-de-directorios-de-la-aplicacion)
+  + [**Esquema de directorios de la Aplicación**](#esquema-de-directorios-de-la-aplicacion)
   
-  + [Verificación Numero Tarjeta](#verificacion-numero-tarjeta)
-    - [Archivo de Rangos](#archivo-de-rangos)
-    - [Archivo de Etiquetas de Tarjetas](#archivo-de-etiquetas-de-tarjetas)
-    - [Proceso de Verificación](#proceso-de-verificacion)
+  + [**Verificación Numero Tarjeta**](#verificación-numero-tarjeta)
+    - [**Archivo de Rangos**](#archivo-de-rangos)
+    - [**Archivo de Etiquetas de Tarjetas**](#archivo-de-etiquetas-de-tarjetas)
+    - [**Proceso de Verificación**](#proceso-de-verificacion)
     
-  + [Message](#message)
-    - [Request Message](#request-message)
-    - [Response Message](#response-message)
+  + [**Message**](#message)
+    - [**Request Message**](#request-message)
+    - [**Response Message**](#response-message)
   
-  + [Compilación](#compilacion)
-    - [Instalación Red Hat](#instalaccion-red-hat)
-    - [Instalación Debian](#instalaccion-debian)
-    - [Configuración Makefile](#configuracion-makefile)
+  + [**Compilación**](#compilacion)
+    - [**Instalación Red Hat**](#instalaccion-red-hat)
+    - [**Instalación Debian**](#instalaccion-debian)
+    - [**Configuración Makefile**](#configuracion-makefile)
   
-  + [Server Host to Host](#server-host-to-host)
+  + [**Server Host to Host**](#server-host-to-host)
   
-  + [Examples](#examples)
-    - [make all](#make-all)
-    - [make new](#make-new)
-    - [Datos para Testing](#datos-para-testing)
-    - [make run](#make-run)
-    - [run executable](#run-executable)
+  + [**Examples**](#examples)
+    - [**`make all`**](#make-all)
+    - [**`make new`**](#make-new)
+    - [**Datos para Testing**](#datos-para-testing)
+    - [**`make run`**](#make-run)
+    - [**run executable**](#run-executable)
+    - [**unittests**](#unittests)
 
 # Financial Transaction
- Financial Transaction se basa en un software que simule una transacción financiera. El mismo debera solicitar un monto, numero de tarjeta y código de seguridad por teclado. Luego enviara un mensaje a un host que devolverá el estado de la transacción (aprobada o rechazada).
+ Financial Transaction se basa en un software que simule una transacción financiera. El mismo deberá solicitar un monto, numero de tarjeta y código de seguridad por teclado. Luego enviara un mensaje a un host que devolverá el estado de la transacción (aprobada o rechazada).
  
   1. Solicitar el monto de la compra con dos '2' decimales para los centavos.
   
   2. Solicitar el numero de tarjeta (longitud variable, mínimo 13 dígitos máximo 99).
   
-  3. [Verificar que el numero de tarjeta](#verificacion-numero-tarjeta) corresponda a una tarjeta valida. Si no es valido mostrar el mensaje ***"TARJETA NO SOPORTADA"*** en pantalla y abortar la operación, de lo contrario mostrar el label de la tarjeta en pantalla y pasar al siguiente paso.
+  3. [**Verificar que el numero de tarjeta**](#verificacion-numero-tarjeta) corresponda a una tarjeta valida. Si no es valido mostrar el mensaje ***"TARJETA NO SOPORTADA"*** en pantalla y abortar la operación, de lo contrario mostrar el label de la tarjeta en pantalla y pasar al siguiente paso.
   
-  4. Solicitar el código de seguridad (3-Digitos).
+  4. Solicitar el código de seguridad (3-Dígitos).
   
-  5. Armar el [request message](#request-message). Si transcurren mas de 5-Segundos o si ocurre otro error,  deberá mostrarse en pantalla ***"ERROR DE COMUNICACION"*** y abortar el proceso.
+  5. Armar el [**request message**](#request-message). Si transcurren mas de 5-Segundos o si ocurre otro error,  deberá mostrarse en pantalla ***"ERROR DE COMUNICACION"*** y abortar el proceso.
   
-  6. Mostrar la respuesta en pantalla, en función del [response message](#response-message). Si el código de respuesta es **"00"** , indica que la transacción fue aprobada y deberá mostrar ***"APROBADA"*** en pantalla. Si el codigo de respuesta es cualquier otro valor, deberá mostrar ***"RECHAZADA"*** .
+  6. Mostrar la respuesta en pantalla, en función del [**response message**](#response-message). Si el código de respuesta es **"00"** , indica que la transacción fue aprobada y deberá mostrar ***"APROBADA"*** en pantalla. Si el codigo de respuesta es cualquier otro valor, deberá mostrar ***"RECHAZADA"*** .
  
 # Esquema de directorios de la Aplicacion
-~~~
+``` bash
 .
-├── app
-│   ├── FinancialTransaction_v0
-│   └── Host2HostServer_v1
-│
-├── files
+├── app     # Directorios de los ejecutables
+├── files   # Directorios con los archivos para validación de tarjetas
 │   └── local
 │       ├── cards.dat
-│       └── ranges.dat
-│
-│
-├── inc
+│       ├── ranges.dat
+│       └── test.dat
+├── inc     # Directorio con los header files del proyecto
 │   ├── CardsRegister.hpp
 │   ├── Exception.hpp
+│   ├── financial_transaction.hpp
 │   ├── main.hpp
 │   ├── PSocket.hpp
 │   └── RangesRegister.hpp
-│
-├── Makefile
-├── out
-│
-├── readme.md
-└── src
+├── Makefile   # Archivo con los target para compilar y ejecutar
+├── out        # Directorio intermedio para la compilación
+├── readme.md  # este archivo
+└── src        # Directorio con los archivos fuentes
+    ├── CardsRegister.cpp
+    ├── financial_transaction.cpp
     ├── main.cpp
-    └── PSocket.cpp
+    ├── PSocket.cpp
+    ├── RangesRegister.cpp
+    ├── server.cpp
+    └── unittests.cpp
 
-~~~
 
-  + **app** : Directorio donde se colocara el ejecutable.
+```
+
+  + **app** : Directorio donde se colocaran los ejecutables.
+    - **FinancialTransaction_v0** : de la aplicación.
+    - **Host2HostServer** : el server o emulación del servicio.
+    - **unittest_app** : ejecutable con los unittests
+
   + **files** : Directorio que contiene archivos, dentro de este tenenos el subdirectorio local con los archivos de rango y tarjetas asociados a la ejecución del proyecto.
   
   + **inc** : Directorio donde se localizan los header files.
   + **src** : Directorio donde colocamos los source files.
-  + **Makefile** : Archivo con los target de compilación para ```make```.
+  + **Makefile** : Archivo con los target de compilación para **`make`**.
   + **out** : Directorio donde se colocaran los object files, resultado de la compilación.
   + **readme.md** : este documento .
   
-# Verificacion Numero Tarjeta
-La verificación del numero de tarjeta se basa en el uso de dos archivos uno de rangos y el otro con las etiquetas de cada tarjeta (```Ranges.dat```, ```Cards.dat```). Cada uno de estos posee un formato de registros por cada linea que lo compone.
+  
+Debemos considerar que dentro de los **sources files** tenemos tres archivos importantes:
 
-  - [Archivo de Rangos](#archivo-de-rangos)
-  - [Archivo de Etiquetas de Tarjetas](#archivo-de-etiquetas-de-tarjetas)
-  - [Proceso de Verificación](#proceso-de-verificacion)
+  - **`src/main.cpp`** archivo principal con el core del proyecto.
+  - **`src/server.cpp`** código para emular el servicio al cual reporta el proyecto. 
+  - **`src/unittests.cpp`** los test cases del unit tests.
+  
+  > Todos ellos con su correspondiente función `main()`, por lo que se aconseja manejar/editar con cuidado el archivo **`Makefile`**, ya que se pueden modificar los filter y se intente compilar combinaciones de estos. Lo que arrojara errores relacionados al comando **`make`**.
+  
+  
+  
+# Verificacion Numero Tarjeta
+La verificación del numero de tarjeta se basa en el uso de dos archivos uno de rangos y el otro con las etiquetas de cada tarjeta (**`Ranges.dat`**, **`Cards.dat`**). Cada uno de estos posee un formato de registros por cada linea que lo compone.
+
+  - [**Archivo de Rangos**](#archivo-de-rangos)
+  - [**Archivo de Etiquetas de Tarjetas**](#archivo-de-etiquetas-de-tarjetas)
+  - [**Proceso de Verificación**](#proceso-de-verificacion)
   
 ## Archivo de Rangos
-~~~ bash
+``` bash
 # RANGE_LOW(8)~RANGE_HIGHT(8)~LEN(2BYTES)~ID(4BYTES)
 45176501 45176600 16 0010
-~~~
+```
   - **RANGE_LOW** : low value del rango, 8 dígitos.
   - **RANGE_HIGHT** : hight value del rango, 8 dígitos.
   - **LEN** : longitud del numero de tarjeta, 2 dígitos.
@@ -101,43 +118,39 @@ Tenemos un carácter de separación entre cada item, este puede ser cualquier in
   
   
 ## Archivo de Etiquetas de Tarjetas
-~~~ bash
+``` bash
 # LABEL(12)~ID(4BYTES)
 BNC Nro111-1 0100
-~~~
+```
   - **LABEL** : Etiqueta de la entidad financiera a la cual pertenece la tarjeta, 12 dígitos
   - **ID** : identificador único de Tarjeta, 4 dígitos.
   
 
   
-## Proceso de Verificacion
-Dado un numero de tarjeta, se leerán todos los registros del [archivo de rangos](#archivo-de-rangos) y se compararan los primeros 8 dígitos del numero de tarjeta con cada registro. Básicamente que estos 8 dígitos que forman un valor estén comprendido entre el rango de alguno de los registros (el valor puede ser igual a los limites).
+## Proceso de Verificación
+Dado un numero de tarjeta, se leerán todos los registros del [**archivo de rangos**](#archivo-de-rangos) y se compararan los primeros 8 dígitos del numero de tarjeta con cada registro. Básicamente que estos 8 dígitos que forman un valor estén comprendido entre el rango de alguno de los registros (el valor puede ser igual a los limites).
 
 
 Si el valor de los primero 8 dígitos esta comprendido por alguno de los registros, se toma de este la longitud y el id. De lo contrario se cancela la operación.
 
 Con la longitud del registro comparamos la longitud del numero de tarjeta aportado, si estos no coinciden se cancela la operación ya que se considera un numero de tarjeta incorrecto.
 
-En este punto tenemos el ID de tarjeta, tomado del registro desde el archivo de rangos, con este podemos buscar los datos dentro del [Archivo de etiquetas de tarjetas](#archivo-de-etiquetas-de-tarjetas) y así obtenemos el label de la misma para proceder con la operación.
-
-
-  
-
+En este punto tenemos el ID de tarjeta, tomado del registro desde el archivo de rangos, con este podemos buscar los datos dentro del [**Archivo de etiquetas de tarjetas**](#archivo-de-etiquetas-de-tarjetas) y así obtenemos el label de la misma para proceder con la operación.
 
 
 # Message
-  - [Request Message](#request-message)
-  - [Response Message](#response-message)
+  - [**Request Message**](#request-message)
+  - [**Response Message**](#response-message)
   
 ## Request Message
 Formato del mensaje request para el servidor, todos los campos para este caso deben ser ASCII.
 
-~~~ 
+``` 
 Request:
  -------------------------------------
 |  MTID  | Nro Tarjeta | Monto | Code |
  -------------------------------------
-~~~
+```
 
   + **MTID** : Message Type Identificator, longitud fija hasta 4 dígitos. Para el Request este debe ser **0200**.
   
@@ -155,14 +168,14 @@ Ejemplo:
 
   
 <!--
-~~~ 
+``` 
 Request:
  -------------------------------------------------
 | MTID |    Nro Tarjeta     |     Monto    | Code | 
  -------------------------------------------------
 | 0200 | 164517650654628311 | 000000012454 | 123  |
  -------------------------------------------------
-~~~
+```
 -->
  
 
@@ -176,21 +189,21 @@ Request:
 ## Response Message
 Formato del mensaje Response devuelto por el servidor, todos los campos para este caso deben ser **ASCII**.
 
-~~~ 
+``` 
 Request:
  -------------------
 |  MTID  | RespCode |
  -------------------
-~~~
+```
 
   + **MTID** : Message Type Identificator, longitud fija hasta 4 dígitos. Para el Response este debe ser **0210**.
   
-  + **RespCode** : El codigo de respuesta la longitud de este es fija de dos dígitos, código igual a ```00``` significa transacción aprobada. Mientras que un valor distinto a este, para este caso, significa transacción rechazada.
+  + **RespCode** : El codigo de respuesta la longitud de este es fija de dos dígitos, código igual a **`00`** significa transacción aprobada. Mientras que un valor distinto a este, para este caso, significa transacción rechazada.
     
 
 Ejemplos:
-  - Code : 00, succes
-  - Code : 47, no succes
+  - Code : **`00`**, succes
+  - Code : **`47`**, no succes
   
 | **MTID** | **RespCode** | **Status**  |
 |:--------:|:------------:|:------------|
@@ -201,7 +214,7 @@ Ejemplos:
 
 
 <!-- 
-~~~ 
+``` 
 Request:
  -----------------
 | MTID | RespCode |
@@ -216,29 +229,36 @@ Request:
 # Compilacion
 Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
 
-  + ```make all``` : default, este compila los sources.
-  + ```make clean``` : elimina los objects files y el ejecutable.
-  + ```make new``` : ejecuta un clean y vuelve a compilar.
-  + ```make run``` : Si no se compilo aun compila los sources y luego ejecuta.
-  + ```make debug``` : Este lanza una sesión de gdb para el debug del proyecto.
+  + **`make all`** : default, este compila los sources.
+  + **`make clean`** : elimina los objects files y el ejecutable.
+  + **`make new`** : ejecuta un clean y vuelve a compilar.
+  + **`make run`** : Si no se compilo aun compila los sources y luego ejecuta.
+  + **`make debug`** : Este lanza una sesión de gdb para el debug del proyecto.
+  + **`make server`** : Compila solo el codigo correspondiente al server.
+  + **`make unittests`** : Compila solo el codigo correspondiente a los unit tests.
+  
   
 Para que los target anteriores pueda ejecutarse se recomienda tener instalado **gcc/g++**, y **make**, de caso contrario debemos instalarlos.
 
 Los target **run** y **debug** tiene habilitado la variable ARGS con la cual le pasamos al ejecutable (o session de **GDB**) los argumentos.
 
 
-## Instalaccion Red Hat
-~~~ bash
-  yum update
-  yum install -y gcc gdb make llvm-toolset yum-utils libasan
-~~~
+## Instalaccion Fedora Red Hat
+``` bash
+sudo dnf update -y
+sudo dnf install -y gcc gdb make llvm-toolset yum-utils libasan
+```
 
 ## Instalaccion Debian
-~~~ bash
-sudo apt-get update
-sudo apt-get upgrade -y
+``` bash
+## apt get
+sudo apt-get update && sudo apt-get upgrade -y
 sudo apt-get install -y build-essential gdb
-~~~
+
+## aptitude
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y build-essential gdb
+```
 
 
 
@@ -246,50 +266,70 @@ sudo apt-get install -y build-essential gdb
   
 ## Configuracion Makefile
 La configuración Básica contempla:
-  + Selección de la versión del proyecto ```VERSION```, por defecto '0' tenemos una sola versión para este caso.
+  + Selección de la versión del proyecto **`VERSION`**, por defecto '0' tenemos una sola versión para este caso.
   
-  + Selección de la versión del estándar de compilación ```STD_VER``` por defecto esta en '2020', que representa el estándar de ```-std=c++20``` (en su defecto para **GNU** ```-std=gnu++20```).
+  + Selección de la versión del estándar de compilación **`STD_VER`** por defecto esta en '2023', que representa el estándar de **`-std=c++23`** (en su defecto para **GNU** **`-std=gnu++23`**).
   
-  + Setting de depuración de memoria ```DEBUG_ON```, por defecto '0':  
+  + Setting de depuración de memoria **`DEBUG_ON`**, por defecto '0':
     - 0 : Deshabilita las opciones de debug.
     - 1 : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecución.
-    - 2 : Habilita solo los Flags de GDB (para ```make debug``` este se establece de forma automática).
+    - 2 : Habilita solo los Flags de GDB (para **`make debug`** este se establece de forma automática).
     
 
 # Server Host to Host
-La versión 1 del source ```main.cpp``` contiene el código del server, con el cual podemos lanzar pruebas. Para compilar este solo debemos colocar el valor de ```VERSION``` en uno. Otra opción es compilarlo con el valor de versión en la acción:
+Para emular el servidor contamos con el source **`server.cpp`** que contiene el código del server, con el cual podemos lanzar pruebas. Para compilar y ejecutar este solo debemos ejecutar los siguentes target de **`Makefile`**:
 
-~~~ bash
-make VERSION=1
+``` bash
+# solo compila
+make server
 
-===========[BEGIN, compiling VERSION: 1, STD_VER: 2020 ]==========
+# compila y lanza el server
+make server_run
+```
+
+<details>
+  <summary><b>run server</b></summary>
+
+``` bash
+==========[ BEGIN, compiling C++ file ./src/server.cpp ]==========
+==========[ END, compiling C++ file ./src/server.cpp ]==========
+
+
+===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
 
 Tamaño del archivo ejecutable formato:
    text    data     bss     dec     hex filename
-  42146    1640     640   44426    ad8a ./app/Host2HostServer_v1
-===========[END, compiling: "Host2HostServer_v1"]==========
-~~~
-En caso de realizar cambios podemos ejecutar el target **new** de la siguiente manera:
+  61428    1388     320   63136    f6a0 ./app/Host2HostServer
+===========[END, compiling: "Host2HostServer"]==========
 
-~~~ bash
-make new VERSION=1
+Server Up in <0.0.0.0:3000>
+```
+    
+</details>
 
-===========[ clean files ... ]==========
+  > Para finalizar o salir de la aplicacion solo debemos ingresar la secuencia **`Ctrl+c`**.
 
-===========[BEGIN, compiling VERSION: 1, STD_VER: 2020 ]==========
+Este visualiza la direccion **IP** y el puerto en el que se encuentra escuchando peticiones. En caso de necesitar realizar cambios solo debemos ejecutar nuevamente el target, o en su defecto un clean pervio:
 
-Tamaño del archivo ejecutable formato:
-   text	   data	    bss	    dec	    hex	filename
-  40297	   1544	    640	  42481	   a5f1	./app/Host2HostServer_v1
-===========[END, compiling: "Host2HostServer_v1"]==========
+``` bash
+make clean
+make server
 
-~~~
-De la misma forma los demás target ( debug o ```make debug VERSION=1```) están disponible para admitir el valor de la versión.
+# o directamente compilando y ejecutando
+make clean
+make server_run
+```
 
-Con el código ya compilado ejecutamos el mismo:
+En caso de querer ejecutarlo directamente el binario solo debemos realizarlo de la siguente manera:
 
-~~~ bash
+```bash
 app/Host2HostServer_v1 3000
+```
+
+<details>
+  <summary><b>example run</b></summary>
+
+``` bash
 Server Up in <0.0.0.0:3000>
 
 # cuando el cliente se conecte
@@ -300,17 +340,21 @@ Msg Arrivado <0200164517650654628311000000012454123>
 
 # En este paso nos pedirá ingresar el código de respuesta
 Ingrese Codigo de Respuesta: 00
-~~~
+```
+    
+</details>
+
 
 # Examples
-  - [make all](#make-all)
-  - [make new](#make-new)
-  - [Datos para Testing](#datos-para-testing)
-  - [make run](#make-run)
-  - [run executable](#run-executable)
+  - [**`make all`**](#make-all)
+  - [**`make new`**](#make-new)
+  - [**Datos para Testing**](#datos-para-testing)
+  - [**`make run`**](#make-run)
+  - [**run executable**](#run-executable)
+  - [**unittests**](#unittests)
     
 ## make all
-~~~ bash
+``` bash
 make 
 
 ===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
@@ -320,10 +364,10 @@ Tamaño del archivo ejecutable formato:
   79329    1808     640   81777   13f71 ./app/FinancialTransaction_v0
 ===========[END, compiling: "FinancialTransaction_v0"]==========
 
-~~~
+```
 
 ## make new
-~~~ bash
+``` bash
 make new
 
 ===========[ clean files ... ]==========
@@ -334,7 +378,7 @@ Tamaño del archivo ejecutable formato:
    text    data     bss     dec     hex filename
   79329    1808     640   81777   13f71 ./app/FinancialTransaction_v0
 ===========[END, compiling: "FinancialTransaction_v0"]==========
-~~~
+```
 
 ## Datos para Testing
   1. Ingresar el saldo, solo hasta dos dígitos decimales (dos dígitos después del punto decimal), *ex ($124,54): 124.54* 
@@ -360,12 +404,22 @@ Request to send: 0200164517650654628311000000012454123
 
 | 0200 | 16 4517650654628311 | 000000012454 | 123
 
+
+
+
+
 -->
 
 ## make run
-~~~ bash
+```bash
+make clean
 make run
+```
 
+<details>
+<summary><b>run client</b></summary>
+
+``` bash
 ===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
 
 Tamaño del archivo ejecutable formato:
@@ -390,11 +444,19 @@ El Codigo de tarjeta ingresado es: 123
 Request to send: 0200164517650654628311000000012454123
 Response: 021000
 OPERACION APROVADA
-~~~
+```
+
+</details>
+<br>
+
 Para este caso debemos considerar que tenemos un server escuchando en la ip y puerto cargado como parámetro **ARGS**.
 
 ## run executable
-~~~ bash
+
+<details>
+<summary><b>run sin server</b></summary>
+
+``` bash
 app/FinancialTransaction_v0 -i 127.0.0.1 -p3000 -t10000 -r files/local/ranges.dat -c files/local/cards.dat
 -i <ip>      : 127.0.0.1
 -p <port>    : 3000
@@ -402,10 +464,16 @@ app/FinancialTransaction_v0 -i 127.0.0.1 -p3000 -t10000 -r files/local/ranges.da
 -c <path/card-file>: files/local/cards.dat
 -r <path/range-file>: files/local/ranges.dat
 Error "Could not bind to Server <127.0.0.1:3000>"
-~~~
-Para este caso vemos la respuesta cuando el servidor no esta disponible o los datos aportados no son correctos.
+```
+  > ***Para este caso vemos la respuesta cuando el servidor no esta disponible o los datos aportados no son correctos***.
 
-~~~ bash
+</details>
+<br>
+
+<details>
+<summary><b>run with server up</b></summary>
+
+``` bash
 app/FinancialTransaction_v0 -i 127.0.0.1 -p3000 -t10000 -r files/local/ranges.dat -c files/local/cards.dat
 -i <ip>      : 127.0.0.1
 -p <port>    : 3000
@@ -423,11 +491,63 @@ El Codigo de tarjeta ingresado es: 321
 Request to send: 0200164517650654628311000000025400321
 Response: 021089
 OPERACION RECHAZADA CON EL CODIGO <89>
-~~~
+```
+
+</details>
 
 
+## unittests
+Compilación de los unittests
+
+```bash
+make unittests
+```
+
+<details>
+<summary><b>compile</b></summary>
+
+```bash
+make clean
+make unittests
+
+==========[ BEGIN, compiling C++ file ./src/CardsRegister.cpp ]==========
+==========[ END, compiling C++ file ./src/CardsRegister.cpp ]==========
 
 
+==========[ BEGIN, compiling C++ file ./src/financial_transaction.cpp ]==========
+==========[ END, compiling C++ file ./src/financial_transaction.cpp ]==========
+
+
+==========[ BEGIN, compiling C++ file ./src/PSocket.cpp ]==========
+==========[ END, compiling C++ file ./src/PSocket.cpp ]==========
+
+
+==========[ BEGIN, compiling C++ file ./src/RangesRegister.cpp ]==========
+==========[ END, compiling C++ file ./src/RangesRegister.cpp ]==========
+
+
+==========[ BEGIN, compiling C++ file ./src/unittests.cpp ]==========
+==========[ END, compiling C++ file ./src/unittests.cpp ]==========
+
+
+===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
+
+Tamaño del archivo ejecutable formato:
+   text    data     bss     dec     hex filename
+ 191779    1700     368  193847   2f537 ./app/unittest_app
+===========[END, compiling: "unittest_app"]==========
+```
+    
+</details>
+
+
+Ejecución de los unittests:
+
+```bash
+make unittests_run
+```
+
+  > No es necesario ejecutar en secuencia, primero el `make unittests` y luego `make unittests_run` si solo queremos ejecutar los mismos. Al estar armada las dependencias dentro del makefile con solo ejecutar `make unittests_run` se compilara lo necesario para armar el binario correspondiente para luego ejecutarlo.
 
 
 

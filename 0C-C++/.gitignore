@@ -10,4 +10,5 @@
 
 # discard log files
 *.log
+**/*.log
 
