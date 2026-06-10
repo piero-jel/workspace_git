@@ -55,28 +55,8 @@ APP_DEBUG := appdebug
 ## En caso de necesitar habilitar poxis thread
 #LINKER_FLAGS = -lrt -pthread
 
-## metodo or in ifeq
-ifeq ($(VERSION),0)
-	APP = Datagram
-	ARGS = 'carlos' 'solarc' 'Nacionalista' 'Altisonancia' 'raiz' 'zi a'
-
-else ifeq ($(VERSION),1)
-	APP = Datagram
-
-else ifeq ($(VERSION),2)
-	APP = Datagram
-	ARGS =
-
-else ifeq ($(VERSION),3)
-	APP = Datagram
-	ARGS = 
-
-else
-  APP = Datagram
-  ARGS = 
-
-endif
-
+APP = Datagram
+ARGS = 'carlos' 'solarc' 'Nacionalista' 'Altisonancia' 'raiz' 'zi a'
 
 #CPP_FLAGS = -O2
 # CPP_FLAGS = -Ofast
@@ -99,7 +79,7 @@ APP_NAME = $(APP)_v$(VERSION)
 #####################################################################################
 ## BEGIN set flags compiles memory track/gdb/glibcxx
 ###################################################################################
-## 
+##
 # Detect the operating system distribution
 # Check for a debian_version file first
 ifeq ($(shell [ -f "/etc/debian_version" ] && echo debian), debian)
@@ -194,7 +174,7 @@ CXX_FILES += $(wildcard $(SRC_PATH)/*.cxx)
 CCC_FILES += $(wildcard $(SRC_PATH)/*.cc)
 CC_FILES  += $(wildcard $(SRC_PATH)/*.C)
 
-### 
+###
 VAR_OBJ_FILES = $(addprefix $(OBJ_PATH)/,$(notdir $(CPP_FILES:.cpp=.o)))
 VAR_OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CXX_FILES:.cxx=.o)))
 VAR_OBJ_FILES += $(addprefix $(OBJ_PATH)/,$(notdir $(CCC_FILES:.cc=.o)))
@@ -214,7 +194,7 @@ UNITTEST_OBJS := $(notdir $(UNITTEST_OBJ_FILES))
 INCLUDES = $(addprefix -I, $(INC_PATH))
 # INCLUDES += /usr/include/c++/9
 ## BEGIN Init Flag
-# FLAGS = -Wall 
+# FLAGS = -Wall
 # FLAGS = -ansi -pedantic -Wall -Wextra -Weffc++
 ## quit -pedantic for disable warning -Wvariadic-macros
 FLAGS = -ansi -Wall -Wextra -Weffc++
@@ -226,14 +206,14 @@ FLAGS += $(LINKER_FLAGS)
 
 ifeq ($(STD_VER),2011)
   FLAGS += -std=gnu++11
-  
+
 else ifeq ($(STD_VER),2014)
   FLAGS += -std=gnu++14
 
-else ifeq ($(STD_VER),2017)  
+else ifeq ($(STD_VER),2017)
 ## GCC Version 8 support to c++17
   FLAGS += -std=gnu++17
-  
+
 else ifeq ($(STD_VER),2020)
 ## c++20
 # FLAGS += -std=gnu++2a # version preliminar 'release c++20'
@@ -332,7 +312,7 @@ clean:
 ## BEGIN new target FIXME debemos independizzar del header
 new: clean
 	$(MAKE) all --no-print-directory
-## END   new target	
+## END   new target
 
 ## BEGIN APP_NAME target
 $(APP_NAME): $(PROJECT_OBJS)
@@ -371,7 +351,7 @@ info:
 	$(PRINT) "APP_NAME              : $(APP_NAME)"
 	$(PRINT) "INCLUDES              : $(INCLUDES)"
 	$(PRINT) "hpp                   : $(notdir $(wildcard $(INC_PATH)/*.hpp))"
-## END   info target	
+## END   info target
 
 
 ## BEGIN run target
@@ -379,17 +359,17 @@ run:
 	$(MAKE) all --no-print-directory
 	$(PRINT) "$(APP_PATH)/$(APP_NAME) ARGS = '$(ARGS)', CASE = '$(CASE)'"
 	@$(APP_PATH)/$(APP_NAME) $(ARGS)
-	
+
 nrun: new
 	@$(APP_PATH)/$(APP_NAME) $(ARGS)
 ## END   run target
 
 ## BEGIN debug target
-debug: 
+debug:
 	$(MAKE) new DEBUG_GDB=1 --no-print-directory
 	$(GDB) --args $(APP_PATH)/$(APP_NAME)$(EXT_APP) $(ARGS)
 
-builddebug: 
+builddebug:
 	$(MAKE) new DEBUG_GDB=1 APP_NAME=$(APP_DEBUG) --no-print-directory
 ## END   debug target
 
@@ -397,17 +377,17 @@ builddebug:
 ## BEGIN debug_core target
 ## para el core dump, comando utilies:
 ## bt          : (backtrace ver el contenido de la pila de ejecucion)
-## frame <Nro> : cambio de contexto 
+## frame <Nro> : cambio de contexto
 ## list        : para listar el codigo en el frame
-debug_core: 
+debug_core:
 	$(MAKE) new DEBUG_GDB=1 --no-print-directory
 	$(GDB) $(APP_PATH)/$(APP_NAME)$(EXT_APP) $(CORE_DUMP_FILE)
 ## END   debug_core target
 
-## BEGIN get asm 
+## BEGIN get asm
 getasm:
 	$(GETASM) $(APP_PATH)/$(APP_NAME)
-	
+
 ngetasm: new
 	$(GETASM) $(APP_PATH)/$(APP_NAME)
 ## END   get asm
@@ -425,5 +405,5 @@ help:
 	$(PRINT) "\tmake <Target> ARGS=\"Lista de Arg\" set ARG para los target run, debug"
 	$(PRINT) "\tmake <Target> DEBUG_GDB= { 1 | 0 } Enable/disable GDB"
 	$(PRINT) "\tmake <Target> DEBUG_MEMORY= { 1 | 0 } Enable/disable Mmeory Trace Satinizer"
-	$(PRINT) "\n===========[END  , HELP: ]==========\n"	
+	$(PRINT) "\n===========[END  , HELP: ]==========\n"
 ## END   help target

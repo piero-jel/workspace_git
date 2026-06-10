@@ -35,7 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 @brief   STL container traits
 @details template trait for check in template methos or functions
 @version 0.0.1.
-@date Viernes 22 de Mayo de 2026.
+@date Viernes 22 de Junio de 2026.
 @pre condiciones que deben cuplirse antes del llamado,
 @bug depuracion example: Not all memory is freed when deleting an object of this class.
 @warning
@@ -51,6 +51,7 @@ JEL            2026.05.22     0.0.1        Version Inicial no release
 
 /* header file list fo namespace utilities */
 #include <concepts>
+#include <array>
 #include <list>
 #include <forward_list>
 #include <vector>
@@ -58,14 +59,26 @@ JEL            2026.05.22     0.0.1        Version Inicial no release
 #include <deque>
 #include <utility>
 
-namespace utilities {
+namespace utiltraits {
+    
+    /** utiltraits::is_array<T> */
+    template<typename C>
+    inline constexpr bool is_array = false;
+    template<typename C, std::size_t N>
+    inline constexpr bool is_array<std::array<C, N>> = true;    
 
+    /**
+     * @brief Check for std::pair<T1,T2> with any type and allocator
+     * @tparam P concrete type for std::pair<T1,T2>
+     */
     template <typename P>
     concept is_pair = requires {
         typename P::first_type;
         typename P::second_type;
     } && std::same_as<P, std::pair<typename P::first_type, typename P::second_type>>;
 
+
+    /* Check for std::vector with any type and allocator */
     template <typename C>
     concept is_vector = requires {
         typename C::value_type;
@@ -123,13 +136,18 @@ namespace utilities {
     >;
 
 
+    /* Check for std::map with any key, value, comparator, and allocator */
     template <typename C>
     concept is_map = requires {
         typename C::key_type;
         typename C::mapped_type;
     } && std::same_as<C, std::map<typename C::key_type, typename C::mapped_type,
     typename C::key_compare, typename C::allocator_type>>;
+
+
 };
+
+
 #endif /* #ifndef __container_traits_hpp__ */
 
 

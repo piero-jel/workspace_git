@@ -1,5 +1,5 @@
 /** ***********************************************************************************//**
-\addtogroup utilities
+\addtogroup utiltraits
 \copyright Copyright &copy; 2026, Jesus Emanuel Luccioni
 All rights reserved.
 
@@ -30,29 +30,45 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SCRIPT, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
-@file utilities
+@file pointer_traits.hpp
 @author Jesus Emanuel Luccioni - jeluccioni@gmail.com.
-@brief   utilities packages
-@details utilities for handlers STL
+@brief   ...
+@details ...
 @version 0.0.1.
-@date Viernes 22 de Junio de 2026.
+@date Lunes 8 de Junio de 2026.
 @pre condiciones que deben cuplirse antes del llamado,
 @bug depuracion example: Not all memory is freed when deleting an object of this class.
 @warning
 @note
 @Change History:
-Author         Date           Version      Brief
-JEL            2026.05.22     0.0.1        Version Inicial no release
+Author         Date                 Version      Brief
+JEL            2026.06.08     0.0.1   Version Inicial no release
 
 * ********************************************************************************** */
-#ifndef __utilities__
-#define __utilities__ /**<@brief Definimos el Nombre del modulo */
+#ifndef __pointer_traits_hpp__
+#define __pointer_traits_hpp__ /**<@brief header module name idem to pragma once */
 
 
-/* listamos los header con el namespace utilities{ }; */
-#include <exception.hpp>
-//#include <utilities.hpp>
+/* header file list fo namespace utiltraits */
 
 
 
-#endif /* #ifndef __Utility__ */
+namespace utiltraits {
+
+    /**
+     * @brief Check for std::unique_ptr<T>
+     * @tparam V concrete type for check if it std::unique_ptr<T>
+     * \code
+     if constexpr (utitraits::is_unique_ptr<Value>){
+        // ...
+     }
+     * \endcode
+     */
+    template <typename V>
+    concept is_unique_ptr = requires {
+        typename V::element_type;
+        typename V::deleter_type;
+    } && std::same_as<V, std::unique_ptr<typename V::element_type, typename V::deleter_type>>;
+};
+
+#endif /* #ifndef __pointer_traits_hpp__ */

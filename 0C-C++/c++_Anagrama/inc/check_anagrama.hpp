@@ -82,5 +82,5 @@ bool checkAnagrama( const std::string& op1, const std::string& op2,bool sen=fals
  */
 bool checkAnagrama( const char* op1, const char* op2,bool sen=false);
 
-
+bool check_anagrama(const char* op1, const char* op2,bool sen=false);
 #endif /* #ifndef __check_anagrama_hpp__ */

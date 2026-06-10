@@ -50,8 +50,10 @@ JEL            2026.05.22     0.0.1        Version Inicial no release
 #include <utilities>
 #include <financial_transaction.hpp>
 #include <PSocket.hpp>
-#include <Exception.hpp>
 #include <thread>
+
+
+using namespace utilities;
 constexpr uint16_t VER = 0;
 constexpr uint32_t N = 256; /* valor por defecto para el buffer de Exception */
 constexpr const char* PATH_RANGE = "files/local/ranges.dat";

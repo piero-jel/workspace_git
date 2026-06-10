@@ -35,7 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 @brief   logger with colort
 @details loger message in stream file with color for levels error, warning, info, success
 @version 0.0.1.
-@date Viernes 22 de Mayo de 2026.
+@date Viernes 22 de Junio de 2026.
 @pre condiciones que deben cuplirse antes del llamado,
 @bug depuracion example: Not all memory is freed when deleting an object of this class.
 @warning
@@ -58,7 +58,7 @@ JEL            2026.05.22     0.0.1        Version Inicial no release
 #define LVL_INFO    12  /** Indicator for select colour of level information */
 #define LVL_SUCCESS 13  /** Indicator for select colour of level success */
 
-namespace utilities {
+namespace utillog {
     /* Font Color
         - RESET          "\033[0m"
         - BLACK          "\033[30m"      
@@ -158,6 +158,24 @@ namespace utilities {
             return this->print_(nullptr,fmt,args);
         }
 
+        template <int LOG=0>
+        void vprintf(const char* fmt, va_list args){
+            if (!fmt) return;            
+            if constexpr (LOG==LVL_ERROR){
+                return this->print_(FC_LOG_ERROR,fmt,args);    
+            }
+            if constexpr (LOG==LVL_WARNING){
+                return this->print_(FC_LOG_WARN,fmt,args);    
+            }
+            if constexpr (LOG==LVL_INFO){
+                return this->print_(FC_LOG_INFO,fmt,args);    
+            }
+            if constexpr (LOG==LVL_SUCCESS){
+                return this->print_(FC_LOG_DEBUG,fmt,args);    
+            }
+            return this->print_(nullptr,fmt,args);
+        }
+
         protected:
             std::string fname_{};
             bool std_ {};
@@ -175,7 +193,6 @@ namespace utilities {
             
             void close_(){
                 /* flush stream */
-                //std::fputc('\n',this->ou_);
                 std::fflush(this->ou_);
                 if (this->std_) return;
                 std::fclose(this->ou_);

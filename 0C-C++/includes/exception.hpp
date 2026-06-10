@@ -1,5 +1,5 @@
 /** ******************************************************************************************************//**
-* \addtogroup Exception
+* \addtogroup utilities
 * @{
 * \copyright
 * Copyright 2024, Jesus Emanuel Luccioni
@@ -31,9 +31,9 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOURCE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 *
-* \file Exception.hpp
+* \file exception.hpp
 * \author Jesus Emanuel Luccioni - piero.jel@gmail.com.
-* \brief Manejo de Exception
+* \brief Manejo de exception
 * \details Para el manejo de Exception de la misma forma que un print con formato
 
 * \version 0.0.1.
@@ -66,8 +66,6 @@
 
 
 
-
-
 /*
  * ======================[ END   include header file ]=================================
  */
@@ -76,102 +74,103 @@
 /*
  * ========================[ BEGIN class interfaces ]==================================
  */
-/**
-* \class Exception
-* \brief Clase para la notificacion de Exceptiones
-*     
-* Consturctores disponibles:    
-*  \li \b Exception (const char* fmt, ...);     
-*  \li \b Exception (const Exception& e); 
-* 
-*/
-template <uint32_t LEN = 256>
-struct  Exception : public std::exception {  
+namespace utilities{
     /**
-     * @brief Construct a new Exception object
-     * @param[in] fmt CStyle string con el formato del print
-     * @param ... : listado variadic de parametros relacionados a \p fmt
-     */
-    Exception(const char* fmt,...) noexcept {
-        if(!fmt) return ;
-
-        va_list args;
-        va_start(args, fmt );
-        this->set(fmt,args);  
-    }
-
-    /**
-    * \brief constructor por copia
-    * \param e : objeto a copiar
-    * \return nothing
-    * \note
-    * \code
-    * \endcode
+    * \class Exception
+    * \brief Clase para la notificacion de Exceptiones
+    *     
+    * Consturctores disponibles:    
+    *  \li \b Exception (const char* fmt, ...);     
+    *  \li \b Exception (const Exception& e); 
+    * 
     */
-    Exception(const Exception& e) noexcept { this->set(e); }
+    template <uint32_t LEN = 256>
+    struct  Exception : public std::exception {  
+        /**
+         * @brief Construct a new Exception object
+         * @param[in] fmt CStyle string con el formato del print
+         * @param ... : listado variadic de parametros relacionados a \p fmt
+         */
+        Exception(const char* fmt,...) noexcept {
+            if(!fmt) return ;
 
-    /**
-    * \brief sobrecarga del operador de asignacion \b =
-    * \param e : objeto a copiar.
-    * \return La referenica del objeto copiado.
-    * \note
-    * \code
-    * \endcode
-    */
-    Exception& operator= (const Exception& e)noexcept {
-        this->set(e);
-        return *this;
-    }
-
-    /**
-    * \brief destructor
-    * \return nothing
-    * \note si no definimos esta y solo la declaramos vamos a tener
-    * error a la hora de compilar.
-    * <b> undefined reference to `vtable for Exception'</b>
-    * \code
-    * \endcode
-    */
-    virtual ~Exception()
-    { }
-
-    /**
-    * \brief funcion miembro virtual, la cual obtiene
-    * el mensaje de error para que se pueda imprimir
-    * o escribir en un log
-    * \return mensaje de error String Style-C
-    *  \li \b const char*
-    * \note
-    * \code
-    * //.. captura
-    * catch(const Exception<>& e)
-    * {
-    *   std::cout<<"catch(const Exception& e):      "<<e.what();
-    * }
-    * \endcode
-    */
-    virtual const char* what(void) const noexcept
-    { return (const char*) this->_buff; }     
-
-    protected:
-        static constexpr uint32_t _BUFF_LEN = LEN;   /** Longitud del buffer donde almacenarmeos el mensaje. */
-        char _buff[LEN];                 /** buffer que almacenara el mensaje. */ 
-
-        virtual void set(const Exception& e) noexcept {
-            if(this == &e) return;  
-            std::memcpy(this->_buff,e._buff,LEN);
+            va_list args;
+            va_start(args, fmt );
+            this->set(fmt,args);  
         }
 
-        virtual void set(const char* fmt,va_list args) noexcept {
-            std::vsnprintf( this->_buff,LEN-1, fmt, args );
-            /* cerramos la lista de argumentos */
-            va_end( args );
+        /**
+        * \brief constructor por copia
+        * \param e : objeto a copiar
+        * \return nothing
+        * \note
+        * \code
+        * \endcode
+        */
+        Exception(const Exception& e) noexcept { this->set(e); }
+
+        /**
+        * \brief sobrecarga del operador de asignacion \b =
+        * \param e : objeto a copiar.
+        * \return La referenica del objeto copiado.
+        * \note
+        * \code
+        * \endcode
+        */
+        Exception& operator= (const Exception& e)noexcept {
+            this->set(e);
+            return *this;
         }
+
+        /**
+        * \brief destructor
+        * \return nothing
+        * \note si no definimos esta y solo la declaramos vamos a tener
+        * error a la hora de compilar.
+        * <b> undefined reference to `vtable for Exception'</b>
+        * \code
+        * \endcode
+        */
+        virtual ~Exception()
+        { }
+
+        /**
+        * \brief funcion miembro virtual, la cual obtiene
+        * el mensaje de error para que se pueda imprimir
+        * o escribir en un log
+        * \return mensaje de error String Style-C
+        *  \li \b const char*
+        * \note
+        * \code
+        * //.. captura
+        * catch(const Exception<>& e)
+        * {
+        *   std::cout<<"catch(const Exception& e):      "<<e.what();
+        * }
+        * \endcode
+        */
+        virtual const char* what(void) const noexcept
+        { return (const char*) this->_buff; }     
+
+        protected:
+            static constexpr uint32_t _BUFF_LEN = LEN;   /** Longitud del buffer donde almacenarmeos el mensaje. */
+            char _buff[LEN];                 /** buffer que almacenara el mensaje. */ 
+
+            virtual void set(const Exception& e) noexcept {
+                if(this == &e) return;  
+                std::memcpy(this->_buff,e._buff,LEN);
+            }
+
+            virtual void set(const char* fmt,va_list args) noexcept {
+                std::vsnprintf( this->_buff,LEN-1, fmt, args );
+                /* cerramos la lista de argumentos */
+                va_end( args );
+            }
+
+    };
+
 
 };
-
-
-
 
 /*
  * ========================[ END   class interfaces ]==================================

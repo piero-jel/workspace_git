@@ -35,7 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 @brief   unittest packages
 @details packages for unittest module
 @version 0.0.1.
-@date Viernes 22 de Mayo de 2026.
+@date Viernes 22 de Junio de 2026.
 @pre condiciones que deben cuplirse antes del llamado,
 @bug depuracion example: Not all memory is freed when deleting an object of this class.
 @warning
@@ -50,9 +50,8 @@ JEL            2026.05.22     0.0.1        Version Inicial no release
 
 
 /* header file list fo namespace unittest */
-
-
 #include <unittest.hpp>
+
 
 
 #endif /* #ifndef __unittest__ */

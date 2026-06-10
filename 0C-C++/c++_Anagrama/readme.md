@@ -1,20 +1,18 @@
 # Contenido
 
-  + [**Anagrama, Descripción del Proyecto**](#anagrama)
-  
-  + [**Esquema de directorios de la Aplicación**](#esquema-de-directorios-de-la-aplicacion)
-  
-  + [**Compilación**](#compilacion)
-    - [**Instalación Red Hat**](#instalaccion-red-hat)
-    - [**Instalación Debian**](#instalaccion-debian)
-    - [**Configuración Makefile**](#configuracion-makefile)
- 
-  + [**Examples**](#examples)
-    - [**make all**](#make-all)
-    - [**make new**](#make-new)
-    - [**make run**](#make-run)
-    - [**run executable**](#run-executable)
-    - [**run unittests**](#run-unittests)
+- [Contenido](#contenido)
+- [Anagrama](#anagrama)
+- [Esquema de directorios de la Aplicacion](#esquema-de-directorios-de-la-aplicacion)
+- [Compilacion](#compilacion)
+  - [Instalaccion Fedora Red Hat](#instalaccion-fedora-red-hat)
+  - [Instalaccion Debian](#instalaccion-debian)
+  - [Configuracion Makefile](#configuracion-makefile)
+- [Examples](#examples)
+  - [make all](#make-all)
+  - [make new](#make-new)
+  - [make run](#make-run)
+  - [run executable](#run-executable)
+  - [run unittests](#run-unittests)
 
 # Anagrama
 Programa/funciones que permite verificar si dos palabras son un Anagrama.
@@ -71,21 +69,21 @@ Los target **run** y **debug** tiene habilitado la variable ARGS con la cual le 
 
 
 
-## Instalaccion Fedora o Red Hat
+## Instalaccion Fedora Red Hat
 ``` bash
 sudo dnf update -y
-sudo dnf install -y gcc gdb make llvm-toolset yum-utils libasan
+sudo dnf install -y gcc gdb make libasan libubsan gcc gcc-c++
 ```
 
 ## Instalaccion Debian
 ``` bash
-# apt get
+## apt get
 sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install -y build-essential gdb
+sudo apt-get install -y build-essential make gdb
 
-# aptitude
+## aptitude
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y build-essential gdb
+sudo apt install -y build-essential make gdb
 ```
 
 
@@ -95,8 +93,6 @@ sudo apt install -y build-essential gdb
 ## Configuracion Makefile
 La configuración Básica contempla:
 
-  + Selección de la versión del proyecto **`VERSION`**, por defecto '0' tenemos una sola version para este caso.
-  
   + Selección de la versión del estándar de compilaccion **`STD_VER`** por defecto esta en '2023', que representa el estándar de `c++23`.
   
   + Setting de depuración de memoria **`DEBUG_ON`**, por defecto '0':

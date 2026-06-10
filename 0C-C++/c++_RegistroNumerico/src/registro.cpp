@@ -46,8 +46,9 @@ JEL            2026.05.28     0.0.1        Version Inicial no release
 
 * ********************************************************************************** */
 #include <registro.hpp>
-#include <Exception.hpp>
+#include <utilities>
 
+using namespace utilities;
 
 
 Registro::Registro(int64_t v) {

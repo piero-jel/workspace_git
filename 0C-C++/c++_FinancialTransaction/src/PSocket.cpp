@@ -67,7 +67,7 @@
 #include <memory>
 
 #include <PSocket.hpp> /**<@brief Definimos el Nombre del modulo */
-#include <Exception.hpp>
+#include <utilities>
 /*
  * ===========================[ END   include header file ]======================================
  */
@@ -309,7 +309,7 @@ uint32_t Stream::Send(const std::string& msg, uint32_t l){
 uint32_t Stream::Recv(char* buf, uint32_t len, bool reentry){
     if(this->_fd == 0) return 0;
 
-    if(!buf) throw Exception ( "EINVAL buf null");
+    if(!buf) throw utilities::Exception ( "EINVAL buf null");
 
     uint64_t bytes;
     int flags = 0;
@@ -326,8 +326,8 @@ uint32_t Stream::Recv(char* buf, uint32_t len, bool reentry){
         );    
         errn = errno;
         if( errn != 0){         
-            if(errno == EAGAIN) throw Exception("ERROR DE COMUNICACION TIMEOUT AGOTADO");
-            throw Exception ( "recv():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
+            if(errno == EAGAIN) throw utilities::Exception("ERROR DE COMUNICACION TIMEOUT AGOTADO");
+            throw utilities::Exception ( "recv():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
         }
         
         len2read = this->_byteint.binary2number(header);
@@ -337,8 +337,8 @@ uint32_t Stream::Recv(char* buf, uint32_t len, bool reentry){
     bytes = recv(this->_fd, (void*) buf, len-1, flags);
     errn = errno;
     if( errn != 0 ){
-        if(errno == EAGAIN) throw Exception("ERROR DE COMUNICACION TIMEOUT AGOTADO");
-        throw Exception ( "recv():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
+        if(errno == EAGAIN) throw utilities::Exception("ERROR DE COMUNICACION TIMEOUT AGOTADO");
+        throw utilities::Exception ( "recv():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
     }
     buf[bytes] = '\0';
     return (len2read-bytes);
@@ -367,9 +367,9 @@ uint32_t Stream::Recv(std::string& rcv, uint32_t len, bool reentry){
         errn = errno;
         if( errn != 0){         
             if(errno == EAGAIN)
-                throw Exception("ERROR DE COMUNICACION TIMEOUT AGOTADO");
+                throw utilities::Exception("ERROR DE COMUNICACION TIMEOUT AGOTADO");
 
-            throw Exception ( "recv():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
+            throw utilities::Exception ( "recv():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
         }
         len2read = this->_byteint.binary2number(header);    
         if(len2read ==0 ) return 0;    
@@ -387,8 +387,8 @@ uint32_t Stream::Recv(std::string& rcv, uint32_t len, bool reentry){
     
     errn = errno;
     if( errn != 0){      
-        if(errno == EAGAIN) throw Exception("ERROR DE COMUNICACION TIMEOUT AGOTADO");
-        throw Exception ( "recv():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
+        if(errno == EAGAIN) throw utilities::Exception("ERROR DE COMUNICACION TIMEOUT AGOTADO");
+        throw utilities::Exception ( "recv():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
     }    
     buf[bytes] = '\0';
     rcv += std::string(buf.get());     
@@ -452,7 +452,7 @@ void Stream::RecvTimeout(double timeout) {
     /* establecemos el timeout */
     errn = setsockopt( this->_fd,SOL_SOCKET, SO_RCVTIMEO,&time,sizeof(timeval_t));
     if (errn < 0) {    
-        throw Exception ( "setsockopt():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
+        throw utilities::Exception ( "setsockopt():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
     } 
 }
 
@@ -542,7 +542,7 @@ int StreamServer::Connect(char* info, int linfo){
     std::unique_ptr<addrinfo_t,void(*)(addrinfo_t*)> result {pr_result,freeaddrinfo};
 
     if (errn != 0 || !result){
-        throw Exception("getaddrinfo(): %s", gai_strerror(errn));
+        throw utilities::Exception("getaddrinfo(): %s", gai_strerror(errn));
     }
 
     for( _rp = result.get(); _rp != nullptr; _rp = _rp->ai_next){
@@ -555,28 +555,28 @@ int StreamServer::Connect(char* info, int linfo){
     }    
     
     if (!_rp){ 
-        throw Exception("Could not bind to <%s:%s>",this->_ip,this->_port);
+        throw utilities::Exception("Could not bind to <%s:%s>",this->_ip,this->_port);
     }    
 
     /* para que el socket address este disponible de forma inmediata al cerrarse la comunicacion */
     errn = setsockopt(this->_fdsrv, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
     errn = errno;    
     if( errn < 0 ){ 
-        throw Exception("setsockopt(): %s-%s", strerrorname_np(errn),strerrordesc_np(errn));
+        throw utilities::Exception("setsockopt(): %s-%s", strerrorname_np(errn),strerrordesc_np(errn));
     }  
 
     /* para que el socket port este disponible de forma inmediata al cerrarse la comunicacion */
     errn = setsockopt(this->_fdsrv, SOL_SOCKET, SO_REUSEPORT, &option, sizeof(option));
     errn = errno;    
     if( errn < 0 ){ 
-        throw Exception("setsockopt(): %s-%s", strerrorname_np(errn),strerrordesc_np(errn));
+        throw utilities::Exception("setsockopt(): %s-%s", strerrorname_np(errn),strerrordesc_np(errn));
     } 
 
     if(listen(this->_fdsrv,this->_backlog) < 0){
         /* llamada a listen() */
         errn = errno;    
         close(this->_fdsrv);
-        throw Exception("listen(): %s-%s", strerrorname_np(errn),strerrordesc_np(errn));
+        throw utilities::Exception("listen(): %s-%s", strerrorname_np(errn),strerrordesc_np(errn));
     }  
 
     if(!info || linfo == 0)
@@ -595,8 +595,8 @@ int StreamServer::Connect(char* info, int linfo){
         return 0;
     }
     close(this->_fdsrv);
-    throw Exception ( "Error <%s> in call to getnameinfo()",gai_strerror(errn));
-    return 0;
+    throw utilities::Exception ( "Error <%s> in call to getnameinfo()",gai_strerror(errn));
+    //return 0;
 }
 
 
@@ -644,7 +644,7 @@ int StreamServer::Accept(char* info, int linfo) {
     int fd = accept(this->_fdsrv,(struct sockaddr *) &client,(socklen_t*) &sin_size);
     errn = errno;
     if( fd < 0 ) {    
-        throw Exception("accept():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
+        throw utilities::Exception("accept():%s-%s", mstrerrorname_np(errn),mstrerrordesc_np(errn));
     }
 
     /* Imprimimos la direccion del cliente conectado 
@@ -750,7 +750,7 @@ int StreamClient::Connect(char* info, int linfo){
     errn = getaddrinfo(this->_ip, this->_port, &hints, &pr_result);
     std::unique_ptr<addrinfo_t,void(*)(addrinfo_t*)> result {pr_result,freeaddrinfo};
     if (errn != 0 || !result){
-        throw Exception("getaddrinfo(): %s", gai_strerror(errn));
+        throw utilities::Exception("getaddrinfo(): %s", gai_strerror(errn));
     }
 
     for( _rp = result.get(); _rp != nullptr; _rp = _rp->ai_next){
@@ -763,7 +763,7 @@ int StreamClient::Connect(char* info, int linfo){
     }
         
     if (!_rp) {     
-        throw Exception("Could not bind to Server <%s:%s>",this->_ip,this->_port);
+        throw utilities::Exception("Could not bind to Server <%s:%s>",this->_ip,this->_port);
     }   
 
     if(!info || linfo == 0)
@@ -782,7 +782,7 @@ int StreamClient::Connect(char* info, int linfo){
         return 0;
     }    
     close(this->_fd);
-    throw Exception("Error <%s> in call to getnameinfo()",gai_strerror(errn));
+    throw utilities::Exception("Error <%s> in call to getnameinfo()",gai_strerror(errn));
 }
 
 /**

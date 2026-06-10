@@ -48,9 +48,9 @@ JEL            2026.05.22     0.0.1        Version Inicial no release
 
 #include <unittest>
 #include <utilities>
-
 #include <registro.hpp>
-#include <Exception.hpp>
+
+using namespace utilities;
 
 
 

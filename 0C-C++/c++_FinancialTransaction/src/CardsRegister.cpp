@@ -46,8 +46,9 @@ JEL            2026.05.27     0.0.1   Version Inicial no release
 
 * ********************************************************************************** */
 #include <CardsRegister.hpp>
+#include <utilities>
 
-
+using namespace utilities;
 
 
 

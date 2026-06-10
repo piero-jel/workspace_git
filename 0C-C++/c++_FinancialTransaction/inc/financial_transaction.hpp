@@ -60,7 +60,7 @@ JEL            2026.05.27     0.0.1   Version Inicial no release
 #include <iostream>
 #include <functional>
 
-#include <Exception.hpp>
+
 #include <RangesRegister.hpp>
 #include <CardsRegister.hpp>
 

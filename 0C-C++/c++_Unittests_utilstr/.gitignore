@@ -1,0 +1,14 @@
+# 
+!.gitignore
+# discard file for extension 
+*.tar.gz
+*.gz
+*.tar
+*.zip
+*.out
+
+
+out/*
+app/*
+# folder
+.vscode/*.log

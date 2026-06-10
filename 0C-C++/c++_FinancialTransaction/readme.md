@@ -1,31 +1,26 @@
 # Contenido
-  + [**Financial Transaction, Descripción del Proyecto**](#financial-transaction)
-  
-  + [**Esquema de directorios de la Aplicación**](#esquema-de-directorios-de-la-aplicacion)
-  
-  + [**Verificación Numero Tarjeta**](#verificación-numero-tarjeta)
-    - [**Archivo de Rangos**](#archivo-de-rangos)
-    - [**Archivo de Etiquetas de Tarjetas**](#archivo-de-etiquetas-de-tarjetas)
-    - [**Proceso de Verificación**](#proceso-de-verificacion)
-    
-  + [**Message**](#message)
-    - [**Request Message**](#request-message)
-    - [**Response Message**](#response-message)
-  
-  + [**Compilación**](#compilacion)
-    - [**Instalación Red Hat**](#instalaccion-red-hat)
-    - [**Instalación Debian**](#instalaccion-debian)
-    - [**Configuración Makefile**](#configuracion-makefile)
-  
-  + [**Server Host to Host**](#server-host-to-host)
-  
-  + [**Examples**](#examples)
-    - [**`make all`**](#make-all)
-    - [**`make new`**](#make-new)
-    - [**Datos para Testing**](#datos-para-testing)
-    - [**`make run`**](#make-run)
-    - [**run executable**](#run-executable)
-    - [**unittests**](#unittests)
+- [**Contenido**](#contenido)
+- [**Financial Transaction**](#financial-transaction)
+- [**Esquema de directorios de la Aplicacion**](#esquema-de-directorios-de-la-aplicacion)
+- [**Verificacion Numero Tarjeta**](#verificacion-numero-tarjeta)
+  - [Archivo de Rangos](#archivo-de-rangos)
+  - [Archivo de Etiquetas de Tarjetas](#archivo-de-etiquetas-de-tarjetas)
+  - [Proceso de Verificación](#proceso-de-verificación)
+- [**Message**](#message)
+  - [Request Message](#request-message)
+  - [Response Message](#response-message)
+- [**Compilacion**](#compilacion)
+  - [Instalaccion Fedora Red Hat](#instalaccion-fedora-red-hat)
+  - [Instalaccion Debian](#instalaccion-debian)
+  - [Configuracion Makefile](#configuracion-makefile)
+- [**Server Host to Host**](#server-host-to-host)
+- [**Examples**](#examples)
+  - [make all](#make-all)
+  - [make new](#make-new)
+  - [Datos para Testing](#datos-para-testing)
+  - [make run](#make-run)
+  - [run executable](#run-executable)
+  - [unittests](#unittests)
 
 # Financial Transaction
  Financial Transaction se basa en un software que simule una transacción financiera. El mismo deberá solicitar un monto, numero de tarjeta y código de seguridad por teclado. Luego enviara un mensaje a un host que devolverá el estado de la transacción (aprobada o rechazada).
@@ -53,7 +48,6 @@
 │       └── test.dat
 ├── inc     # Directorio con los header files del proyecto
 │   ├── CardsRegister.hpp
-│   ├── Exception.hpp
 │   ├── financial_transaction.hpp
 │   ├── main.hpp
 │   ├── PSocket.hpp
@@ -166,18 +160,6 @@ Ejemplo:
   - **Monto** ($124,54): 124.54 
   - **Code** : 123
 
-  
-<!--
-``` 
-Request:
- -------------------------------------------------
-| MTID |    Nro Tarjeta     |     Monto    | Code | 
- -------------------------------------------------
-| 0200 | 164517650654628311 | 000000012454 | 123  |
- -------------------------------------------------
-```
--->
- 
 
 
 | **MTID** | **Nro Tarjeta**    | **Monto**    | **Code** | 
@@ -211,20 +193,6 @@ Ejemplos:
 |          |              |             | 
 |   0210   |  !=00        | **FAILURE** |
  
-
-
-<!-- 
-``` 
-Request:
- -----------------
-| MTID | RespCode |
- -----------------
-| 0210 |    00    | SUCCESS
- -----------------  
-| 0210 |    47    | FAILURE
- -----------------
-~~
--->
  
 # Compilacion
 Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
@@ -246,18 +214,18 @@ Los target **run** y **debug** tiene habilitado la variable ARGS con la cual le 
 ## Instalaccion Fedora Red Hat
 ``` bash
 sudo dnf update -y
-sudo dnf install -y gcc gdb make llvm-toolset yum-utils libasan
+sudo dnf install -y gcc gdb make libasan libubsan gcc gcc-c++
 ```
 
 ## Instalaccion Debian
 ``` bash
 ## apt get
 sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install -y build-essential gdb
+sudo apt-get install -y build-essential make gdb
 
 ## aptitude
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y build-essential gdb
+sudo apt install -y build-essential make gdb
 ```
 
 
@@ -266,7 +234,6 @@ sudo apt install -y build-essential gdb
   
 ## Configuracion Makefile
 La configuración Básica contempla:
-  + Selección de la versión del proyecto **`VERSION`**, por defecto '0' tenemos una sola versión para este caso.
   
   + Selección de la versión del estándar de compilación **`STD_VER`** por defecto esta en '2023', que representa el estándar de **`-std=c++23`** (en su defecto para **GNU** **`-std=gnu++23`**).
   
@@ -275,6 +242,7 @@ La configuración Básica contempla:
     - 1 : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecución.
     - 2 : Habilita solo los Flags de GDB (para **`make debug`** este se establece de forma automática).
     
+> **Para el unittest se recomienda el estandar STD_VER con valores 2020, 2023 o superiores**.
 
 # Server Host to Host
 Para emular el servidor contamos con el source **`server.cpp`** que contiene el código del server, con el cual podemos lanzar pruebas. Para compilar y ejecutar este solo debemos ejecutar los siguentes target de **`Makefile`**:

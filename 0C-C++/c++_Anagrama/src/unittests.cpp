@@ -52,7 +52,6 @@ JEL            2026.05.22     0.0.1        Version Inicial no release
 
 struct TestCaseAnagram:public unittest::TestCase {
 
-
     void string_same_word(void) {
         std::string w1 = "carlos",w2="carlos";
         this->assert_false(checkAnagrama(w1,w2),contex());
@@ -62,7 +61,6 @@ struct TestCaseAnagram:public unittest::TestCase {
         const char* w2="carlos";
         this->assert_false(checkAnagrama(w1,w2),contex());
     }
-
     void string_diff_len(void) {
         std::string w1 = "carlos",w2="carlo";
         this->assert_false(checkAnagrama(w1,w2),contex());
@@ -71,7 +69,6 @@ struct TestCaseAnagram:public unittest::TestCase {
         const char *w1 = "carlos",*w2="carlo";
         this->assert_false(checkAnagrama(w1,w2),contex());
     }
-
     void string_ok(void) {
         using List = std::vector<std::pair<std::string,std::string>> ;
         List v_ok = {
@@ -158,7 +155,6 @@ struct TestCaseAnagram:public unittest::TestCase {
             this->assert_false(checkAnagrama(i1,i2),contex());
         }
     }
-
     void const_char_sensitive(void) {
         using List = std::vector<std::pair<const char*,const char*>> ;
         List v_ok = {
@@ -216,9 +212,105 @@ struct TestCaseAnagram:public unittest::TestCase {
         this->add_method("const_char_sensitive",&TestCaseAnagram::const_char_sensitive);
         this->add_method("const_char_sensitive_nok",&TestCaseAnagram::const_char_sensitive_nok);
         
-        
         this->add_method(Method::Init,&TestCaseAnagram::init);
         this->add_method(Method::deInit,&TestCaseAnagram::deinit);
+    }
+};
+
+struct TestCaseAnagramLibC:public unittest::TestCase {
+
+    void const_char_same_word(void) {
+        const char* w1 = "carlos";
+        const char* w2="carlos";
+        this->assert_false(check_anagrama(w1,w2),contex());
+    }
+
+    void const_char_diff_len(void) {
+        const char *w1 = "carlos",*w2="carlo";
+        this->assert_false(check_anagrama(w1,w2),contex());
+    }
+
+    void const_char_ok(void) {
+        using List = std::vector<std::pair<const char*,const char*>> ;
+        List v_ok = {
+            {"carlos","solarc"},
+            {"nacionalista","altisonancia"},            
+        };
+        
+        for (const auto& [i1,i2]:v_ok){
+            this->assert_not_equal(i1,i2,contex());
+            this->log->printf("check_anagrama(%s,%s)\n",i1,i2);
+            this->assert_true(check_anagrama(i1,i2),contex());
+        }
+    }
+    void const_char_nok(void) {
+        using List = std::vector<std::pair<const char*,const char*>> ;
+        List v_ok = {
+            {"carlos","alberto"},
+            {"Nacionalista","Altisonancia"},
+            {"Raiz","zi a"},
+        };
+        
+        for (const auto& [i1,i2]:v_ok){
+            this->assert_not_equal(i1,i2,contex());
+            this->log->printf("check_anagrama(%s,%s)\n",i1,i2);
+            this->assert_false(check_anagrama(i1,i2),contex());
+        }
+    }
+    void const_char_sensitive(void) {
+        using List = std::vector<std::pair<const char*,const char*>> ;
+        List v_ok = {
+            {"carlos","solarc"},
+            {"Nacionalista","Altisonancia"},
+            {"carlos","solarc"},
+            {"Nacionalista","Altisonancia"},
+            {"Roma","amor"},
+            {"fresa","Frase"},
+            {"GATO","gota"},
+            {"Sergio","riesgo"}
+        };
+        
+        for (const auto& [i1,i2]:v_ok){
+            this->assert_not_equal(i1,i2,contex());
+            this->log->printf("check_anagrama(%s,%s,true)\n",i1,i2);
+            this->assert_true(check_anagrama(i1,i2,true),contex());
+        }        
+    }
+    void const_char_sensitive_nok(void) {
+        using List = std::vector<std::pair<const char*,const char*>> ;
+        List v_nok = {
+            {"carlOs","Alberto"},
+            {"internacional","Altisonancia"},
+            {"CARLOS","carlos"},
+            {"CARLOS","Acaraz"}
+        };
+        
+        for (const auto& [i1,i2]:v_nok){
+            this->assert_not_equal(i1,i2,contex());
+            this->log->printf("check_anagrama(%s,%s,true)\n",i1,i2);
+            this->assert_false(check_anagrama(i1,i2,true),contex());
+        }        
+    }
+
+
+    void init(){
+        this->log->puts<LVL_SUCCESS>("Inicio de la ejecucion Class TestCaseAnagramLibC\n");
+    }
+    void deinit(){
+        this->log->puts<LVL_SUCCESS>("Fin    de la ejecucion Class TestCaseAnagramLibC\n");
+    }
+
+    virtual void register_method(void){
+        
+        this->add_method("const_char_same_word",&TestCaseAnagramLibC::const_char_same_word);
+        this->add_method("const_char_diff_len",&TestCaseAnagramLibC::const_char_diff_len);        
+        this->add_method("const_char_ok",&TestCaseAnagramLibC::const_char_ok);
+        this->add_method("const_char_nok",&TestCaseAnagramLibC::const_char_nok);
+        this->add_method("const_char_sensitive",&TestCaseAnagramLibC::const_char_sensitive);
+        this->add_method("const_char_sensitive_nok",&TestCaseAnagramLibC::const_char_sensitive_nok);
+
+        this->add_method(Method::Init,&TestCaseAnagramLibC::init);
+        this->add_method(Method::deInit,&TestCaseAnagramLibC::deinit);
     }
 };
 
@@ -233,6 +325,7 @@ struct TestCaseAnagram:public unittest::TestCase {
 int main(int /*argc*/, char* /*argv*/[]) {
     try{
         
+        #if 0
         {
             std::cout<<"\nTest ExecuteTestCases, smart pointer\n";
             unittest::ExecuteTestCases operations{
@@ -240,11 +333,13 @@ int main(int /*argc*/, char* /*argv*/[]) {
             };
             operations.run();
         }
+        #endif
 
-        if constexpr(0) {
-            std::cout<<"\nTest ExecuteTestCases, current pointer\n";
+        {
+            std::fputs("\nTest ExecuteTestCases, current pointer\n",stdout);
             unittest::ExecuteTestCases operations{
-                new TestCaseAnagram()            
+                new TestCaseAnagram(),
+                new TestCaseAnagramLibC()
             };
             operations.run();
         }      

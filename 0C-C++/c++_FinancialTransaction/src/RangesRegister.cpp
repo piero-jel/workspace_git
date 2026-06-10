@@ -47,6 +47,9 @@ JEL            2026.05.27     0.0.1   Version Inicial no release
 * ********************************************************************************** */
 #include <RangesRegister.hpp>
 
+#include <utilities>
+using namespace utilities;
+
 /**
  * @brief Redefinicion del operador '<<' para el tipo de dato \p RangesRegister
  *

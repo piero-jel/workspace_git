@@ -1,5 +1,5 @@
 /** ***********************************************************************************//**
-\addtogroup utilities
+\addtogroup utilstr
 \copyright Copyright &copy; 2026, Jesus Emanuel Luccioni
 All rights reserved.
 
@@ -8,16 +8,16 @@ This file is part of devops for Open Container (in this case docker )
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
-1. Redistributions of source code must retain the above copyright notice,
-this list of conditions and the following disclaimer.
+ 1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
 
-3. Neither the name of the copyright holder nor the names of its
-contributors may be used to endorse or promote products derived from this
-software without specific prior written permission.
+ 3. Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived from this
+    software without specific prior written permission.
 
 THIS SCRIPT IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,29 +30,29 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SCRIPT, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
-@file utilities
+@file utilstr
 @author Jesus Emanuel Luccioni - jeluccioni@gmail.com.
-@brief   utilities packages
-@details utilities for handlers STL
+@brief   ...
+@details ...
 @version 0.0.1.
-@date Viernes 22 de Junio de 2026.
+@date Viernes 5 de Junio de 2026.
 @pre condiciones que deben cuplirse antes del llamado,
 @bug depuracion example: Not all memory is freed when deleting an object of this class.
 @warning
 @note
 @Change History:
-Author         Date           Version      Brief
-JEL            2026.05.22     0.0.1        Version Inicial no release
+Author         Date                 Version      Brief
+JEL            2026.06.05     0.0.1   Version Inicial no release
 
 * ********************************************************************************** */
-#ifndef __utilities__
-#define __utilities__ /**<@brief Definimos el Nombre del modulo */
+#ifndef __utilstr__
+#define __utilstr__ /**<@brief header module name idem to pragma once */
 
 
-/* listamos los header con el namespace utilities{ }; */
-#include <exception.hpp>
-//#include <utilities.hpp>
+/* header file list fo namespace utilstr */
 
 
+#include <utilstr.hpp>
 
-#endif /* #ifndef __Utility__ */
+
+#endif /* #ifndef __utilstr__ */

@@ -50,404 +50,106 @@
 *
 * @} doxygen end group definition
 * ********************************************************************************************************* */
-/** 
- * \b VERSION  0 : checkAnagrama() con metodo sort in string
- * \b VERSION  1 : 
- * \b VERSION  2 : 
- * \b VERSION  3 :
- * \b VERSION  4 :
- * \b VERSION  5 :
- * 
- * \b VERSION 10 :
- * \b VERSION 11 :
- * \b VERSION 12 :
- * \b VERSION   :
- * \b VERSION   :
- * 
- * 
- */
-#if (!defined(VERSION))
-  #define VERSION 0
-#endif
 
 
 
-
-#if (VERSION == 0 )
 /* checkAnagrama */
 #include <iostream>
 #include <exception>
 #include <vector>
 #include <algorithm>
 
-
 #include <check_anagrama.hpp>
 
 
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
+/**
+ * \brief Funcion Principal
+ * \param[in] argc : cantidad de Argumentos pasados al invocar la app.
+ * \param[in] argv : puntero a puntero que contiene el listado de
+ * \return status de la ejecucion de la app.
+ *    - 0, success
+ *    - 1, failure 
+ * **/
 int main(int argc, char **argv) {  
-  using Container = std::vector<std::string>;
-  using Size = std::vector<std::string>::size_type;
-  using IT = Container::iterator;
-  using CIT = Container::const_iterator;
-  /*
-  Container vcta {"Hola","caro","fresa","emanuel"};
-  Container vctb {"chau","roca","fresa","Lalo"};
-  */
-  Container vcta,vctb;
-  if(argc>1 && (argc-1)%2 ){
-    std::cout<<"La cantidad de palabras debe ser par: <op1> <op2>, para el anagrama\n";
+    using Container = std::vector<std::string>;
+    using Size = std::vector<std::string>::size_type;
+    using IT = Container::iterator;
+    using CIT = Container::const_iterator;
+
+    Container vcta,vctb;
+    if(argc>1 && (argc-1)%2 ){
+        std::fputs("La cantidad de palabras debe ser par: <op1> <op2>, para el anagrama\n",stdout);
+        exit(EXIT_SUCCESS);
+    }
+
+    try{ 
+        if(argc < 2){
+            for(const auto& it :{"Hola","caro","fresa","emanuel"}){
+                vcta.emplace_back(it);
+            }
+            for(const auto& it : {"chau","roca","fresa","Lalo"}){
+                vctb.emplace_back(it);
+            }
+        }
+        else{
+            for(int i=1; i<argc; i +=2){
+                vcta.emplace_back(argv[i]);
+                vctb.emplace_back(argv[i+1]);
+            }
+        }
+
+        const auto lmb_checkAnagrama = [](const std::string& src1, 
+            const std::string& src2 ) -> bool {
+            if(src1.length() != src2.length())
+                return false;
+            std::string a = src1, b = src2;
+            std::sort(a.begin(),a.end());
+            std::sort(b.begin(),b.end());
+            
+            return (a == b)?true:false;
+        };
+
+        /* usando la expresion lamda */
+        std::fputs("usando la expresion lamda lmb_checkAnagrama()\n",stdout);
+        const Size& max = vcta.size();
+        Size i;
+        for(i = 0; i < max ;i++){
+            if(lmb_checkAnagrama(vcta.at(i),vctb.at(i)))
+                std::fprintf(stdout,"Datagram <%s> - <%s>\n",
+                    vcta.at(i).c_str(),vctb.at(i).c_str());
+            else
+                std::fprintf(stdout,"No Datagram <%s> - <%s>\n",
+                    vcta.at(i).c_str(),vctb.at(i).c_str());        
+        }  
+        
+        /* usando la funcion */        
+        CIT end = vcta.cend();
+
+        IT ita;
+        IT itb;
+        std::fputs("\n\nUsando la funcion checkAnagrama([std::string])\n",stdout);
+        for(ita = vcta.begin(),itb = vctb.begin(); ita != end ; ita++,itb++){
+            if(checkAnagrama(*ita,*itb,true))            
+                std::fprintf(stdout,"Datagram <%s> - <%s>\n", ita->c_str(),itb->c_str());            
+            else
+                std::fprintf(stdout,"No Datagram <%s> - <%s>\n", ita->c_str(),itb->c_str());            
+        }
+        std::fputs("\n\nUsando la funcion checkAnagrama([char*])\n",stdout);
+        for(ita = vcta.begin(),itb = vctb.begin(); ita != end ; ita++,itb++) {
+            if(checkAnagrama(ita->c_str(),itb->c_str(),true))
+                std::fprintf(stdout,"Datagram <%s> - <%s>\n", ita->c_str(),itb->c_str());
+            else
+                std::fprintf(stdout,"No Datagram <%s> - <%s>\n", ita->c_str(),itb->c_str());
+        } 
+    }
+    catch(const std::exception &e){
+        std::fprintf(stdout,"Excepcion Capturada \"%s\"\n",e.what());
+    }
+    catch(...) {
+        std::fputs("Excepcion Desconocida",stdout);
+    }    
+    std::fputc('\n',stdout);
     exit(EXIT_SUCCESS);
-  }
-
-  try{ 
-    if(argc < 2){
-      for(const auto& it :{"Hola","caro","fresa","emanuel"}){
-        vcta.emplace_back(it);
-      }
-      for(const auto& it : {"chau","roca","fresa","Lalo"}){
-        vctb.emplace_back(it);
-      }
-    }
-    else{
-      for(int i=1; i<argc; i +=2){
-        vcta.emplace_back(argv[i]);
-        vctb.emplace_back(argv[i+1]);
-      }
-    }
-
-    const auto lmb_checkAnagrama = [](const std::string& src1, const std::string& src2 ) -> bool {
-      if(src1.length() != src2.length())
-        return false;
-      std::string a = src1, b = src2;
-      std::sort(a.begin(),a.end());
-      std::sort(b.begin(),b.end());
-      if(a == b)
-        return true;
-      return false;
-    };
-
-    /* usando la expresion lamda */
-    std::cout<<"usando la expresion lamda lmb_checkAnagrama()" << '\n';
-    const Size& max = vcta.size();
-    Size i;
-    for(i = 0; i < max ;i++)
-    {
-      if(lmb_checkAnagrama(vcta.at(i),vctb.at(i)))
-      {
-        fprintf(stdout,"Datagram <%s> - <%s>\n", vcta.at(i).c_str(),vctb.at(i).c_str());
-      }
-      else
-        fprintf(stdout,"No Datagram <%s> - <%s>\n", vcta.at(i).c_str(),vctb.at(i).c_str());        
-    }  
-    /* usando la funcion */    
-    
-    CIT end = vcta.cend();
-
-    IT ita;
-    IT itb;
-    std::cout<<"\n\nUsando la funcion checkAnagrama([std::string])" << '\n';
-    for(ita = vcta.begin(),itb = vctb.begin(); ita != end ; ita++,itb++)
-    {
-      if(checkAnagrama(*ita,*itb,true))
-      {
-        fprintf(stdout,"Datagram <%s> - <%s>\n", ita->c_str(),itb->c_str());
-      }
-      else
-        fprintf(stdout,"No Datagram <%s> - <%s>\n", ita->c_str(),itb->c_str());
-    }  
-
-    std::cout<<"\n\nUsando la funcion checkAnagrama([char*])" << '\n';
-    for(ita = vcta.begin(),itb = vctb.begin(); ita != end ; ita++,itb++)
-    {
-      if(checkAnagrama(ita->c_str(),itb->c_str(),true))
-      {
-        fprintf(stdout,"Datagram <%s> - <%s>\n", ita->c_str(),itb->c_str());
-      }
-      else
-        fprintf(stdout,"No Datagram <%s> - <%s>\n", ita->c_str(),itb->c_str());
-    } 
-    
-  }
-  catch(const std::exception &e)  
-  {
-    std::cout<<"Excepcion Capturada \"" 
-             << e.what() <<'\"'<< std::endl;
-  }
-  catch(...)
-  {
-    std::cout<<"Excepcion Desconocida"<<std::endl;
-  }
-  
-  exit(EXIT_SUCCESS);
 }   
 
 
-
-#elif ( VERSION == 1 )
-/* FIXME */
-#include <bits/stdc++.h>
-
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{ 
-  try
-  { 
-   
-  }
-  catch(const std::exception &e)  
-  {
-    std::cout<<"Excepcion Capturada \"" 
-             << e.what() <<'\"'<< std::endl;
-  }
-  catch(...)
-  {
-    std::cout<<"Excepcion Desconocida"<<std::endl;
-  }
-  
-  exit(EXIT_SUCCESS);
-}   
-
-#elif ( VERSION == 2 )
-/* FIXME */
-#include <bits/stdc++.h>
-
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{ 
-  try
-  { 
-   
-  }
-  catch(const std::exception &e)  
-  {
-    std::cout<<"Excepcion Capturada \"" 
-             << e.what() <<'\"'<< std::endl;
-  }
-  catch(...)
-  {
-    std::cout<<"Excepcion Desconocida"<<std::endl;
-  }
-  
-  exit(EXIT_SUCCESS);
-}   
-
-
-#elif ( VERSION == 3 )
-/* FIXME  */
-#include <bits/stdc++.h>
-
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{  
-  try
-  {
-
-    
-  }
-  catch(const std::exception &e)
-  {
-    std::cout<<"Excepcion Capturada \"" 
-            << e.what() <<'\"'<< std::endl;
-  }
-  catch(...)
-  {
-    std::cout<<"Excepcion Desconocida"<<std::endl;
-
-  }
-  std::cout<<std::endl;
-  exit(EXIT_SUCCESS);
-}
-
-#elif ( VERSION == 4 )
-/* FIXME  */
-#include <bits/stdc++.h>
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{  
-  
-  std::cout<<std::endl;
-  exit(EXIT_SUCCESS);
-}                
-
-
-#elif ( VERSION == 5 )
-/* FIXME  */
-#include <bits/stdc++.h>
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{  
-  
-  std::cout<<std::endl;
-  exit(EXIT_SUCCESS);
-}
-
-#elif ( VERSION == 6 )
-/* FIXME */
-#include <bits/stdc++.h>
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{   
-
-  std::cout<<std::endl;
-  exit(EXIT_SUCCESS);
-}
-
-#elif ( VERSION == 7 )
-/* FIXME */
-#include <bits/stdc++.h>
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{   
-
-  std::cout<<std::endl;
-  exit(EXIT_SUCCESS);
-}
-
-#elif ( VERSION == 8 )
-/* FIXME */
-#include <bits/stdc++.h>
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{   
-
-  std::cout<<std::endl;
-  exit(EXIT_SUCCESS);
-}
-
-#elif ( VERSION == 9 )
-/* FIXME */
-#include <bits/stdc++.h>
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{   
-
-  std::cout<<std::endl;
-  exit(EXIT_SUCCESS);
-}
-
-#elif ( VERSION == 10 )
-/* FIXME */
-#include <bits/stdc++.h>
-
-/*
-* ******************************************************************************** 
-* \fn int main(int argc, char **argv);
-* \brief Funcion Principal
-* \param argc : cantidad de Argumentos pasados al invocar la app.
-* \param argv : puntero a puntero que contiene el listado de
-* \return status de la ejecucion de la app.
-*      \li 0, success
-*      \li 1, failure
-*********************************************************************************/
-int main(int argc, char **argv)
-{   
-
-  std::cout<<std::endl;
-  exit(EXIT_SUCCESS);
-}
-#else
-
-
-
-#endif

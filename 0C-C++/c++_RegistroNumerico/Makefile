@@ -57,27 +57,9 @@ APP_DEBUG := appdebug
 ## estas son pasadas en flag en barias etapas
 #LINKER_FLAGS = -lrt -pthread
 
-## metodo or in ifeq
-ifeq ($(VERSION),0)
-	APP = RegistroNumerico
-	ARGS = 
+APP = RegistroNumerico
+ARGS = 
 
-else ifeq ($(VERSION),1)
-	APP = RegistroNumerico
-
-else ifeq ($(VERSION),2)
-	APP = RegistroNumerico
-	ARGS =
-
-else ifeq ($(VERSION),3)
-	APP = RegistroNumerico
-	ARGS = 
-
-else
-  APP = RegistroNumerico
-  ARGS = 
-
-endif
 
 
 #CPP_FLAGS = -O2

@@ -56,7 +56,7 @@
 #include <fstream>
 #include <cstdint>
 #include <iomanip>  /* std::setfill, std::setw */
-#include <Exception.hpp>
+#include <utilities>
 
 
 /* =========================[ BEGIN class Register in File   ]=========================*/
@@ -82,10 +82,10 @@ struct RangesRegister{
         uint8_t l=0, uint16_t i = 0):len{l},id{i} {
         if(!rl || !rh) return ;
         if(!this->__check_digits(rl)) 
-            throw Exception ("Low range <%s> no esta compuesto solo por digitos",rl);
+            throw utilities::Exception ("Low range <%s> no esta compuesto solo por digitos",rl);
         
         if(!this->__check_digits(rh))
-            throw Exception ("Hight range <%s> no esta compuesto solo por digitos",rh);
+            throw utilities::Exception ("Hight range <%s> no esta compuesto solo por digitos",rh);
         
         if(rl) std::strncpy(this->low,rl,sizeof(this->low));
 
@@ -122,16 +122,16 @@ struct RangesRegister{
         const char* exmsg = "no esta compuesto solo por digitos";
         
         if(!this->__check_digits(str,8))
-            throw Exception ("Part low range <%.*s> %s",8,str,exmsg);
+            throw utilities::Exception ("Part low range <%.*s> %s",8,str,exmsg);
         
         if(!this->__check_digits(&str[9],8))
-            throw Exception("Part high range <%.*s> %s",8,&str[9],exmsg);
+            throw utilities::Exception("Part high range <%.*s> %s",8,&str[9],exmsg);
 
         if(!this->__check_digits(&str[18],2))
-            throw Exception("Part len <%.*s> %s",2,&str[18],exmsg);
+            throw utilities::Exception("Part len <%.*s> %s",2,&str[18],exmsg);
 
         if(!this->__check_digits(&str[21],4))
-            throw Exception("Part id <%.*s> %s",4,&str[21],exmsg);
+            throw utilities::Exception("Part id <%.*s> %s",4,&str[21],exmsg);
 
         std::memcpy(this->low,str,8);
         this->low[8] = '\0';

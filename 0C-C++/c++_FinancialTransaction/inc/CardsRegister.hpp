@@ -59,7 +59,8 @@
 #include <fstream>
 #include <cstdint>
 #include <iomanip>  /* std::setfill, std::setw */
-#include <Exception.hpp>
+#include <exception.hpp>
+
 
 /* =========================[ BEGIN class Register in File   ]=========================*/
 /**
@@ -182,7 +183,7 @@ struct CardsRegister{
         
         for(uint32_t i = 0; i<len; i++){
             if( std::isdigit(src[i]) == 0) {
-                throw Exception ("%s <%.*s> no esta compuesto solo por digitos",(msg)?msg:" ",len,src);          
+                throw utilities::Exception ("%s <%.*s> no esta compuesto solo por digitos",(msg)?msg:" ",len,src);          
             }
         }
     }
