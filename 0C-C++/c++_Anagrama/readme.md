@@ -1,18 +1,13 @@
 # Contenido
 
-- [Contenido](#contenido)
-- [Anagrama](#anagrama)
-- [Esquema de directorios de la Aplicacion](#esquema-de-directorios-de-la-aplicacion)
-- [Compilacion](#compilacion)
-  - [Instalaccion Fedora Red Hat](#instalaccion-fedora-red-hat)
-  - [Instalaccion Debian](#instalaccion-debian)
-  - [Configuracion Makefile](#configuracion-makefile)
-- [Examples](#examples)
-  - [make all](#make-all)
-  - [make new](#make-new)
-  - [make run](#make-run)
-  - [run executable](#run-executable)
-  - [run unittests](#run-unittests)
+- [**Contenido**](#contenido)
+- [**Anagrama**](#anagrama)
+- [**Esquema de directorios de la Aplicacion**](#esquema-de-directorios-de-la-aplicacion)
+- [**Compilacion**](#compilacion)
+  + [**Configuracion Makefile**](#configuracion-makefile)
+
+- [**Preparación del entorno**](#preparación-del-entorno)
+- [**Run Examples**](#examples)
 
 # Anagrama
 Programa/funciones que permite verificar si dos palabras son un Anagrama.
@@ -20,6 +15,9 @@ Programa/funciones que permite verificar si dos palabras son un Anagrama.
   > ***Una palabra es anagrama de otra si las dos tienen las mismas letras, con el mismo número de apariciones, pero en un orden diferente***.
 
 # Esquema de directorios de la Aplicacion
+
+<details><summary><b>Tree Directory</b></summary>
+
 ``` bash
 .
 ├── app   # directorio donde se generan los ejecutables
@@ -41,41 +39,60 @@ Programa/funciones que permite verificar si dos palabras son un Anagrama.
 
 ```
 
+</details><br>
+
   + **app** : Directorio donde se colocara el ejecutable.
   + **inc** : Directorio donde se localizan los header files.
   + **src** : Directorio donde colocamos los source files.
   + **out** : Directorio donde se colocaran los object files, resultado de la compilación.
-  + **`.vscode`** : este contiene los `.*json` con path  relativos y setting para depurar el proyecto desde el IDE. 
+  + **`.vscode`** : este contiene los **`.*json`** con path  relativos y setting para depurar el proyecto desde el IDE. 
 
-  + **Makefile** : Archivo con los target de compilación para `make`. 
+  + **Makefile** : Archivo con los target de compilación para el comando **`make`**. 
   + **readme.md** : este documento 
     
   
 # Compilacion
 Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
 
-  + **`make all`** : default, este compila los sources.
-  + **`make clean`** : elimina los objects files y el ejecutable.
-  + **`make new`** : ejecuta un clean y vuelve a compilar.
-  + **`make run`** : Si no se compilo aun compila los sources y luego ejecuta.
-  + **`make debug`** : Este lanza una sesión de gdb para el debug del proyecto.
-  + **`make unittests`** : compila y ejecuta el unittest del proyecto.
+  + **`make all`** default, este compila los sources.
+  + **`make clean`** elimina los objects files y el ejecutable.
+  + **`make new`** ejecuta un clean y vuelve a compilar.
+  + **`make run`** si no se compilo aun compila los sources y luego ejecuta.
+  + **`make debug`** este lanza una sesión de gdb para el debug del proyecto.
+  + **`make unittests`** compila y ejecuta el unittest del proyecto.
   
 Para que los target anteriores pueda ejecutarse debemos tener instalado en el sistema **`gcc/g++`**, y **make**.
 
-Los target **run** y **debug** tiene habilitado la variable ARGS con la cual le pasamos al ejecutable (o session de GDB) los argumentos.
+Los target **run** y **debug** tiene habilitado la variable **ARGS** con la cual le pasamos al ejecutable (**Session de GDB**) los argumentos.
 
+## Configuracion Makefile
+La configuración Básica contempla:
 
+  + Selección de la versión del estándar de compilaccion **`STD_VER`** por defecto esta en '**2023**', que representa el estándar de **`c++23`**.
+  
+  + Setting de depuración de memoria **`DEBUG_ON`**, por defecto **'0'**.
+  
+    - **0** : Deshabilita las opciones de debug y **sanitize**, opcion por defecto.
+    - **1** : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecucion.
+    - **2** : Habilita solo los Flags de GDB (para **`make debug`** este se establece de forma automatica).
+    
+  + Setting Arguments **`ARGS`** esta variable nos permite establecer el listado de argumentos que se pasa en la ejecución o depuración del proyecto. 
 
+> **Para el unittest se recomienda el estandar STD_VER con valores 2020, 2023 o superiores**.
 
+# Preparación del entorno
+Este depende de que distribución estemos usando, para estos ejemplos tenemos :
 
-## Instalaccion Fedora Red Hat
+<details><summary style="font-weight: bold; font-size: 14px;"><b>Instalación Fedora Red Hat</b></summary>
+
 ``` bash
 sudo dnf update -y
 sudo dnf install -y gcc gdb make libasan libubsan gcc gcc-c++
 ```
 
-## Instalaccion Debian
+</details>
+<details><summary style="font-weight: bold; font-size: 14px;"><b>Instalación Debian</b></summary>
+
 ``` bash
 ## apt get
 sudo apt-get update && sudo apt-get upgrade -y
@@ -86,26 +103,15 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y build-essential make gdb
 ```
 
+</details>
+<br>
 
 
-  
-  
-## Configuracion Makefile
-La configuración Básica contempla:
-
-  + Selección de la versión del estándar de compilaccion **`STD_VER`** por defecto esta en '2023', que representa el estándar de `c++23`.
-  
-  + Setting de depuración de memoria **`DEBUG_ON`**, por defecto '0':
-    - 0 : Deshabilita las opciones de debug y **sanitize**, opcion por defecto.
-    - 1 : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecucion.
-    - 2 : Habilita solo los Flags de GDB (para **`make debug`** este se establece de forma automatica).
-    
-  4. Setting Arguments ```ARGS``` esta variable nos permite establecer el listado de argumentos que se pasa en la ejecución o depuración del proyecto. 
-
-  > **Para el unittest se recomienda el estandar STD_VER con valores 2020, 2023 o superiores**.
 
 # Examples
-## make all
+
+<details><summary><b>make all</b></summary>
+
 ``` bash
 make
 
@@ -117,7 +123,9 @@ Tamaño del archivo ejecutable formato:
 ===========[END, compiling: "Datagram_v0"]==========
 ```
 
-## make new
+</details>
+<details><summary><b>make new</b></summary>
+
 ``` bash
 make new
 
@@ -131,7 +139,8 @@ Tamaño del archivo ejecutable formato:
 ===========[END, compiling: "Datagram_v0"]==========
 ```
 
-## make run
+</details>
+<details><summary><b>make run</b></summary>
 
 ```bash
 make run
@@ -141,12 +150,7 @@ Tamaño del archivo ejecutable formato:
    text    data     bss     dec     hex filename
   43194     856     344   44394    ad6a ./app/Datagram_v0
 ===========[END, compiling: "Datagram_v0"]==========
-```
 
-<details>
-  <summary><b>run</b></summary>
-
-``` bash
 ./app/Datagram_v0 ARGS = ''carlos' 'solarc' 'Nacionalista' 'Altisonancia'', CASE = ''
 usando la expresion lamda lmb_checkAnagrama()
 Datagram <carlos> - <solarc>
@@ -162,11 +166,10 @@ Usando la funcion checkAnagrama([char*])
 Datagram <carlos> - <solarc>
 Datagram <Nacionalista> - <Altisonancia>
 ```
-    
+
 </details>
+<details><summary><b>run executable</b></summary>
 
-
-## run executable
 ``` bash
 app/Datagram_v0 carlos solarc Nacionalista Altisonancia
 usando la expresion lamda lmb_checkAnagrama()
@@ -184,15 +187,12 @@ Datagram <carlos> - <solarc>
 Datagram <Nacionalista> - <Altisonancia>
 ```
 
-## run unittests
-```bash
-make unittests 
-```
-
-<details>
-  <summary><b>unittests</b></summary>
+</details>
+<details><summary><b>run unittests</b></summary>
 
 ```bash
+make unittests_run
+
 ===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
 
 Tamaño del archivo ejecutable formato:
@@ -271,6 +271,7 @@ Run Sucess Method const_char_sensitive_nok
 Fin    de la ejecucion Class TestCaseAnagram
 Run 8 test case, 8 Success and 0 with error.
 ```
- 
+
 </details>
+
 

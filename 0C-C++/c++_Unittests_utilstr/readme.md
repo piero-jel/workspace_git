@@ -51,6 +51,17 @@ Para que los target anteriores pueda ejecutarse se recomienda tener instalado **
 
 Los target **run** y **debug** tiene habilitado la variable **`ARGS`** con la cual le pasamos al ejecutable (o session de GDB) los argumentos.
 
+## Configuración Makefile
+La configuración Básica contempla:
+  + Selección de la versión del estándar de compilaccion **`STD_VER`** por defecto esta en '2023', que representa el estándar de c++23.
+  + Setting de depuración de memoria **`DEBUG_ON`**, por defecto '0':
+  
+    - 0 : Deshabilita las opciones de debug.
+    - 1 : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecucion.
+    - 2 : Habilita solo los Flags de GDB (para **`make debug`** este se establece de forma automatica).
+    
+> **Se recomienda el estandar STD_VER con valores 2020, 2023 o superiores**.
+
 # Preparación del entorno
 Este depende de que distribución estemos usando, para estos ejemplos tenemos :
 
@@ -79,16 +90,7 @@ sudo apt install -y build-essential make gdb
 
   
   
-## Configuración Makefile
-La configuración Básica contempla:
-  + Selección de la versión del estándar de compilaccion **`STD_VER`** por defecto esta en '2023', que representa el estándar de c++23.
-  + Setting de depuración de memoria **`DEBUG_ON`**, por defecto '0':
-  
-    - 0 : Deshabilita las opciones de debug.
-    - 1 : Habilita el **sanitize** para el tracking de memoria reservada (monitoreo del Heap) en tiempo de ejecucion.
-    - 2 : Habilita solo los Flags de GDB (para **`make debug`** este se establece de forma automatica).
-    
-> **Se recomienda el estandar STD_VER con valores 2020, 2023 o superiores**.
+
 
 # Examples
 

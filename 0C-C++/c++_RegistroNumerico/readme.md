@@ -1,18 +1,14 @@
 # Contenido
 
-- [Contenido](#contenido)
-- [Registro Numerico](#registro-numerico)
-- [Esquema de directorios de la Aplicacion](#esquema-de-directorios-de-la-aplicacion)
-- [Compilacion](#compilacion)
-  - [Instalaccion Fedora Red Hat](#instalaccion-fedora-red-hat)
-  - [Instalaccion Debian](#instalaccion-debian)
-  - [Configuracion Makefile](#configuracion-makefile)
-- [Examples](#examples)
-  - [make all](#make-all)
-  - [make new](#make-new)
-  - [make run](#make-run)
-  - [run executable](#run-executable)
-  - [unittests](#unittests)
+- [**Contenido**](#contenido)
+- [**Registro Numerico**](#registro-numerico)
+- [**Esquema de directorios de la Aplicacion**](#esquema-de-directorios-de-la-aplicacion)
+- [**Compilacion**](#compilacion)
+  + [Configuracion Makefile](#configuracion-makefile)
+  
+- [**Preparación del entorno**](#preparación-del-entorno)
+- [**Run Examples**](#examples)
+- [**unittests**](#unittests)
 
 # Registro Numerico
 El registro de Numeros se basa en un programa que solicite al usuario el ingreso de numeros enteros y los guarde en un archivo de acuerdo a los siguentes requerimientos:
@@ -28,6 +24,9 @@ El registro de Numeros se basa en un programa que solicite al usuario el ingreso
   + Seinformara si el archivo fue guardado con exito o si fallo y luego terminara la ejecucion del programa.
  
 # Esquema de directorios de la Aplicacion
+
+<details><summary><b>Tree Directory</b></summary>
+
 ```bash
 .
 ├── app  # Directorios de los ejecutables
@@ -44,6 +43,7 @@ El registro de Numeros se basa en un programa que solicite al usuario el ingreso
 
 ```
 
+</details><br>
 
   + **app** : Directorio donde se colocara el ejecutable.
   + **inc** : Directorio donde se localizan los header files.
@@ -73,28 +73,6 @@ Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
 Para que los target anteriores pueda ejecutarse se recomienda tener instalado **gcc/g++**, y **make**, de caso contrario debemos instalarlos.
 
 Los target **run** y **debug** tiene habilitado la variable ARGS con la cual le pasamos al ejecutable (o session de GDB) los argumentos.
-
-
-## Instalaccion Fedora Red Hat
-``` bash
-sudo dnf update -y
-sudo dnf install -y gcc gdb make libasan libubsan gcc gcc-c++
-```
-
-## Instalaccion Debian
-``` bash
-## apt get
-sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install -y build-essential make gdb
-
-## aptitude
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y build-essential make gdb
-```
-
-
-
-  
   
 ## Configuracion Makefile
 La configuración Básica contempla:
@@ -107,7 +85,35 @@ La configuración Básica contempla:
     
 > **Para el unittest se recomienda el estandar STD_VER con valores 2020, 2023 o superiores**.
 
+# Preparación del entorno
+Este depende de que distribución estemos usando, para estos ejemplos tenemos :
+
+<details><summary style="font-weight: bold; font-size: 14px;"><b>Instalación Fedora Red Hat</b></summary>
+
+``` bash
+sudo dnf update -y
+sudo dnf install -y gcc gdb make libasan libubsan gcc gcc-c++
+```
+
+</details>
+<details><summary style="font-weight: bold; font-size: 14px;"><b>Instalación Debian</b></summary>
+
+``` bash
+## apt get
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get install -y build-essential make gdb
+
+## aptitude
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y build-essential make gdb
+```
+
+</details>
+<br>
+
 # Examples
+
+<details><summary><b>make all</b></summary>
 ## make all
 ``` bash
 make
@@ -120,8 +126,9 @@ Tamaño del archivo ejecutable formato:
 ===========[END, compiling: "RegistroNumerico_v0"]==========
 
 ```
+</details>
+<details><summary><b>make new</b></summary>
 
-## make new
 ``` bash
 make new
 
@@ -135,7 +142,9 @@ Tamaño del archivo ejecutable formato:
 ===========[END, compiling: "RegistroNumerico_v0"]==========
 ```
 
-## make run
+</details>
+<details><summary><b>make run</b></summary>
+
 ``` bash
 make run
 
@@ -164,7 +173,9 @@ cat out/test_01.txt
 9876543210
 ```
 
-## run executable
+</details>
+<details><summary><b>run executable</b></summary>
+
 ``` bash
 app/RegistroNumerico_v0 
 Ingrese un Registro Numerico de hasta 10 Digitos: 9874563
@@ -180,7 +191,11 @@ cat out/test_02.txt
 0009874563
 0000000123
 ```
-## unittests
+
+</details>
+<br>
+
+# unittests
 Compilación de los unittests
 
 ```bash

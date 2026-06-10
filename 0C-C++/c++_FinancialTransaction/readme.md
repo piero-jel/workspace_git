@@ -3,25 +3,22 @@
 - [**Financial Transaction**](#financial-transaction)
 - [**Esquema de directorios de la Aplicacion**](#esquema-de-directorios-de-la-aplicacion)
 - [**Verificacion Numero Tarjeta**](#verificacion-numero-tarjeta)
-  - [Archivo de Rangos](#archivo-de-rangos)
-  - [Archivo de Etiquetas de Tarjetas](#archivo-de-etiquetas-de-tarjetas)
-  - [Proceso de Verificación](#proceso-de-verificación)
+  + [**Archivo de Rangos**](#archivo-de-rangos)
+  + [**Archivo de Etiquetas de Tarjetas**](#archivo-de-etiquetas-de-tarjetas)
+  + [**Proceso de Verificación**](#proceso-de-verificación)
 - [**Message**](#message)
-  - [Request Message](#request-message)
-  - [Response Message](#response-message)
+  + [**Request Message**](#request-message)
+  + [**Response Message**](#response-message)
+  
 - [**Compilacion**](#compilacion)
-  - [Instalaccion Fedora Red Hat](#instalaccion-fedora-red-hat)
-  - [Instalaccion Debian](#instalaccion-debian)
-  - [Configuracion Makefile](#configuracion-makefile)
+  + [Configuracion Makefile](#configuracion-makefile)
+  
+- [**Preparación del entorno**](#preparación-del-entorno)
+  
 - [**Server Host to Host**](#server-host-to-host)
-- [**Examples**](#examples)
-  - [make all](#make-all)
-  - [make new](#make-new)
-  - [Datos para Testing](#datos-para-testing)
-  - [make run](#make-run)
-  - [run executable](#run-executable)
-  - [unittests](#unittests)
-
+- [**Run Examples**](#examples)
+- [**unittests**](#unittests)
+  
 # Financial Transaction
  Financial Transaction se basa en un software que simule una transacción financiera. El mismo deberá solicitar un monto, numero de tarjeta y código de seguridad por teclado. Luego enviara un mensaje a un host que devolverá el estado de la transacción (aprobada o rechazada).
  
@@ -38,6 +35,9 @@
   6. Mostrar la respuesta en pantalla, en función del [**response message**](#response-message). Si el código de respuesta es **"00"** , indica que la transacción fue aprobada y deberá mostrar ***"APROBADA"*** en pantalla. Si el codigo de respuesta es cualquier otro valor, deberá mostrar ***"RECHAZADA"*** .
  
 # Esquema de directorios de la Aplicacion
+
+<details><summary><b>Tree Directory</b></summary>
+
 ``` bash
 .
 ├── app     # Directorios de los ejecutables
@@ -64,8 +64,9 @@
     ├── server.cpp
     └── unittests.cpp
 
-
 ```
+
+</details><br>
 
   + **app** : Directorio donde se colocaran los ejecutables.
     - **FinancialTransaction_v0** : de la aplicación.
@@ -160,6 +161,18 @@ Ejemplo:
   - **Monto** ($124,54): 124.54 
   - **Code** : 123
 
+  
+<!--
+``` 
+Request:
+ -------------------------------------------------
+| MTID |    Nro Tarjeta     |     Monto    | Code | 
+ -------------------------------------------------
+| 0200 | 164517650654628311 | 000000012454 | 123  |
+ -------------------------------------------------
+```
+-->
+ 
 
 
 | **MTID** | **Nro Tarjeta**    | **Monto**    | **Code** | 
@@ -187,12 +200,25 @@ Ejemplos:
   - Code : **`00`**, succes
   - Code : **`47`**, no succes
   
-| **MTID** | **RespCode** | **Status**  |
-|:--------:|:------------:|:------------|
-|   0210   |    00        | **SUCCESS** |
-|          |              |             | 
-|   0210   |  !=00        | **FAILURE** |
+| **MTID**   | **RespCode** | **Status**  |
+|:----------:|:------------:|:------------|
+| **`0210`** | **`  00`**   | **SUCCESS** |
+| **`0210`** | **`!=00`**   | **FAILURE** |
  
+
+
+<!-- 
+``` 
+Request:
+ -----------------
+| MTID | RespCode |
+ -----------------
+| 0210 |    00    | SUCCESS
+ -----------------  
+| 0210 |    47    | FAILURE
+ -----------------
+~~
+-->
  
 # Compilacion
 Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
@@ -209,28 +235,6 @@ Dentro del directorio root tenemos un **Makefile** con los siguientes targets:
 Para que los target anteriores pueda ejecutarse se recomienda tener instalado **gcc/g++**, y **make**, de caso contrario debemos instalarlos.
 
 Los target **run** y **debug** tiene habilitado la variable ARGS con la cual le pasamos al ejecutable (o session de **GDB**) los argumentos.
-
-
-## Instalaccion Fedora Red Hat
-``` bash
-sudo dnf update -y
-sudo dnf install -y gcc gdb make libasan libubsan gcc gcc-c++
-```
-
-## Instalaccion Debian
-``` bash
-## apt get
-sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install -y build-essential make gdb
-
-## aptitude
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y build-essential make gdb
-```
-
-
-
-  
   
 ## Configuracion Makefile
 La configuración Básica contempla:
@@ -244,8 +248,40 @@ La configuración Básica contempla:
     
 > **Para el unittest se recomienda el estandar STD_VER con valores 2020, 2023 o superiores**.
 
+
+
+# Preparación del entorno
+Este depende de que distribución estemos usando, para estos ejemplos tenemos :
+
+<details><summary style="font-weight: bold; font-size: 14px;"><b>Instalación Fedora Red Hat</b></summary>
+
+``` bash
+sudo dnf update -y
+sudo dnf install -y gcc gdb make libasan libubsan gcc gcc-c++
+```
+
+</details>
+<details><summary style="font-weight: bold; font-size: 14px;"><b>Instalación Debian</b></summary>
+
+``` bash
+## apt get
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get install -y build-essential make gdb
+
+## aptitude
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y build-essential make gdb
+```
+
+</details>
+<br>
+
+
+
 # Server Host to Host
 Para emular el servidor contamos con el source **`server.cpp`** que contiene el código del server, con el cual podemos lanzar pruebas. Para compilar y ejecutar este solo debemos ejecutar los siguentes target de **`Makefile`**:
+
+<details><summary><b>make server</b></summary>
 
 ``` bash
 # solo compila
@@ -255,8 +291,8 @@ make server
 make server_run
 ```
 
-<details>
-  <summary><b>run server</b></summary>
+</details>
+<details><summary><b>run server</b></summary>
 
 ``` bash
 ==========[ BEGIN, compiling C++ file ./src/server.cpp ]==========
@@ -294,8 +330,7 @@ En caso de querer ejecutarlo directamente el binario solo debemos realizarlo de 
 app/Host2HostServer_v1 3000
 ```
 
-<details>
-  <summary><b>example run</b></summary>
+<details><summary><b>example run</b></summary>
 
 ``` bash
 Server Up in <0.0.0.0:3000>
@@ -314,14 +349,9 @@ Ingrese Codigo de Respuesta: 00
 
 
 # Examples
-  - [**`make all`**](#make-all)
-  - [**`make new`**](#make-new)
-  - [**Datos para Testing**](#datos-para-testing)
-  - [**`make run`**](#make-run)
-  - [**run executable**](#run-executable)
-  - [**unittests**](#unittests)
-    
-## make all
+
+<details><summary><b>make all</b></summary>
+
 ``` bash
 make 
 
@@ -334,7 +364,9 @@ Tamaño del archivo ejecutable formato:
 
 ```
 
-## make new
+</details>
+<details><summary><b>make new</b></summary>
+
 ``` bash
 make new
 
@@ -348,18 +380,24 @@ Tamaño del archivo ejecutable formato:
 ===========[END, compiling: "FinancialTransaction_v0"]==========
 ```
 
-## Datos para Testing
-  1. Ingresar el saldo, solo hasta dos dígitos decimales (dos dígitos después del punto decimal), *ex ($124,54): 124.54* 
+</details>
+<br>
 
-  2. Ingreso NroTarjeta, *ex: 4517650654628311*
+<div style="display: grid; grid-template-columns: 1fr 1fr;">
+<div style="text-align: left; font-size: 14px">
 
-  3. Ingreso de Clave de seguridad (solo 3-Digito), *ex: 123*
-  
+**Datos para Testing**
+1. Ingresar el saldo, solo hasta dos dígitos decimales (dos dígitos después del punto decimal), *ex ($124,54): 124.54* 
+
+2. Ingreso NroTarjeta, *ex: 4517650654628311*
+
+3. Ingreso de Clave de seguridad (solo 3-Digito), *ex: 123*
+
 Esto debe enviar al server el msg con el **MTID 0200** y demás datos.
-    
-  4. Del lado del servidor se recibirá la respuesta con el **MTID 0210** seguida del código:
-    - '00' , aprobada ok
-    - Distinto de '00' error, trx rechazada.
+  
+4. Del lado del servidor se recibirá la respuesta con el **MTID 0210** seguida del código:
+  - '00' , aprobada ok
+  - Distinto de '00' error, trx rechazada.
 
 <!-- 
 Ingrese el monto (hasta 2 decimales Implícitos): 124.54
@@ -372,22 +410,60 @@ Request to send: 0200164517650654628311000000012454123
 
 | 0200 | 16 4517650654628311 | 000000012454 | 123
 
-
-
-
-
 -->
 
-## make run
-```bash
-make clean
-make run
-```
+    
+</div>
+<div style="text-align: left; font-size: 14px">
+<details><summary><b>run server</b></summary>
 
-<details>
-<summary><b>run client</b></summary>
+Sobre una terminal ejecutamos el server, de la siguente forma:
+
+```bash
+make server_run 
+
+==========[ BEGIN, compiling C++ file ./src/CardsRegister.cpp ]==========
+==========[ END, compiling C++ file ./src/CardsRegister.cpp ]==========
+
+
+==========[ BEGIN, compiling C++ file ./src/financial_transaction.cpp ]==========
+==========[ END, compiling C++ file ./src/financial_transaction.cpp ]==========
+
+
+==========[ BEGIN, compiling C++ file ./src/PSocket.cpp ]==========
+==========[ END, compiling C++ file ./src/PSocket.cpp ]==========
+
+
+==========[ BEGIN, compiling C++ file ./src/RangesRegister.cpp ]==========
+==========[ END, compiling C++ file ./src/RangesRegister.cpp ]==========
+
+
+==========[ BEGIN, compiling C++ file ./src/server.cpp ]==========
+==========[ END, compiling C++ file ./src/server.cpp ]==========
+
+
+===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
+
+Tamaño del archivo ejecutable formato:
+   text    data     bss     dec     hex filename
+  61689    1516     320   63525    f825 ./app/Host2HostServer
+===========[END, compiling: "Host2HostServer"]==========
+
+Server Up in <0.0.0.0:3000>
+
+
+```
+  > Para detener este, en caso de no ejecutar el cliente, debemos presionar la combinacion **`Ctrl+c`**.
+  
+</details>
+<details><summary><b>run client</b></summary>
+
+Sobre una nueva terminal ejecutamos el clien:
 
 ``` bash
+make clean
+make run
+
 ===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
 
 Tamaño del archivo ejecutable formato:
@@ -414,15 +490,17 @@ Response: 021000
 OPERACION APROVADA
 ```
 
+  > Para este caso debemos considerar que tenemos un server escuchando en la ip y puerto cargado como parámetro **ARGS**.
+
 </details>
+</div>
+</div>
 <br>
 
-Para este caso debemos considerar que tenemos un server escuchando en la ip y puerto cargado como parámetro **ARGS**.
+<div style="display: grid; grid-template-columns: 1fr 1fr;">
+<div style="text-align: left; font-size: 14px">
 
-## run executable
-
-<details>
-<summary><b>run sin server</b></summary>
+<details><summary><b>run executable sin server</b></summary>
 
 ``` bash
 app/FinancialTransaction_v0 -i 127.0.0.1 -p3000 -t10000 -r files/local/ranges.dat -c files/local/cards.dat
@@ -436,10 +514,11 @@ Error "Could not bind to Server <127.0.0.1:3000>"
   > ***Para este caso vemos la respuesta cuando el servidor no esta disponible o los datos aportados no son correctos***.
 
 </details>
-<br>
-
-<details>
-<summary><b>run with server up</b></summary>
+    
+</div>
+<div style="text-align: left; font-size: 14px">
+    
+<details><summary><b>run executable with server up</b></summary>
 
 ``` bash
 app/FinancialTransaction_v0 -i 127.0.0.1 -p3000 -t10000 -r files/local/ranges.dat -c files/local/cards.dat
@@ -462,17 +541,27 @@ OPERACION RECHAZADA CON EL CODIGO <89>
 ```
 
 </details>
+</div>
+</div>
+<br>
 
 
-## unittests
+
+
+# unittests
+
+<div style="display: grid; grid-template-columns: 1fr 1fr;">
+<div style="text-align: left; font-size: 14px">
+
 Compilación de los unittests
+
+<details><summary><b>make unittests</b></summary>
 
 ```bash
 make unittests
 ```
-
-<details>
-<summary><b>compile</b></summary>
+</details>
+<details><summary><b>compile</b></summary>
 
 ```bash
 make clean
@@ -507,15 +596,79 @@ Tamaño del archivo ejecutable formato:
 ```
     
 </details>
+</div>
+<div style="text-align: left; font-size: 14px">
 
+Ejecución de los unittests
 
-Ejecución de los unittests:
+<details><summary><b>make unittests_run</b></summary>
 
 ```bash
 make unittests_run
+
+===========[BEGIN, compiling VERSION: 0, STD_VER: 2020 ]==========
+
+Tamaño del archivo ejecutable formato:
+   text    data     bss     dec     hex filename
+ 191749    1700     368  193817   2f519 ./app/unittest_app
+===========[END, compiling: "unittest_app"]==========
+
+
+Test ExecuteTestCases, current pointer
+Inicio de la ejecucion Class TestPSocket
+response: test    0
+response: test    1
+response: test    2
+response: test    3
+response: test    4
+client.Disconnect() err :0
+Run Sucess Method echo
+close() err :0
+Fin    de la ejecucion Class TestPSocket
+
+Inicio de la ejecucion Class TestAmount
+Run Sucess Method get_ok
+Run Sucess Method get_ok_list
+Run Sucess Method get_not_number
+Run Sucess Method get_too_long
+Run Sucess Method get_neg_value
+Fin    de la ejecucion Class TestAmount
+
+Inicio de la ejecucion Class TestCardCode
+Run Sucess Method get_ok
+Run Sucess Method get_ok_list
+Run Sucess Method get_not_number
+Run Sucess Method get_too_long
+Fin    de la ejecucion Class TestCardCode
+
+Inicio de la ejecucion Class TestCardNumber
+Run Sucess Method get_ok
+Run Sucess Method get_ok_list
+Run Sucess Method get_too_short
+Run Sucess Method get_not_number
+Fin    de la ejecucion Class TestCardNumber
+
+Inicio de la ejecucion Class TestVerifyCardNumber
+Card Register  : <BAN Nro 0010> | <10>
+Range Register : <[45176501] [45176600]> | <16> | <10>
+Run Sucess Method get_ok
+Run Sucess Method get_nok
+Run Sucess Method frange_notfound
+Run Sucess Method fcards_notfound
+Fin    de la ejecucion Class TestVerifyCardNumber
+
+Run 18 test case, 18 Success and 0 with error.
+
 ```
 
+</details>
+</div>
+</div>
+
   > No es necesario ejecutar en secuencia, primero el `make unittests` y luego `make unittests_run` si solo queremos ejecutar los mismos. Al estar armada las dependencias dentro del makefile con solo ejecutar `make unittests_run` se compilara lo necesario para armar el binario correspondiente para luego ejecutarlo.
+
+
+
 
 
 
