@@ -1,6 +1,7 @@
 # Project Examples
   + [**Python**](0P-Python/readme.md#python-examples)
   + [**C plus plus**](0C-C++/readme.md#c-plus-plus-examples)
+  + [**Otros Repositorios**](#otros-repositorios)
 
   
 ## Python
@@ -20,3 +21,8 @@
   - [**Registro Numerico**](0C-C++/c++_RegistroNumerico/readme.md#contenido)
   - [**Unittests utilstr**](0C-C++/c++_Unittests_utilstr/readme.md#contenido)
   
+## Otros Repositorios
+  - [**GNU C Services**](https://github.com/piero-jel/workspace_c_git)
+  - [**C Commands**](https://gitlab.com/je_luccioni/workspace_gpos_command)
+  - [**BareMetal and FreeRTOS**](https://github.com/piero-jel/Workspace_stm32)
+  - [**PIC 8-Bit FSM**](https://gitlab.com/je_luccioni/maquina_cafe_con_lcd)
